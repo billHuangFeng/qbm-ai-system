@@ -1,37 +1,53 @@
 from fastapi import FastAPI
 from fastapi.middleware.cors import CORSMiddleware
-from app.api import auth, users, data, analysis
-from app.config import settings
+from contextlib import asynccontextmanager
+
+from .core.config import settings
+from .database import create_tables
+from .api.v1.api import api_router
+
+@asynccontextmanager
+async def lifespan(app: FastAPI):
+    """应用生命周期管理"""
+    # 启动时执行
+    create_tables()
+    yield
+    # 关闭时执行
+    pass
 
 app = FastAPI(
-    title="QBM AI System",
-    description="AI增强的商业模式量化分析系统",
-    version="1.0.0"
+    title=settings.APP_NAME,
+    description="AI-enhanced Business Model Quantitative Analysis System",
+    version=settings.APP_VERSION,
+    openapi_url=f"{settings.API_V1_STR}/openapi.json",
+    lifespan=lifespan
 )
 
-# CORS配置
+# CORS中间件
 app.add_middleware(
     CORSMiddleware,
-    allow_origins=settings.ALLOWED_ORIGINS,
+    allow_origins=settings.BACKEND_CORS_ORIGINS,
     allow_credentials=True,
     allow_methods=["*"],
     allow_headers=["*"],
 )
 
-# 注册路由
-app.include_router(auth.router, prefix="/api/auth", tags=["认证"])
-app.include_router(users.router, prefix="/api/users", tags=["用户"])
-app.include_router(data.router, prefix="/api/data", tags=["数据"])
-app.include_router(analysis.router, prefix="/api/analysis", tags=["分析"])
+# 包含API路由
+app.include_router(api_router, prefix=settings.API_V1_STR)
 
 @app.get("/")
-async def root():
-    return {"message": "QBM AI System API"}
+def read_root():
+    return {
+        "message": f"Welcome to {settings.APP_NAME}",
+        "version": settings.APP_VERSION,
+        "docs": "/docs",
+        "api": settings.API_V1_STR
+    }
 
 @app.get("/health")
-async def health_check():
-    return {"status": "healthy"}
-
-if __name__ == "__main__":
-    import uvicorn
-    uvicorn.run(app, host="0.0.0.0", port=8000)
+def health_check():
+    return {
+        "status": "healthy",
+        "version": settings.APP_VERSION,
+        "timestamp": "2024-01-01T00:00:00Z"
+    }
