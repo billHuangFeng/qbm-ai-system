@@ -243,7 +243,7 @@
 
 ### 3.2 数据模型
 
-#### 3.2.1 价值链分析数据模型
+#### 3.2.1 价值链分析数据模型 (ClickHouse)
 ```sql
 -- 价值链分析结果表
 CREATE TABLE fact_value_chain_analysis (
@@ -286,6 +286,54 @@ CREATE TABLE fact_optimization_suggestions (
     created_at DateTime DEFAULT now()
 ) ENGINE = MergeTree()
 ORDER BY (suggestion_id, analysis_id);
+```
+
+#### 3.2.2 前端数据接口 (React + TypeScript)
+```typescript
+// 价值链分析数据类型
+interface ValueChainAnalysis {
+  analysisId: string;
+  timePeriod: string;
+  segmentName: string;
+  efficiencyScore: number;
+  conversionRate: number;
+  bottleneckType: string;
+  bottleneckImpact: number;
+  analysisDate: string;
+}
+
+// 归因分析数据类型
+interface AttributionAnalysis {
+  analysisId: string;
+  channelName: string;
+  metricName: string;
+  attributionValue: number;
+  shapleyValue: number;
+  confidenceScore: number;
+  analysisDate: string;
+}
+
+// 优化建议数据类型
+interface OptimizationSuggestion {
+  suggestionId: string;
+  analysisId: string;
+  title: string;
+  description: string;
+  targetSegment: string;
+  priority: 'high' | 'medium' | 'low';
+  expectedImpact: {
+    efficiencyImprovement: number;
+    conversionImprovement: number;
+    revenueImprovement: number;
+  };
+  implementation: {
+    effort: string;
+    cost: number;
+    timeline: string;
+    resources: string[];
+  };
+  successMetrics: string[];
+}
 ```
 
 ### 3.3 算法逻辑

@@ -11,20 +11,25 @@
 
 ### Lovable职责范围
 - ✅ **前端开发**: React + TypeScript + Tailwind CSS + shadcn/ui
-- ✅ **数据库设计**: ClickHouse表结构、索引优化
 - ✅ **UI/UX实现**: 用户界面、交互设计、响应式布局
 - ✅ **前端组件**: 图表组件、表单组件、导航组件
 - ✅ **前端路由**: 页面路由、状态管理
+- ✅ **后端开发**: Next.js API Routes + TypeScript
+- ✅ **API实现**: 业务逻辑、数据处理、算法实现
 - ✅ **前端测试**: 组件测试、集成测试
+- ✅ **后端测试**: API测试、业务逻辑测试
+- ✅ **数据库设计**: PostgreSQL表结构、索引、查询优化
+- ✅ **Supabase集成**: 数据库配置、实时订阅、认证
 
 ### Cursor职责范围
 - 🎯 **需求梳理**: 业务需求分析、功能规格定义
-- 🎯 **后端逻辑**: FastAPI接口、业务逻辑实现
 - 🎯 **系统架构**: 整体架构设计、模块划分
 - 🎯 **业务分析**: 商业模式分析、算法设计
 - 🎯 **API设计**: RESTful API、数据模型设计
-- 🎯 **后端测试**: 单元测试、集成测试
-- 🎯 **文档编写**: 技术文档、API文档
+- 🎯 **算法设计**: 归因算法、机器学习模型设计
+- 🎯 **技术指导**: 提供算法实现指导和技术支持
+- 🎯 **文档编写**: 技术文档、API文档、算法文档
+- 🎯 **质量保证**: 代码审查、架构审查、性能优化建议
 
 ## 🔄 协同工作流
 
@@ -48,15 +53,17 @@ Cursor工作:
 ```
 Lovable工作:
 ├── 前端界面实现
+├── 后端API实现 (Next.js API Routes)
 ├── 数据库表创建
 ├── UI组件开发
-└── 前端功能集成
+├── 业务逻辑开发
+└── 前后端功能集成
 
 Cursor协助:
-├── 后端API实现
-├── 业务逻辑开发
-├── 数据验证
-└── 错误处理
+├── 算法实现指导
+├── 技术架构审查
+├── 代码质量审查
+└── 性能优化建议
 ```
 
 ### 3. 集成测试阶段 (共同协作)
@@ -74,47 +81,57 @@ Cursor协助:
 ```
 src/                          # React前端源码
 ├── components/               # React组件
-├── pages/                   # 页面组件
+├── pages/                   # 页面组件 + API Routes
+│   ├── api/                # Next.js API Routes
+│   │   ├── value-chain/    # 价值链分析API
+│   │   ├── attribution/    # 归因分析API
+│   │   ├── optimization/   # 优化建议API
+│   │   └── decision/       # 决策管理API
+│   └── [页面组件]
 ├── hooks/                   # 自定义Hooks
-└── lib/                     # 工具库
-
-frontend/                    # Vue.js前端 (如果需要保留)
-├── src/
-│   ├── components/
-│   ├── views/
-│   └── router/
-
-database/                    # 数据库相关
-├── clickhouse/
-├── migrations/
-└── seeds/
+├── lib/                     # 工具库
+└── types/                   # TypeScript类型定义
 
 public/                      # 静态资源
 ├── favicon.ico
 ├── placeholder.svg
 └── robots.txt
+
+# Lovable配置文件
+package.json                 # 项目依赖配置
+next.config.js              # Next.js构建配置
+tailwind.config.ts          # Tailwind CSS配置
+tsconfig.json               # TypeScript配置
 ```
 
 ### Cursor负责的目录
 ```
-backend/                     # 后端API服务
-├── app/
-│   ├── api/                # API端点
-│   ├── models/             # 数据模型
-│   ├── engines/            # 分析引擎
-│   ├── services/           # 业务服务
-│   └── schemas/            # 数据验证
-
 docs/                       # 文档
 ├── requirements/           # 需求文档
 ├── api/                   # API文档
 ├── architecture/          # 架构文档
-└── business/              # 业务文档
+├── business/              # 业务文档
+└── algorithms/            # 算法文档
+
+algorithms/                 # 算法实现指导
+├── shapley/               # Shapley归因算法
+├── optimization/          # 优化算法
+├── prediction/            # 预测算法
+└── decision/              # 决策算法
+
+research/                   # 研究资料
+├── papers/                # 相关论文
+├── benchmarks/            # 性能基准
+└── experiments/           # 实验数据
 
 scripts/                    # 工具脚本
 ├── analysis/              # 分析脚本
 ├── testing/               # 测试脚本
 └── deployment/            # 部署脚本
+
+# 部署配置
+docker-compose.yml          # Docker编排
+.github/workflows/          # CI/CD配置
 ```
 
 ## 🎯 Cursor需求梳理工作重点

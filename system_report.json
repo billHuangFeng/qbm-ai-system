@@ -1,0 +1,18 @@
+{
+  "timestamp": "2025-10-18T22:11:22.609417",
+  "system_status": "正常",
+  "components": {
+    "clickhouse": "正常",
+    "redis": "正常",
+    "backend": "正常",
+    "database": "正常",
+    "tables": "正常",
+    "data": "正常"
+  },
+  "recommendations": [
+    "使用TCP连接进行数据库操作",
+    "使用Docker exec执行查询",
+    "在容器内运行后端服务",
+    "避免直接HTTP连接"
+  ]
+}

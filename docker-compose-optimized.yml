@@ -1,0 +1,83 @@
+version: '3.8'
+
+services:
+  clickhouse:
+    image: clickhouse/clickhouse-server:latest
+    container_name: bmos_clickhouse
+    ports:
+      - "8123:8123"
+      - "9000:9000"
+    environment:
+      CLICKHOUSE_DB: bmos
+      CLICKHOUSE_USER: default
+      CLICKHOUSE_PASSWORD: ""
+      CLICKHOUSE_DEFAULT_ACCESS_MANAGEMENT: 1
+    volumes:
+      - clickhouse_data:/var/lib/clickhouse
+      - ./database/clickhouse/config/custom_config.xml:/etc/clickhouse-server/config.d/custom_config.xml
+    ulimits:
+      nofile:
+        soft: 262144
+        hard: 262144
+    networks:
+      - bmos_network
+    restart: unless-stopped
+    # 添加健康检查
+    healthcheck:
+      test: ["CMD", "clickhouse-client", "--query", "SELECT 1"]
+      interval: 30s
+      timeout: 10s
+      retries: 3
+      start_period: 40s
+
+  redis:
+    image: redis:7-alpine
+    container_name: bmos_redis
+    ports:
+      - "6380:6379"
+    volumes:
+      - redis_data:/data
+    networks:
+      - bmos_network
+    restart: unless-stopped
+    # 添加健康检查
+    healthcheck:
+      test: ["CMD", "redis-cli", "ping"]
+      interval: 30s
+      timeout: 10s
+      retries: 3
+
+  # 添加一个网络诊断容器
+  network-test:
+    image: alpine:latest
+    container_name: bmos_network_test
+    command: >
+      sh -c "
+        echo 'Testing network connectivity...' &&
+        apk add --no-cache curl &&
+        echo 'Testing ClickHouse HTTP...' &&
+        curl -f http://clickhouse:8123/?query=SELECT%201 || echo 'ClickHouse HTTP failed' &&
+        echo 'Testing Redis...' &&
+        nc -z redis 6379 && echo 'Redis connection OK' || echo 'Redis connection failed' &&
+        echo 'Network test completed'
+      "
+    depends_on:
+      - clickhouse
+      - redis
+    networks:
+      - bmos_network
+
+volumes:
+  clickhouse_data:
+    driver: local
+  redis_data:
+    driver: local
+
+networks:
+  bmos_network:
+    driver: bridge
+    # 优化网络配置
+    ipam:
+      config:
+        - subnet: 172.20.0.0/16
+
