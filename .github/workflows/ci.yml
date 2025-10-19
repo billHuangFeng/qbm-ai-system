@@ -52,7 +52,10 @@ jobs:
     - name: Run backend tests
       run: |
         cd backend
-        python -m pytest tests/ -v
+        python -m pytest tests/ -v --tb=short
+      env:
+        DATABASE_URL: mysql+pymysql://root:password@localhost:3306/qbm_ai_test
+        REDIS_URL: redis://localhost:6379
     
     - name: Run frontend tests
       run: |
