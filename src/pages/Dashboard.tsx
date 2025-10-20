@@ -2,10 +2,12 @@ import React from 'react';
 import { Card } from "@/components/ui/card";
 import { ValueNetworkGraph, mockValueNetwork } from "@/components/Visualization/ValueNetworkGraph";
 import { ValueChainFlow, mockChainFlow } from "@/components/Visualization/ValueChainFlow";
+import { ValueChainSankey, mockSankeyData } from "@/components/Visualization/ValueChainSankey";
 
 export default function Dashboard() {
   const network = mockValueNetwork();
   const chain = mockChainFlow();
+  const sankey = mockSankeyData();
 
   return (
     <div className="min-h-screen bg-gray-50 p-6 space-y-8">
@@ -23,6 +25,11 @@ export default function Dashboard() {
         <Card className="p-4">
           <ValueChainFlow nodes={chain.nodes} />
         </Card>
+      </section>
+
+      <section>
+        <h2 className="text-xl font-semibold mb-3">价值链桑基图</h2>
+        <ValueChainSankey nodes={sankey.nodes} links={sankey.links} />
       </section>
     </div>
   );
