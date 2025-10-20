@@ -131,6 +131,70 @@ class DataTaggingEngine {
     return vptTags;
   }
   
+  // 核心资源标签化
+  async tagCoreResources(investmentData: any): Promise<string[]> {
+    const crtTags = [];
+    
+    // 基于投资类型判断核心资源
+    switch (investmentData.type) {
+      case 'manufacturing':
+        crtTags.push('crt_manufacturing_facility');
+        break;
+      case 'technology':
+        crtTags.push('crt_technology_equipment');
+        break;
+      case 'patent':
+        crtTags.push('crt_patents');
+        break;
+      case 'talent':
+        crtTags.push('crt_key_talents');
+        break;
+    }
+    
+    // 基于投资金额判断资源价值
+    if (investmentData.amount > 5000000) {
+      crtTags.push('high_value_resource');
+    } else if (investmentData.amount > 1000000) {
+      crtTags.push('medium_value_resource');
+    } else {
+      crtTags.push('low_value_resource');
+    }
+    
+    return crtTags;
+  }
+  
+  // 核心能力标签化
+  async tagCoreCapabilities(developmentData: any): Promise<string[]> {
+    const cctTags = [];
+    
+    // 基于发展类型判断核心能力
+    switch (developmentData.type) {
+      case 'rd':
+        cctTags.push('cct_rd_innovation');
+        break;
+      case 'production':
+        cctTags.push('cct_production_technology');
+        break;
+      case 'supply_chain':
+        cctTags.push('cct_supply_chain_management');
+        break;
+      case 'digital':
+        cctTags.push('cct_digital_transformation');
+        break;
+    }
+    
+    // 基于成熟度判断能力水平
+    if (developmentData.maturity_level > 0.8) {
+      cctTags.push('mature_capability');
+    } else if (developmentData.maturity_level > 0.6) {
+      cctTags.push('developing_capability');
+    } else {
+      cctTags.push('emerging_capability');
+    }
+    
+    return cctTags;
+  }
+  
   // 产品特性标签化
   async tagProductFeatures(skuData: any): Promise<string[]> {
     const pftTags = [];

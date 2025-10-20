@@ -53,7 +53,7 @@ BMOS (Business Model Quantitative Optimization System) 基于《商业模式动�
 
 ## 🗄️ 数据模型设计
 
-### 1. 维度表 (9张)
+### 1. 维度表 (11张)
 ```sql
 -- 价值主张标签维度表
 CREATE TABLE dim_vpt (
@@ -71,6 +71,38 @@ CREATE TABLE dim_pft (
     pft_category VARCHAR(50),
     pft_description TEXT,
     created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP
+);
+
+-- 核心资源标签维度表
+CREATE TABLE dim_core_resource_tags (
+    crt_id VARCHAR(50) PRIMARY KEY,
+    crt_name VARCHAR(100) NOT NULL,
+    crt_category VARCHAR(50) NOT NULL,
+    crt_type VARCHAR(20) NOT NULL,
+    crt_description TEXT,
+    crt_value DECIMAL(15,2),
+    crt_rarity VARCHAR(20),
+    crt_control_level DECIMAL(3,2),
+    crt_competitiveness DECIMAL(3,2),
+    crt_status VARCHAR(20) DEFAULT 'active',
+    created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
+    updated_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP
+);
+
+-- 核心能力标签维度表
+CREATE TABLE dim_core_capability_tags (
+    cct_id VARCHAR(50) PRIMARY KEY,
+    cct_name VARCHAR(100) NOT NULL,
+    cct_category VARCHAR(50) NOT NULL,
+    cct_type VARCHAR(20) NOT NULL,
+    cct_description TEXT,
+    cct_maturity_level DECIMAL(3,2),
+    cct_development_cost DECIMAL(15,2),
+    cct_competitive_advantage DECIMAL(3,2),
+    cct_transferability DECIMAL(3,2),
+    cct_status VARCHAR(20) DEFAULT 'active',
+    created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
+    updated_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP
 );
 
 -- 活动维度表
@@ -207,7 +239,7 @@ CREATE TABLE fact_produce (
 );
 ```
 
-### 3. 桥接表 (5张)
+### 3. 桥接表 (7张)
 ```sql
 -- 媒体渠道-价值主张桥接表
 CREATE TABLE bridge_media_vpt (
@@ -218,6 +250,38 @@ CREATE TABLE bridge_media_vpt (
     created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
     FOREIGN KEY (channel_id) REFERENCES dim_media_channel(channel_id),
     FOREIGN KEY (vpt_id) REFERENCES dim_vpt(vpt_id)
+);
+
+-- 决策-核心资源关联表
+CREATE TABLE bridge_decision_core_resources (
+    bridge_id VARCHAR(50) PRIMARY KEY,
+    decision_id VARCHAR(50) NOT NULL,
+    crt_id VARCHAR(50) NOT NULL,
+    resource_intent VARCHAR(100),
+    control_target DECIMAL(3,2),
+    current_control_level DECIMAL(3,2),
+    investment_amount DECIMAL(15,2),
+    expected_roi DECIMAL(5,4),
+    priority_level VARCHAR(20),
+    created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
+    FOREIGN KEY (decision_id) REFERENCES hierarchical_decisions(decision_id),
+    FOREIGN KEY (crt_id) REFERENCES dim_core_resource_tags(crt_id)
+);
+
+-- 决策-核心能力关联表
+CREATE TABLE bridge_decision_core_capabilities (
+    bridge_id VARCHAR(50) PRIMARY KEY,
+    decision_id VARCHAR(50) NOT NULL,
+    cct_id VARCHAR(50) NOT NULL,
+    capability_intent VARCHAR(100),
+    development_target DECIMAL(3,2),
+    current_maturity_level DECIMAL(3,2),
+    development_investment DECIMAL(15,2),
+    expected_advantage DECIMAL(3,2),
+    priority_level VARCHAR(20),
+    created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
+    FOREIGN KEY (decision_id) REFERENCES hierarchical_decisions(decision_id),
+    FOREIGN KEY (cct_id) REFERENCES dim_core_capability_tags(cct_id)
 );
 
 -- 转化渠道-价值主张桥接表
