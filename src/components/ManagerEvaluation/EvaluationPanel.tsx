@@ -40,10 +40,11 @@ export function EvaluationPanel({ analysisId }: EvaluationPanelProps) {
         setEvaluationContent('');
         setAdjustments([]);
       } else {
-        alert('提交失败：' + result.error);
+        alert('提交失败：' + (result.error ?? 'Unknown error'));
       }
     } catch (error) {
-      alert('提交失败：' + error.message);
+      const message = error instanceof Error ? error.message : String(error);
+      alert('提交失败：' + message);
     }
   };
 

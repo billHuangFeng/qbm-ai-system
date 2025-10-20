@@ -29,10 +29,11 @@ export function CycleMonitor() {
         alert('决策循环已触发！');
         loadCycleData(); // 重新加载数据
       } else {
-        alert('触发失败：' + result.error);
+        alert('触发失败：' + (result.error ?? 'Unknown error'));
       }
     } catch (error) {
-      alert('触发失败：' + error.message);
+      const message = error instanceof Error ? error.message : String(error);
+      alert('触发失败：' + message);
     }
   };
 

@@ -10,10 +10,14 @@ export default async function handler(req: NextApiRequest, res: NextApiResponse)
   );
 
   // 1. 获取订单的所有触点
-  const { data: touchpoints } = await supabase
+  const { data: touchpoints, error } = await supabase
     .from('customer_journey')
     .select('*')
     .eq('order_id', orderId);
+
+  if (error || !touchpoints || touchpoints.length === 0) {
+    return res.status(404).json({ success: false, error: 'No touchpoints found for this order' });
+  }
 
   // 2. 计算Shapley值
   const shapleyValues = calculateShapleyValues(touchpoints);
@@ -22,9 +26,9 @@ export default async function handler(req: NextApiRequest, res: NextApiResponse)
   for (const touchpoint of touchpoints) {
     await supabase.from('bridge_attribution').insert({
       order_id: orderId,
-      touchpoint_type: touchpoint.type,
-      touchpoint_id: touchpoint.id,
-      attribution_value: shapleyValues[touchpoint.id]
+      touchpoint_type: (touchpoint as any).type,
+      touchpoint_id: (touchpoint as any).id,
+      attribution_value: shapleyValues[(touchpoint as any).id]
     });
   }
 
@@ -35,28 +39,21 @@ export default async function handler(req: NextApiRequest, res: NextApiResponse)
 }
 
 function calculateShapleyValues(touchpoints: any[]): Record<string, number> {
-  // Shapley值计算逻辑（TypeScript实现）
   const n = touchpoints.length;
   const shapleyValues: Record<string, number> = {};
   
-  // 简化的Shapley计算（实际需要更复杂的排列组合）
   for (let i = 0; i < n; i++) {
-    const touchpoint = touchpoints[i];
-    let marginalContribution = 0;
-    
-    // 计算边际贡献
-    const withTouchpoint = evaluateCoalition([...touchpoints.slice(0, i+1)]);
+    const tp = touchpoints[i];
+    const id = (tp as any).id as string;
+    const withTouchpoint = evaluateCoalition([...touchpoints.slice(0, i + 1)]);
     const withoutTouchpoint = evaluateCoalition([...touchpoints.slice(0, i)]);
-    marginalContribution = withTouchpoint - withoutTouchpoint;
-    
-    shapleyValues[touchpoint.id] = marginalContribution / n;
+    const marginalContribution = withTouchpoint - withoutTouchpoint;
+    shapleyValues[id] = marginalContribution / n;
   }
   
   return shapleyValues;
 }
 
 function evaluateCoalition(coalition: any[]): number {
-  // 评估触点联盟的价值
-  // 这里需要业务逻辑来评估多个触点组合的转化效果
   return coalition.length * 0.1; // 简化示例
 }

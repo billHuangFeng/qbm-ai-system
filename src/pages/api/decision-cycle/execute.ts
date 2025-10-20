@@ -47,13 +47,14 @@ export default async function handler(req: NextApiRequest, res: NextApiResponse)
     });
 
   } catch (error) {
+    const errorMessage = error instanceof Error ? error.message : 'Unknown error';
     await supabase.from('decision_cycle_execution').update({
       execution_end: new Date().toISOString(),
       execution_status: 'failed',
-      execution_log: { error: error.message }
+      execution_log: { error: errorMessage }
     }).eq('execution_id', executionId);
 
-    return res.status(500).json({ error: error.message });
+    return res.status(500).json({ error: errorMessage });
   }
 }
 

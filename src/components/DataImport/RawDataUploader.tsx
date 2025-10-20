@@ -53,10 +53,11 @@ export function RawDataUploader() {
         alert('数据上传成功！');
         setRawData('');
       } else {
-        alert('上传失败：' + result.error);
+        alert('上传失败：' + (result.error ?? 'Unknown error'));
       }
     } catch (error) {
-      alert('上传失败：' + error.message);
+      const message = error instanceof Error ? error.message : String(error);
+      alert('上传失败：' + message);
     }
   };
 
