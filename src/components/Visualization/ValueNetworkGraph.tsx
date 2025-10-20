@@ -40,7 +40,7 @@ export function ValueNetworkGraph(props: ValueNetworkGraphProps) {
   (Object.keys(groups) as Array<keyof typeof groups>).forEach((key) => {
     const list = groups[key];
     list.forEach((n, idx) => {
-      nodePositions.set(n.id, { x: colX[key], y: 80 + idx * 90 });
+      nodePositions.set(n.id, { x: colX[key as keyof typeof colX], y: 80 + idx * 90 });
     });
   });
 
