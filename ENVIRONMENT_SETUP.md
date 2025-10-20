@@ -1,104 +1,43 @@
 # 环境变量配置说明
 
-## 🔧 必需的环境变量
+## 本地开发环境
 
-### 1. **Supabase配置**
-```bash
-# .env.local
-NEXT_PUBLIC_SUPABASE_URL=your_supabase_project_url
-SUPABASE_SERVICE_ROLE_KEY=your_supabase_service_role_key
-```
+创建 `.env.local` 文件，包含以下环境变量：
 
-### 2. **Next.js配置**
 ```bash
-# .env.local
-NEXTAUTH_URL=http://localhost:3000
-NEXTAUTH_SECRET=your_nextauth_secret
-```
+# Supabase配置
+NEXT_PUBLIC_SUPABASE_URL=your_supabase_url
+NEXT_PUBLIC_SUPABASE_ANON_KEY=your_anon_key
+SUPABASE_SERVICE_ROLE_KEY=your_service_role_key
 
-### 3. **开发环境配置**
-```bash
-# .env.local
+# 其他配置
 NODE_ENV=development
 ```
 
-## 📋 配置步骤
+## Supabase项目配置
 
-### 1. **创建环境变量文件**
-```bash
-# 在项目根目录创建 .env.local 文件
-touch .env.local
-```
+1. 访问 https://supabase.com
+2. 创建新项目 `bmos-production`
+3. 在项目设置中获取以下信息：
+   - Project URL (NEXT_PUBLIC_SUPABASE_URL)
+   - anon public key (NEXT_PUBLIC_SUPABASE_ANON_KEY)
+   - service_role key (SUPABASE_SERVICE_ROLE_KEY)
 
-### 2. **添加Supabase配置**
-1. 访问 [Supabase Dashboard](https://supabase.com/dashboard)
-2. 创建新项目或选择现有项目
-3. 在项目设置中找到API配置
-4. 复制Project URL和Service Role Key
+## 数据库迁移
 
-### 3. **配置示例**
-```bash
-# .env.local
-NEXT_PUBLIC_SUPABASE_URL=https://your-project.supabase.co
-SUPABASE_SERVICE_ROLE_KEY=eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9...
-NEXTAUTH_URL=http://localhost:3000
-NEXTAUTH_SECRET=your-secret-key-here
-NODE_ENV=development
-```
+在Supabase SQL Editor中依次执行以下SQL文件：
 
-## ⚠️ 安全注意事项
+1. `database/postgresql/01_raw_data_staging.sql`
+2. `database/postgresql/02_decision_controllable_facts.sql`
+3. `database/postgresql/03_external_business_facts.sql`
+4. `database/postgresql/04_bmos_core_tables.sql`
+5. `database/postgresql/05_manager_evaluation.sql`
+6. `database/postgresql/06_decision_cycle_config.sql`
 
-1. **不要提交环境变量文件**
-   - `.env.local` 已添加到 `.gitignore`
-   - 不要在代码中硬编码敏感信息
+## Vercel部署配置
 
-2. **生产环境配置**
-   - 在Vercel中配置环境变量
-   - 使用强密码和密钥
+在Vercel项目设置中添加相同的环境变量：
 
-3. **密钥管理**
-   - 定期轮换Service Role Key
-   - 使用不同的密钥用于开发和生产环境
-
-## 🚀 验证配置
-
-### 1. **检查环境变量**
-```typescript
-// src/lib/supabase.ts
-import { createClient } from '@supabase/supabase-js';
-
-const supabaseUrl = process.env.NEXT_PUBLIC_SUPABASE_URL;
-const supabaseKey = process.env.SUPABASE_SERVICE_ROLE_KEY;
-
-if (!supabaseUrl || !supabaseKey) {
-  throw new Error('Missing Supabase environment variables');
-}
-
-export const supabase = createClient(supabaseUrl, supabaseKey);
-```
-
-### 2. **测试连接**
-```typescript
-// src/pages/api/test-connection.ts
-import { supabase } from '../../lib/supabase';
-
-export default async function handler(req, res) {
-  try {
-    const { data, error } = await supabase.from('test').select('*').limit(1);
-    
-    if (error) {
-      return res.status(500).json({ error: error.message });
-    }
-    
-    res.status(200).json({ message: 'Connection successful', data });
-  } catch (error) {
-    res.status(500).json({ error: 'Connection failed' });
-  }
-}
-```
-
-## 📚 相关文档
-
-- [Supabase环境变量配置](https://supabase.com/docs/guides/getting-started/local-development#environment-variables)
-- [Next.js环境变量](https://nextjs.org/docs/basic-features/environment-variables)
-- [Vercel环境变量](https://vercel.com/docs/concepts/projects/environment-variables)
+- NEXT_PUBLIC_SUPABASE_URL
+- NEXT_PUBLIC_SUPABASE_ANON_KEY
+- SUPABASE_SERVICE_ROLE_KEY
