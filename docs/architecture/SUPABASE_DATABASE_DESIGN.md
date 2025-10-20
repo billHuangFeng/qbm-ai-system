@@ -6,7 +6,7 @@
 - 维度表（9）: `dim_vpt`, `dim_pft`, `dim_customer`, `dim_channel`, `dim_sku`, `dim_activity`, `dim_media_channel`, `dim_conv_channel`, `dim_supplier`
 - 事实表（5）: `fact_order`, `fact_voice`, `fact_expense`, `fact_produce`, `fact_supplier`
 - 桥接表（5）: `bridge_media_vpt`, `bridge_conv_vpt`, `bridge_sku_pft`, `bridge_vpt_pft`, `bridge_attribution`
-- 决策管理（4）: `decision_hierarchy`, `decision_decomposition`, `decision_kpi`, `decision_execution_link`
+- 决策管理（4）: `hierarchical_decisions`, `decision_decomposition`, `decision_kpi`, `decision_execution_link`
 - 管理者评价（3）: `manager_evaluation`, `data_clarification`, `metric_confirmation`
 - 决策循环（2）: `decision_cycle_trigger_config`, `decision_cycle_execution`
 
@@ -25,6 +25,21 @@
 ## 视图（示例）
 - `vw_order_daily`：按天统计订单金额/数量
 - `vw_attribution_summary`：按触点聚合 Shapley 值
+  
+## 指标-字段映射（用于可视化与分析）
+下表给出关键 KPI 与字段/公式的对应关系（MVP 可按业务调整）：
+
+- 生产效率：`sum(fact_produce.quantity)` / 期望产能（若无期望产能字段，则先以历史平均作为基线）
+- 价值特性系数（产品特性 → 价值）：可由 `bridge_sku_pft.weight` 与 `dim_vpt` 相关度 `bridge_vpt_pft.correlation` 组合得到（规范化到 0~1）
+- 传播效率：曝光到达→兴趣的转化，暂以 `bridge_media_vpt.impression_count` 与订单归因 `bridge_attribution` 的占比估算
+- 交付效率：从下单到交付的达成率/时效，MVP 先用 `fact_order` 成交数量 / 触达数量近似
+- 兴趣转化率：`订单数 / 触达数`（基于归因触点汇总）
+- 服务转化率：售后服务/复购等，后续通过 `fact_voice` 及服务事实扩展
+
+可视化阈值建议：红色 <80%，黄色 80%~90%，绿色 ≥90%。
+
+## 命名与一致性约定
+- 决策管理表统一使用 `hierarchical_decisions/*` 命名；文档中如出现 `decision_hierarchy/*` 均以 `hierarchical_decisions/*` 为准。
 
 ## RLS 策略纲要
 开启 RLS：
