@@ -34,19 +34,34 @@
 
 ## 🎯 核心公式
 
-### 1. 内在价值评估
+### 1. 产品内在价值评估（客观需求满足能力）
 ```
-内在价值得分 = (覆盖率得分 × 0.4) + (满足深度得分 × 0.6)
+内在价值总得分 = 需求匹配度总分 × 70% + 功能独特性总分 × 30%
+
+需求匹配度总分 = 核心需求覆盖率 × 50% + 综合满足深度 × 50%
+核心需求覆盖率 = (产品达标需求项数 ÷ 客户核心需求总项数) × 100%
+综合满足深度 = Σ(单需求满足深度 × 需求重要性权重) ÷ Σ需求权重
+
+功能独特性总分 = 独特功能占比 × 60% + 独特功能需求权重 × 40% × 100
+独特功能占比 = (竞品未覆盖的需求功能项数 ÷ 自身核心功能总项数) × 100%
 ```
 
-### 2. 认知价值评估
+### 2. 客户认知价值评估（主观感知数据）
 ```
-认知价值得分 = (回忆率得分 × 0.3) + (WTP偏差得分 × 0.4) + (认知偏差得分 × 0.3)
+认知价值总得分 = 功能认知覆盖率 × 50% + 支付意愿偏差 × 30% + 认知偏差率 × 20%
+
+功能认知覆盖率 = (客户准确回忆项数 ÷ 产品核心功能总项数) × 100%
+支付意愿偏差 = (客户平均WTP ÷ 产品实际定价) × 100%
+认知偏差率 = 1 - |(客户认知值 - 产品实际值) ÷ 产品实际值| × 100%
 ```
 
-### 3. 体验价值评估
+### 3. 客户体验价值评估（使用后行为/反馈数据）
 ```
-体验价值得分 = (体验偏差得分 × 0.4) + (场景满意度得分 × 0.4) + (行为转化得分 × 0.2)
+体验价值总得分 = 体验-认知偏差 × 40% + 场景满意度 × 30% + 行为转化总分 × 30%
+
+体验-认知偏差 = 1 - |(实际使用值 - 认知值) ÷ 认知值| × 100%
+场景满意度 = (某场景中选择"满意/非常满意"的客户数 ÷ 该场景调研总客户数) × 100%
+行为转化总分 = 复购意愿率 × 60% + (NPS ÷ 100) × 40% × 100
 ```
 
 ## 🔧 算法实现
@@ -63,6 +78,42 @@ interface ValueAssessment {
   assessmentDate: Date;
   tenantId: string;
   productId: string;
+}
+
+// 产品内在价值数据
+interface IntrinsicValueData {
+  // 需求匹配度数据
+  totalDemandItems: number; // 客户核心需求总项数
+  metDemandItems: number; // 产品达标需求项数
+  demandWeights: DemandWeight[]; // 需求权重
+  productValues: ProductValue[]; // 产品实际值
+  customerExpectations: CustomerExpectation[]; // 客户最低期望
+  
+  // 功能独特性数据
+  totalCoreFunctions: number; // 自身核心功能总项数
+  uniqueFunctions: number; // 竞品未覆盖的需求功能项数
+  uniqueFunctionDemandWeight: number; // 独特功能需求权重
+}
+
+// 客户认知价值数据
+interface CognitiveValueData {
+  totalCoreFunctions: number; // 产品核心功能总项数
+  recalledFunctions: number; // 客户准确回忆项数
+  customerWTP: number; // 客户平均WTP
+  productPrice: number; // 产品实际定价
+  customerCognition: number; // 客户认知的功能值
+  productActualValue: number; // 产品实际功能值
+}
+
+// 客户体验价值数据
+interface ExperientialValueData {
+  actualUsageValue: number; // 实际使用功能值
+  customerCognitionValue: number; // 客户认知功能值
+  satisfiedCustomers: number; // 场景中满意客户数
+  totalSurveyCustomers: number; // 场景调研总客户数
+  repurchaseWillingCustomers: number; // 复购意愿客户数
+  totalRepurchaseSurvey: number; // 复购调研总客户数
+  npsScore: number; // NPS值
 }
 
 // 评估详情
@@ -86,25 +137,30 @@ class ValueAssessmentCalculator {
   };
 
   /**
-   * 计算内在价值
+   * 计算产品内在价值
    */
   async calculateIntrinsicValue(
     assessmentId: string,
-    coverage: number,
-    satisfaction: number,
+    intrinsicData: IntrinsicValueData,
     tenantId: string,
     productId: string
   ): Promise<ValueAssessment> {
     // 1. 验证输入数据
-    this.validateIntrinsicInputs(coverage, satisfaction);
+    this.validateIntrinsicInputs(intrinsicData);
     
-    // 2. 计算内在价值得分
-    const overallScore = this.calculateIntrinsicScore(coverage, satisfaction);
+    // 2. 计算需求匹配度总分
+    const demandMatchScore = this.calculateDemandMatchScore(intrinsicData);
     
-    // 3. 构建评估详情
+    // 3. 计算功能独特性总分
+    const uniquenessScore = this.calculateUniquenessScore(intrinsicData);
+    
+    // 4. 计算内在价值总得分
+    const overallScore = demandMatchScore * 0.7 + uniquenessScore * 0.3;
+    
+    // 5. 构建评估详情
     const assessmentDetails: AssessmentDetails = {
-      coverage,
-      satisfaction,
+      coverage: intrinsicData.coverageRate,
+      satisfaction: intrinsicData.satisfactionDepth,
       recallRate: 0,
       wtpDeviation: 0,
       cognitiveDeviation: 0,
@@ -125,27 +181,34 @@ class ValueAssessmentCalculator {
   }
 
   /**
-   * 计算认知价值
+   * 计算客户认知价值
    */
   async calculateCognitiveValue(
     assessmentId: string,
-    recallRate: number,
-    wtpDeviation: number,
-    cognitiveDeviation: number,
+    cognitiveData: CognitiveValueData,
     tenantId: string,
     productId: string
   ): Promise<ValueAssessment> {
     // 1. 验证输入数据
-    this.validateCognitiveInputs(recallRate, wtpDeviation, cognitiveDeviation);
+    this.validateCognitiveInputs(cognitiveData);
     
-    // 2. 计算认知价值得分
-    const overallScore = this.calculateCognitiveScore(recallRate, wtpDeviation, cognitiveDeviation);
+    // 2. 计算功能认知覆盖率
+    const cognitiveCoverage = (cognitiveData.recalledFunctions / cognitiveData.totalCoreFunctions) * 100;
     
-    // 3. 构建评估详情
+    // 3. 计算支付意愿偏差
+    const wtpDeviation = (cognitiveData.customerWTP / cognitiveData.productPrice) * 100;
+    
+    // 4. 计算认知偏差率
+    const cognitiveDeviation = (1 - Math.abs((cognitiveData.customerCognition - cognitiveData.productActualValue) / cognitiveData.productActualValue)) * 100;
+    
+    // 5. 计算认知价值总得分
+    const overallScore = cognitiveCoverage * 0.5 + wtpDeviation * 0.3 + cognitiveDeviation * 0.2;
+    
+    // 6. 构建评估详情
     const assessmentDetails: AssessmentDetails = {
       coverage: 0,
       satisfaction: 0,
-      recallRate,
+      recallRate: cognitiveCoverage,
       wtpDeviation,
       cognitiveDeviation,
       experienceDeviation: 0,
@@ -165,30 +228,38 @@ class ValueAssessmentCalculator {
   }
 
   /**
-   * 计算体验价值
+   * 计算客户体验价值
    */
   async calculateExperientialValue(
     assessmentId: string,
-    experienceDeviation: number,
-    scenarioSatisfaction: number,
-    behaviorConversion: number,
+    experientialData: ExperientialValueData,
     tenantId: string,
     productId: string
   ): Promise<ValueAssessment> {
     // 1. 验证输入数据
-    this.validateExperientialInputs(experienceDeviation, scenarioSatisfaction, behaviorConversion);
+    this.validateExperientialInputs(experientialData);
     
-    // 2. 计算体验价值得分
-    const overallScore = this.calculateExperientialScore(experienceDeviation, scenarioSatisfaction, behaviorConversion);
+    // 2. 计算体验-认知偏差
+    const experienceCognitionDeviation = (1 - Math.abs((experientialData.actualUsageValue - experientialData.customerCognitionValue) / experientialData.customerCognitionValue)) * 100;
     
-    // 3. 构建评估详情
+    // 3. 计算场景满意度
+    const scenarioSatisfaction = (experientialData.satisfiedCustomers / experientialData.totalSurveyCustomers) * 100;
+    
+    // 4. 计算行为转化总分
+    const repurchaseRate = (experientialData.repurchaseWillingCustomers / experientialData.totalRepurchaseSurvey) * 100;
+    const behaviorConversion = repurchaseRate * 0.6 + (experientialData.npsScore / 100) * 0.4 * 100;
+    
+    // 5. 计算体验价值总得分
+    const overallScore = experienceCognitionDeviation * 0.4 + scenarioSatisfaction * 0.3 + behaviorConversion * 0.3;
+    
+    // 6. 构建评估详情
     const assessmentDetails: AssessmentDetails = {
       coverage: 0,
       satisfaction: 0,
       recallRate: 0,
       wtpDeviation: 0,
       cognitiveDeviation: 0,
-      experienceDeviation,
+      experienceDeviation: experienceCognitionDeviation,
       scenarioSatisfaction,
       behaviorConversion
     };
@@ -205,11 +276,41 @@ class ValueAssessmentCalculator {
   }
 
   /**
-   * 计算内在价值得分
+   * 计算需求匹配度总分
    */
-  private calculateIntrinsicScore(coverage: number, satisfaction: number): number {
-    const { coverage: coverageWeight, satisfaction: satisfactionWeight } = this.WEIGHTS.intrinsic;
-    return (coverage * coverageWeight) + (satisfaction * satisfactionWeight);
+  private calculateDemandMatchScore(data: IntrinsicValueData): number {
+    // 计算核心需求覆盖率
+    const coverageRate = (data.metDemandItems / data.totalDemandItems) * 100;
+    
+    // 计算综合满足深度
+    let totalWeightedDepth = 0;
+    let totalWeight = 0;
+    
+    for (let i = 0; i < data.demandWeights.length; i++) {
+      const weight = data.demandWeights[i].weight;
+      const productValue = data.productValues[i].value;
+      const customerExpectation = data.customerExpectations[i].expectation;
+      
+      const singleDepth = Math.max(0, (productValue - customerExpectation) / customerExpectation * 100);
+      totalWeightedDepth += singleDepth * weight;
+      totalWeight += weight;
+    }
+    
+    const satisfactionDepth = totalWeightedDepth / totalWeight;
+    
+    // 需求匹配度总分 = 覆盖率 × 50% + 综合满足深度 × 50%
+    return coverageRate * 0.5 + satisfactionDepth * 0.5;
+  }
+
+  /**
+   * 计算功能独特性总分
+   */
+  private calculateUniquenessScore(data: IntrinsicValueData): number {
+    // 计算独特功能占比
+    const uniqueFunctionRatio = (data.uniqueFunctions / data.totalCoreFunctions) * 100;
+    
+    // 功能独特性总分 = 独特功能占比 × 60% + 独特功能需求权重 × 40% × 100
+    return uniqueFunctionRatio * 0.6 + data.uniqueFunctionDemandWeight * 0.4 * 100;
   }
 
   /**
@@ -327,6 +428,57 @@ BEGIN
 END;
 $$ LANGUAGE plpgsql;
 ```
+
+## 📊 数据采集表模板
+
+### 产品价值评估数据采集表
+
+| 一级分类 | 二级维度 | 三级指标 | 数据来源 | 填写/计算栏 | 权重 | 维度得分 |
+|----------|----------|----------|----------|-------------|------|----------|
+| **一、产品内在价值（总分）** | | | | | 100% | =需求匹配度×70% + 功能独特性×30% |
+| | 1. 需求匹配度 | | | | 70% | =覆盖率×50% + 综合满足深度×50% |
+| | | 1.1 核心需求总项数 | 客户需求调研问卷 | ______ 项 | - | - |
+| | | 1.2 产品达标需求项数 | 产品测试报告+需求清单 | ______ 项 | - | - |
+| | | 1.3 核心需求覆盖率 | - | =达标项数/总项数×100% → ______% | 50% | - |
+| | | 1.4 单需求满足深度 | - | =MAX(0,(实际值-期望值)/期望值×100%) | - | - |
+| | | 1.5 综合满足深度 | - | =Σ(单需求深度×权重)/Σ权重×100% | 50% | - |
+| | 2. 功能独特性 | | | | 30% | =独特功能占比×60% + 独特功能需求权重×40%×100 |
+| | | 2.1 自身核心功能总项数 | 产品功能清单 | ______ 项 | - | - |
+| | | 2.2 竞品未覆盖功能项数 | 竞品功能对比表 | ______ 项 | - | - |
+| | | 2.3 独特功能占比 | - | =未覆盖项数/总项数×100% → ______% | 60% | - |
+| | | 2.4 独特功能需求权重 | 需求调研 | ______% | 40% | - |
+| **二、客户认知价值（总分）** | | | | | 100% | =功能认知覆盖率×50% + 支付意愿偏差×30% + 认知偏差率×20% |
+| | 1. 功能认知覆盖率 | | | | 50% | =客户回忆项数/产品功能总项数×100% |
+| | | 1.1 产品核心功能总项数 | 产品功能清单 | ______ 项 | - | - |
+| | | 1.2 客户准确回忆项数 | 认知调研问卷 | ______ 项 | - | - |
+| | 2. 支付意愿偏差 | | | | 30% | =客户WTP/产品定价×100% |
+| | | 2.1 客户平均WTP | 支付意愿调研 | ______ 元 | - | - |
+| | | 2.2 产品实际定价 | 产品定价表 | ______ 元 | - | - |
+| | 3. 认知偏差率 | | | | 20% | =(1-ABS((客户认知值-实际值)/实际值))×100% |
+| | | 3.1 客户认知功能值 | 认知调研 | ______ | - | - |
+| | | 3.2 产品实际功能值 | 产品测试报告 | ______ | - | - |
+| **三、客户体验价值（总分）** | | | | | 100% | =体验-认知偏差×40% + 场景满意度×30% + 行为转化×30% |
+| | 1. 体验-认知偏差 | | | | 40% | =(1-ABS((实际使用值-认知值)/认知值))×100% |
+| | | 1.1 实际使用功能值 | 产品使用日志/体验调研 | ______ | - | - |
+| | | 1.2 客户认知功能值 | 认知调研 | ______ | - | - |
+| | 2. 场景满意度 | | | | 30% | =满意客户数/调研总客户数×100% |
+| | | 2.1 核心场景名称 | 体验调研 | ______ | - | - |
+| | | 2.2 场景中满意客户数 | 场景化调研问卷 | ______ 人 | - | - |
+| | | 2.3 场景调研总客户数 | 场景化调研问卷 | ______ 人 | - | - |
+| | 3. 行为转化 | | | | 30% | =复购意愿率×60% + (NPS/100)×40%×100 |
+| | | 3.1 复购意愿客户数 | 体验后调研 | ______ 人 | - | - |
+| | | 3.2 复购调研总客户数 | 体验后调研 | ______ 人 | - | - |
+| | | 3.3 复购意愿率 | - | =复购意愿数/调研总数×100% → ______% | 60% | - |
+| | | 3.4 NPS值 | NPS调研问卷 | ______ 分 | 40% | - |
+
+### 数据采集说明
+
+1. **填写逻辑**：先填"△"项（手动录入数据），再通过公式计算"★"项
+2. **数据来源规范**：
+   - 内在价值：需求调研需≥300份样本，产品测试建议第三方执行
+   - 认知价值：调研对象为"未使用但了解产品的潜在客户"
+   - 体验价值：使用日志需自动采集，减少主观隐瞒
+3. **得分解读**：≥80分为高价值，60-80分为中等，<60分为待优化
 
 ## 📊 具体评估项明细
 
