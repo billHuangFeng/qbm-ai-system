@@ -339,26 +339,25 @@
 
 #### 4.1 首单收入
 ```
-△首单收入 = △客户认知价值 × 首单客户数 × 首单客单价
-其中：首单客户数 = 首次下单客户ID数
-首单客单价 = 首次订单金额 ÷ 首单客户数
+△首单收入 = Σ（符合条件的首单销售记录销售收入）
+其中：首单销售记录条件 = 客户ID首次下单的订单记录
+数据来源：销售记录表，按客户ID首次下单时间筛选
 核心驱动：客户认知价值（没使用过，靠认知决策）
 ```
 
 #### 4.2 复购收入
 ```
-△复购收入 = △客户体验价值 × 复购客户数 × 复购客单价 × 年复购次数
-其中：复购客户数 = 历史有首单，再次买同一产品的客户ID数
-复购客单价 = 复购订单金额 ÷ 复购客户数
-年复购次数 = 单客户年度重复购买同一产品的次数
+△复购收入 = Σ（符合条件的复购销售记录销售收入）
+其中：复购销售记录条件 = 客户ID历史有首单，再次买同一产品的订单记录
+数据来源：销售记录表，按客户ID和产品ID重复购买筛选
 核心驱动：客户体验价值（用过后满意，才重复买同一产品）
 ```
 
 #### 4.3 追销收入
 ```
-△追销收入 = △产品内在价值 × 追销客户数 × 追销客单价
-其中：追销客户数 = 历史有首单/复购，首次买其他产品的客户ID数
-追销客单价 = 追销订单金额 ÷ 追销客户数
+△追销收入 = Σ（符合条件的追销销售记录销售收入）
+其中：追销销售记录条件 = 客户ID历史有首单/复购，首次买其他产品的订单记录
+数据来源：销售记录表，按客户ID跨产品购买筛选
 核心驱动：产品内在价值（产品客观好，才愿尝试同品牌不同产品）
 ```
 
@@ -442,6 +441,23 @@ interface RevenueDeltas {
   upsellRevenue: number;
   productSalesRevenue: number; // 产品销售收入
   totalRevenue: number;
+}
+
+// 销售记录
+interface SalesRecord {
+  recordId: string;
+  customerId: string;
+  productId: string;
+  orderDate: Date;
+  revenue: number;
+  orderType: 'first_order' | 'repurchase' | 'upsell';
+}
+
+// 销售数据
+interface SalesData {
+  firstOrderRecords: SalesRecord[];
+  repurchaseRecords: SalesRecord[];
+  upsellRecords: SalesRecord[];
 }
 
 // 效能权重配置
@@ -896,19 +912,16 @@ class FullChainDeltaCalculator {
    */
   private async calculateRevenueDeltas(
     valueDeltas: ValueDeltas,
-    marketData: MarketData
+    salesData: SalesData
   ): Promise<RevenueDeltas> {
-    // 计算首单收入：客户认知价值 × 首单客户数 × 首单客单价
-    const firstOrderRevenue = valueDeltas.customerCognitiveValue * marketData.firstOrderCustomerCount * 
-                             marketData.firstOrderUnitPrice;
+    // 计算首单收入：汇总符合条件的首单销售记录销售收入
+    const firstOrderRevenue = await this.calculateFirstOrderRevenue(salesData.firstOrderRecords);
     
-    // 计算复购收入：客户体验价值 × 复购客户数 × 复购客单价 × 年复购次数
-    const repurchaseRevenue = valueDeltas.customerExperientialValue * marketData.repurchaseCustomerCount * 
-                             marketData.repurchaseUnitPrice * marketData.annualRepurchaseCount;
+    // 计算复购收入：汇总符合条件的复购销售记录销售收入
+    const repurchaseRevenue = await this.calculateRepurchaseRevenue(salesData.repurchaseRecords);
     
-    // 计算追销收入：产品内在价值 × 追销客户数 × 追销客单价
-    const upsellRevenue = valueDeltas.productIntrinsicValue * marketData.upsellCustomerCount * 
-                         marketData.upsellUnitPrice;
+    // 计算追销收入：汇总符合条件的追销销售记录销售收入
+    const upsellRevenue = await this.calculateUpsellRevenue(salesData.upsellRecords);
     
     // 计算总收入
     const totalRevenue = firstOrderRevenue + repurchaseRevenue + upsellRevenue;
@@ -919,6 +932,30 @@ class FullChainDeltaCalculator {
       upsellRevenue,
       totalRevenue
     };
+  }
+
+  /**
+   * 计算首单收入
+   */
+  private async calculateFirstOrderRevenue(firstOrderRecords: SalesRecord[]): Promise<number> {
+    // 汇总符合条件的首单销售记录销售收入
+    return firstOrderRecords.reduce((total, record) => total + record.revenue, 0);
+  }
+
+  /**
+   * 计算复购收入
+   */
+  private async calculateRepurchaseRevenue(repurchaseRecords: SalesRecord[]): Promise<number> {
+    // 汇总符合条件的复购销售记录销售收入
+    return repurchaseRecords.reduce((total, record) => total + record.revenue, 0);
+  }
+
+  /**
+   * 计算追销收入
+   */
+  private async calculateUpsellRevenue(upsellRecords: SalesRecord[]): Promise<number> {
+    // 汇总符合条件的追销销售记录销售收入
+    return upsellRecords.reduce((total, record) => total + record.revenue, 0);
   }
 
   /**
@@ -1079,9 +1116,9 @@ $$ LANGUAGE plpgsql;
 | △交付效能 | -0.02 | (0.17-0.23)÷(2.50×0.6+2.93×0.4) | -0.02 |
 | △研发效能 | 0.36 | 0.15÷(3.13×0.6+4.21×0.4) | 0.36 |
 | △渠道效能 | 0.44 | 1.37÷(3.13×0.6+4.62×0.4) | 0.44 |
-| △首单收入 | 0.46 | 0.23×2×1.0 | 0.46 |
-| △复购收入 | 0.34 | 0.17×2×1.0×1.0 | 0.34 |
-| △追销收入 | 0.46 | 0.23×2×1.0 | 0.46 |
+| △首单收入 | 0.46 | 汇总首单销售记录销售收入 | 0.46 |
+| △复购收入 | 0.34 | 汇总复购销售记录销售收入 | 0.34 |
+| △追销收入 | 0.46 | 汇总追销销售记录销售收入 | 0.46 |
 | △总销售收入 | 1.26 | 0.46+0.34+0.46 | 1.26 |
 | △总成本开支 | 21.15 | 5.54+4.21+3.85+2.93+4.62 | 21.15 |
 | △固定成本分摊 | 0.85 | 15万×(21.15/总资产投入) | 0.85 |
