@@ -94,6 +94,18 @@
 折现系数 = 1/(1+r)^n（r=企业WACC=8%，n=1-5年）
 ```
 
+#### 1.2 产品设计资产
+```
+△产品设计资产 = Σ（某类设计资产第n年现金流增量 × 折现系数）÷ 60
+其中：某类资产第n年现金流增量 = 该资产年度直接收益 + 该资产年度间接收益（特性溢价/成本节省）
+折现系数 = 1/(1+r)^n（r=企业WACC=8%，n=1-5年）
+
+设计资产构成：
+1. 设计专利/版权：专利授权收入 + 侵权赔偿收入 + 特性溢价增量
+2. 设计IP/形象：IP联名收入 + IP衍生品收入 + 用户付费增量
+3. 设计模板库/方法论：成本节省 + 效率收益（提前上市收入）
+```
+
 #### 1.2 研发资产
 ```
 △研发资产 = Σ（第n年研发资产现金流增量 × 折现系数）÷ 60
@@ -149,6 +161,17 @@
 ```
 △渠道能力价值 = （终端转化增量 + 复购增量）× 贡献百分比 ÷ 12
 其中：贡献百分比 = (28%-15%)÷28% ≈ 46.4%（转化率从15%→28%）
+```
+
+#### 2.6 产品设计能力
+```
+△产品设计能力价值 = （特性溢价增益收益 + 效率节省收益 + WTP增量收益）× 设计能力贡献百分比 ÷ 12
+其中：设计能力贡献百分比 = 基于用户调研的设计要素驱动占比
+
+稳定成果标准（需连续6个月达标）：
+1. 特性溢价增益：设计相关特性估值比行业均值高≥20%
+2. 设计效率：设计相关特性开发周期比行业均值短≥30%，且返工率≤5%
+3. 用户付费意愿：含设计特性的产品，用户WTP比基础版高≥15%
 ```
 
 ### 3. 效率与产品价值模块（7个△函数）
@@ -641,6 +664,59 @@ class FullChainDeltaCalculator {
   }
 
   /**
+   * 计算产品特性估值（基于特性单独估值方法 + 设计要素修正）
+   */
+  private async calculateProductFeatureValuation(featureValuationData: any): Promise<number> {
+    // 基于特性单独估值方法计算产品特性估值
+    const featureValuationCalculator = new FeatureValuationCalculator();
+    const baseFeatureValue = await featureValuationCalculator.calculateTotalFeatureValue(featureValuationData);
+    
+    // 应用设计要素修正系数
+    const designEnhancementFactor = await this.calculateDesignEnhancementFactor(featureValuationData);
+    return baseFeatureValue * (1 + designEnhancementFactor);
+  }
+
+  /**
+   * 计算设计要素修正系数
+   */
+  private async calculateDesignEnhancementFactor(featureValuationData: any): Promise<number> {
+    let totalEnhancementFactor = 0;
+    
+    // 设计资产对特性估值的修正
+    if (featureValuationData.designAssets) {
+      for (const asset of featureValuationData.designAssets) {
+        switch (asset.type) {
+          case 'patent':
+            totalEnhancementFactor += 0.15; // 外观专利支撑：10%-15%
+            break;
+          case 'ip':
+            totalEnhancementFactor += 0.25; // IP形象联名：20%-30%
+            break;
+          case 'template':
+            totalEnhancementFactor += 0.06; // 模板复用节省成本：5%-8%
+            break;
+        }
+      }
+    }
+    
+    // 设计能力对特性估值的修正
+    if (featureValuationData.designCapabilities) {
+      for (const capability of featureValuationData.designCapabilities) {
+        switch (capability.type) {
+          case 'wtp_enhancement':
+            totalEnhancementFactor += 0.15; // WTP比行业高15%-20%
+            break;
+          case 'efficiency':
+            totalEnhancementFactor += 0.08; // 设计周期短30%+
+            break;
+        }
+      }
+    }
+    
+    return Math.min(totalEnhancementFactor, 0.5); // 最大修正系数50%
+  }
+
+  /**
    * 计算收入增量
    */
   private async calculateRevenueDeltas(
@@ -777,6 +853,16 @@ $$ LANGUAGE plpgsql;
 ```
 
 ## 📊 具体计算示例
+
+### 设计资产与能力估值示例（2025年10月，单位：万元）
+
+| 要素类型 | 细分构成 | 量化方法 | 基础数据（万元/年） | 年度收益/现金流（万元） | 价值计算（万元） | 与特性估值衔接（增益系数） |
+|----------|----------|----------|---------------------|-------------------------|------------------|----------------------------|
+| 产品设计资产 | 外观专利（3项） | 未来5年现金流现值 | 单专利授权费50，特性溢价20/年 | 70（年现金流），5年折现344.5 | 月度增量5.74 | 15%（支撑稀缺型特性） |
+| 产品设计资产 | 品牌IP（1个） | 未来5年现金流现值 | 联名收入80，衍生品30/年 | 110（年现金流），5年折现491.2 | 月度增量8.19 | 25%（支撑体验型特性） |
+| 产品设计资产 | 模板库（20套） | 未来5年现金流现值 | 成本节省20，提前上市30/年 | 50（年现金流），5年折现276.8 | 月度增量4.61 | 6%（降低成本） |
+| 产品设计能力 | 特性溢价增益 | 稳定成果+收益百分比 | 设计特性年度溢价500 | 400（设计贡献80%） | 月度增量33.33 | 15%（提升WTP） |
+| 产品设计能力 | 设计效率 | 稳定成果+收益百分比 | 年度成本节省80 | 80（设计贡献100%） | 月度增量6.67 | 8%（降低成本） |
 
 ### 示例数据（2025年10月，单位：万元）
 
