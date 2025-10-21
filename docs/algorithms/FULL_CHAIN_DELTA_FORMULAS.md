@@ -327,8 +327,8 @@
 
 #### 3.13 客户体验价值
 ```
-△客户体验价值 = 客户体验价值得分
-其中：客户体验价值得分 = 体验-认知偏差×40% + 场景满意度×30% + 行为转化总分×30%
+△客户体验价值 = 客户支付意愿（WTP）× 体验得分
+其中：体验得分 = 体验-认知偏差×40% + 场景满意度×30% + 行为转化总分×30%
 
 体验-认知偏差 = 1 - |（实际使用值 - 认知值）÷ 认知值|×100%
 场景满意度 = （某场景中选择"满意/非常满意"的客户数 ÷ 该场景调研总客户数）× 100%
@@ -758,8 +758,9 @@ class FullChainDeltaCalculator {
     // 计算客户认知价值：客户支付意愿（WTP）
     const customerCognitiveValue = valueAssessments.customerWTP;
     
-    // 计算客户体验价值：客户体验价值得分
-    const customerExperientialValue = await this.calculateCustomerExperientialValue(valueAssessments.experientialData);
+    // 计算客户体验价值：客户支付意愿（WTP）× 体验得分
+    const experientialScore = await this.calculateCustomerExperientialValue(valueAssessments.experientialData);
+    const customerExperientialValue = valueAssessments.customerWTP * experientialScore;
     
     return {
       intrinsicValue: valueAssessments.intrinsicValueScore,
@@ -833,10 +834,10 @@ class FullChainDeltaCalculator {
   }
 
   /**
-   * 计算客户体验价值
+   * 计算客户体验得分
    */
   private async calculateCustomerExperientialValue(experientialData: any): Promise<number> {
-    // 客户体验价值得分 = 体验-认知偏差×40% + 场景满意度×30% + 行为转化总分×30%
+    // 客户体验得分 = 体验-认知偏差×40% + 场景满意度×30% + 行为转化总分×30%
     const experienceCognitiveDeviation = experientialData.experienceCognitiveDeviation || 0.833;
     const scenarioSatisfaction = experientialData.scenarioSatisfaction || 0.85;
     const behaviorConversion = experientialData.behaviorConversion || 0.54;
@@ -1063,13 +1064,13 @@ $$ LANGUAGE plpgsql;
 | △产品内在价值 | 0.23 | 基于特性单独估值计算 | 0.23 |
 | △产品特性估值 | 0.15 | 基于特性单独估值方法计算的总估值 | 0.15 |
 | △产品成本优势 | 0.12 | 竞品成本 - 企业产品成本 | 0.12 |
-| △客户认知价值 | 0.04 | 0.23×2.92×0.71 | 0.04 |
-| △客户体验价值 | 0.04 | 0.23×2.50×0.746 | 0.04 |
+| △客户认知价值 | 0.23 | 客户支付意愿（WTP） | 0.23 |
+| △客户体验价值 | 0.17 | 0.23×0.746 | 0.17 |
 | △销售转化收入 | 1.37 | 首单收入+复购收入+追销收入 | 1.37 |
 | △产品效能 | 0.08 | 0.23÷(2.5×0.6+3.0×0.4) | 0.08 |
 | △生产效能 | 0.03 | 0.12÷(2.81×0.6+5.54×0.4) | 0.03 |
-| △播传效能 | 0.25 | 0.04÷(2.92×0.6+3.85×0.4) | 0.25 |
-| △交付效能 | 0.20 | 0.04÷(2.50×0.6+2.93×0.4) | 0.20 |
+| △播传效能 | 0.00 | (0.23-0.23)÷(2.92×0.6+3.85×0.4) | 0.00 |
+| △交付效能 | -0.02 | (0.17-0.23)÷(2.50×0.6+2.93×0.4) | -0.02 |
 | △研发效能 | 0.36 | 0.15÷(3.13×0.6+4.21×0.4) | 0.36 |
 | △渠道效能 | 0.44 | 1.37÷(3.13×0.6+4.62×0.4) | 0.44 |
 | △首单收入 | 0.407 | 0.04×0.05×(1-5%) | 0.407 |
