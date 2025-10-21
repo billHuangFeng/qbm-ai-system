@@ -288,7 +288,7 @@
 
 #### 3.7 产品效能
 ```
-产品效能 = 产品内在价值 ÷ (设计能力 × a1 + 设计资产 × b1)
+产品效能 = (产品内在价值 - 产品特性价值) ÷ (设计能力 × a1 + 设计资产 × b1)
 其中：a1 = 设计能力权重，b1 = 设计资产权重
 ```
 
@@ -709,8 +709,8 @@ class FullChainDeltaCalculator {
     revenueDeltas: RevenueDeltas,
     efficiencyWeights: EfficiencyWeights
   ): Promise<EfficiencyDeltas> {
-    // 计算产品效能：产品内在价值 ÷ (设计能力×a1 + 设计资产×b1)
-    const productEfficiency = valueDeltas.productIntrinsicValue / 
+    // 计算产品效能：(产品内在价值 - 产品特性价值) ÷ (设计能力×a1 + 设计资产×b1)
+    const productEfficiency = (valueDeltas.productIntrinsicValue - valueDeltas.productFeatureValuation) / 
       (capabilityDeltas.designCapability * efficiencyWeights.designCapabilityWeight + 
        assetDeltas.designAsset * efficiencyWeights.designAssetWeight);
     
@@ -1105,7 +1105,7 @@ $$ LANGUAGE plpgsql;
 | △客户认知价值 | 0.23 | 客户支付意愿（WTP） | 0.23 |
 | △客户体验价值 | 0.17 | 0.23×0.746 | 0.17 |
 | △销售转化收入 | 1.37 | 首单收入+复购收入+追销收入 | 1.37 |
-| △产品效能 | 0.08 | 0.23÷(2.5×0.6+3.0×0.4) | 0.08 |
+| △产品效能 | 0.11 | (0.23-0.15)÷(2.5×0.6+3.0×0.4) | 0.11 |
 | △生产效能 | 0.03 | 0.12÷(2.81×0.6+5.54×0.4) | 0.03 |
 | △播传效能 | 0.00 | (0.23-0.23)÷(2.92×0.6+3.85×0.4) | 0.00 |
 | △交付效能 | -0.02 | (0.17-0.23)÷(2.50×0.6+2.93×0.4) | -0.02 |
