@@ -8,7 +8,7 @@
 
 ### 数据链流程
 ```
-实际成本 → 目标成本（竞品成本加权平均） → 产品特性价值 → 产品内在价值 → 客户认知价值 → 客户体验价值 → 销售收入
+实际成本 → 目标成本（竞品成本加权平均） → 产品特性价值 → 产品内在价值 → 客户认知价值 → 客户体验价值 → 产品销售收入
 ```
 
 ### 效能影响关系
@@ -18,13 +18,13 @@
 产品效能 → 影响产品内在价值-产品特性价值
 播传效能 → 影响客户认知价值
 交付效能 → 影响客户体验价值
-渠道效能 → 影响销售收入
+渠道效能 → 影响产品销售收入
 ```
 
 ### 数据链说明
 1. **成本层**：实际成本与目标成本（竞品成本加权平均）的对比
 2. **价值层**：产品特性价值 → 产品内在价值 → 客户认知价值 → 客户体验价值
-3. **收入层**：客户价值转化为销售收入
+3. **收入层**：客户价值转化为产品销售收入
 4. **效能层**：各环节效能影响对应的价值创造环节
 
 ### 数据链流程图
@@ -42,8 +42,8 @@
                                                               │
                                                               ▼
 ┌─────────────┐    ┌─────────────┐    ┌─────────────┐    ┌─────────────┐
-│客户体验价值 │───▶│  销售收入   │    │  交付效能   │    │  渠道效能   │
-│             │    │             │    │影响体验价值 │    │影响销售收入 │
+│客户体验价值 │───▶│ 产品销售收入 │    │  交付效能   │    │  渠道效能   │
+│             │    │             │    │影响体验价值 │    │影响产品销售收入 │
 └─────────────┘    └─────────────┘    └─────────────┘    └─────────────┘
 ```
 
@@ -76,7 +76,7 @@
 - **产品效能**：(产品内在价值-产品特性价值) ÷ (设计能力×a1 + 设计资产×b1) → 影响产品内在价值-产品特性价值
 - **播传效能**：（客户认知价值-产品内在价值） ÷ (播传能力×a4 + 播传资产×b4) → 影响客户认知价值
 - **交付效能**：（客户体验价值-产品内在价值） ÷ (交付能力×a5 + 交付资产×b5) → 影响客户体验价值
-- **渠道效能**：销售收入 ÷ (渠道能力×a6 + 渠道资产×b6) → 影响销售收入
+- **渠道效能**：产品销售收入 ÷ (渠道能力×a6 + 渠道资产×b6) → 影响产品销售收入
 
 ### 使用场景
 - **商业模式分析**：全面分析商业模式的价值创造过程
@@ -356,14 +356,14 @@
 核心驱动：产品内在价值（产品客观好，才愿尝试同品牌不同产品）
 ```
 
-#### 4.4 总销售收入
+#### 4.4 总产品销售收入
 ```
-总销售收入 = 首单收入 + 复购收入 + 追销收入
+总产品销售收入 = 首单收入 + 复购收入 + 追销收入
 ```
 
 #### 4.5 利润
 ```
-利润 = 总销售收入 - 总成本开支 - 固定成本分摊
+利润 = 总产品销售收入 - 总成本开支 - 固定成本分摊
 其中：总成本开支 = 生产资产 + 研发资产 + 播传资产 + 交付资产 + 渠道资产
 固定成本分摊 = 本月固定成本增量 × (该资产投入/总资产投入)
 ```
@@ -435,7 +435,7 @@ interface RevenueDeltas {
   repurchaseRevenue: number;
   upsellRevenue: number;
   productSalesRevenue: number; // 产品销售收入
-  totalRevenue: number;
+  totalProductSalesRevenue: number; // 总产品销售收入
 }
 
 // 销售记录
@@ -918,14 +918,14 @@ class FullChainDeltaCalculator {
     // 计算追销收入：汇总符合条件的追销销售记录销售收入
     const upsellRevenue = await this.calculateUpsellRevenue(salesData.upsellRecords);
     
-    // 计算总收入
-    const totalRevenue = firstOrderRevenue + repurchaseRevenue + upsellRevenue;
+    // 计算总产品销售收入
+    const totalProductSalesRevenue = firstOrderRevenue + repurchaseRevenue + upsellRevenue;
     
     return {
       firstOrderRevenue,
       repurchaseRevenue,
       upsellRevenue,
-      totalRevenue
+      totalProductSalesRevenue
     };
   }
 
@@ -971,7 +971,7 @@ class FullChainDeltaCalculator {
                                (totalCostExpenses / fixedCosts.totalAssetInvestment);
     
     // 计算利润增量
-    return revenueDeltas.totalRevenue - totalCostExpenses - fixedCostAllocation;
+    return revenueDeltas.totalProductSalesRevenue - totalCostExpenses - fixedCostAllocation;
   }
 }
 ```
@@ -1114,7 +1114,7 @@ $$ LANGUAGE plpgsql;
 | △首单收入 | 0.46 | 汇总首单销售记录销售收入 | 0.46 |
 | △复购收入 | 0.34 | 汇总复购销售记录销售收入 | 0.34 |
 | △追销收入 | 0.46 | 汇总追销销售记录销售收入 | 0.46 |
-| △总销售收入 | 1.26 | 0.46+0.34+0.46 | 1.26 |
+| △总产品销售收入 | 1.26 | 0.46+0.34+0.46 | 1.26 |
 | △总成本开支 | 21.15 | 5.54+4.21+3.85+2.93+4.62 | 21.15 |
 | △固定成本分摊 | 0.85 | 15万×(21.15/总资产投入) | 0.85 |
 | △利润 | -20.74 | 1.26-21.15-0.85 | -20.74 |
