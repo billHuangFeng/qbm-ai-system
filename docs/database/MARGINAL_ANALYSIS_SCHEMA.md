@@ -253,9 +253,115 @@ FOREIGN KEY (capability_id) REFERENCES core_capability_master(capability_id) ON 
 
 ---
 
-### 文件3: `supabase/sql/10_value_item_master_and_assessment.sql`
+### 文件3: `supabase/sql/10_product_feature_master_and_valuation.sql`
 
-#### 表3.1: `product_value_item_master` - 产品价值评估项清单表（主数据）
+#### 表3.1: `dim_product_feature_master` - 产品特性主数据表
+
+**业务含义**: 管理产品特性清单，支持特性单独估值。每个特性可独立提供价值，通过单独售卖溢价进行估值。
+
+**字段设计**:
+
+| 字段名 | 类型 | 约束 | 说明 | 示例值 |
+|--------|------|------|------|--------|
+| `feature_id` | UUID | PRIMARY KEY | 特性唯一标识 | `f1a2b3c4-...` |
+| `tenant_id` | UUID | NOT NULL, FK | 租户ID | `t1a2b3c4-...` |
+| `feature_code` | VARCHAR(50) | UNIQUE NOT NULL | 特性编号 | `PF001` |
+| `feature_name` | VARCHAR(200) | NOT NULL | 特性名称 | `67W快充` |
+| `feature_type` | VARCHAR(20) | NOT NULL | 特性类型 | `functional`/`experiential`/`scarce`/`service` |
+| `feature_description` | TEXT | NULL | 特性描述 | `支持67W超级快充，30分钟充电80%` |
+| `valuation_method` | VARCHAR(30) | NOT NULL | 估值方法 | `internal_price_diff`/`external_competitor`/`customer_wtp` |
+| `is_active` | BOOLEAN | DEFAULT true | 是否启用 | `true` |
+| `created_at` | TIMESTAMPTZ | DEFAULT NOW() | 创建时间 | `2024-10-21 10:30:00+00` |
+| `updated_at` | TIMESTAMPTZ | DEFAULT NOW() | 更新时间 | `2024-10-21 10:30:00+00` |
+| `created_by` | UUID | NOT NULL, FK | 创建人 | `u1a2b3c4-...` |
+| `updated_by` | UUID | NOT NULL, FK | 更新人 | `u1a2b3c4-...` |
+
+**索引**:
+```sql
+CREATE INDEX idx_product_feature_tenant ON dim_product_feature_master(tenant_id, is_active);
+CREATE INDEX idx_product_feature_type ON dim_product_feature_master(feature_type, is_active);
+CREATE INDEX idx_product_feature_code ON dim_product_feature_master(feature_code);
+```
+
+**外键**:
+```sql
+FOREIGN KEY (tenant_id) REFERENCES tenants(tenant_id) ON DELETE CASCADE
+FOREIGN KEY (created_by) REFERENCES users(user_id)
+FOREIGN KEY (updated_by) REFERENCES users(user_id)
+```
+
+**业务规则**:
+- `feature_code` 格式：`PF{序号}`（如PF001、PF002）
+- `feature_type` 枚举值：`functional`（功能型）、`experiential`（体验型）、`scarce`（稀缺型）、`service`（服务型）
+- `valuation_method` 枚举值：`internal_price_diff`（内部价差法）、`external_competitor`（外部竞品法）、`customer_wtp`（客户支付意愿法）
+
+---
+
+#### 表3.2: `fact_product_feature_valuation` - 产品特性估值表
+
+**业务含义**: 记录产品特性的单独估值结果，支持三种估值方法，包含修正系数和验证数据。
+
+**字段设计**:
+
+| 字段名 | 类型 | 约束 | 说明 | 示例值 |
+|--------|------|------|------|--------|
+| `valuation_id` | UUID | PRIMARY KEY | 估值记录唯一标识 | `v1a2b3c4-...` |
+| `tenant_id` | UUID | NOT NULL, FK | 租户ID | `t1a2b3c4-...` |
+| `feature_id` | UUID | NOT NULL, FK | 特性ID | `f1a2b3c4-...` |
+| `product_id` | UUID | NOT NULL, FK | 产品ID | `p1a2b3c4-...` |
+| `valuation_date` | DATE | NOT NULL | 估值日期 | `2024-10-01` |
+| `valuation_method` | VARCHAR(30) | NOT NULL | 估值方法 | `internal_price_diff` |
+| `base_version_price` | DECIMAL(15,2) | NULL | 基础版售价 | `2999.00` |
+| `feature_version_price` | DECIMAL(15,2) | NULL | 含特性版售价 | `3299.00` |
+| `base_version_cost` | DECIMAL(15,2) | NULL | 基础版成本 | `1800.00` |
+| `feature_version_cost` | DECIMAL(15,2) | NULL | 含特性版成本 | `1880.00` |
+| `competitor_feature_price` | DECIMAL(15,2) | NULL | 竞品特性价格 | `499.00` |
+| `competitor_feature_cost` | DECIMAL(15,2) | NULL | 竞品特性成本 | `150.00` |
+| `brand_power_difference` | DECIMAL(5,2) | NULL | 品牌力差异(%) | `5.00` |
+| `customer_wtp` | DECIMAL(15,2) | NULL | 客户平均支付意愿 | `80.00` |
+| `customer_wtp_distribution` | JSONB | NULL | WTP分布数据 | `{"0-50": 0.2, "51-100": 0.5, "101-150": 0.3}` |
+| `synergy_coefficient` | DECIMAL(5,4) | DEFAULT 1.0000 | 协同效应修正系数 | `1.0000` |
+| `lifecycle_coefficient` | DECIMAL(5,4) | DEFAULT 1.0000 | 生命周期修正系数 | `1.2000` |
+| `preliminary_valuation` | DECIMAL(15,2) | NULL | 初步估值 | `220.00` |
+| `final_valuation` | DECIMAL(15,2) | NULL | 最终估值 | `264.00` |
+| `sales_ratio` | DECIMAL(5,4) | NULL | 升级版销量占比 | `0.6000` |
+| `customer_feedback` | DECIMAL(5,2) | NULL | 客户反馈评分 | `85.00` |
+| `version_number` | INTEGER | DEFAULT 1 | 版本号 | `1` |
+| `is_current` | BOOLEAN | DEFAULT true | 是否当前版本 | `true` |
+| `created_at` | TIMESTAMPTZ | DEFAULT NOW() | 创建时间 | `2024-10-21 10:30:00+00` |
+| `updated_at` | TIMESTAMPTZ | DEFAULT NOW() | 更新时间 | `2024-10-21 10:30:00+00` |
+| `created_by` | UUID | NOT NULL, FK | 创建人 | `u1a2b3c4-...` |
+| `updated_by` | UUID | NOT NULL, FK | 更新人 | `u1a2b3c4-...` |
+
+**索引**:
+```sql
+CREATE INDEX idx_feature_valuation_tenant ON fact_product_feature_valuation(tenant_id, valuation_date);
+CREATE INDEX idx_feature_valuation_feature ON fact_product_feature_valuation(feature_id, valuation_date);
+CREATE INDEX idx_feature_valuation_product ON fact_product_feature_valuation(product_id, valuation_date);
+CREATE INDEX idx_feature_valuation_current ON fact_product_feature_valuation(feature_id, is_current);
+```
+
+**外键**:
+```sql
+FOREIGN KEY (tenant_id) REFERENCES tenants(tenant_id) ON DELETE CASCADE
+FOREIGN KEY (feature_id) REFERENCES dim_product_feature_master(feature_id) ON DELETE CASCADE
+FOREIGN KEY (product_id) REFERENCES products(product_id) ON DELETE CASCADE
+FOREIGN KEY (created_by) REFERENCES users(user_id)
+FOREIGN KEY (updated_by) REFERENCES users(user_id)
+```
+
+**业务规则**:
+- `final_valuation` = `preliminary_valuation` × `synergy_coefficient` × `lifecycle_coefficient`
+- `preliminary_valuation` 根据估值方法计算：
+  - 内部价差法：`(feature_version_price - base_version_price) - (feature_version_cost - base_version_cost)`
+  - 外部竞品法：`(competitor_feature_price - competitor_feature_cost) × (1 - brand_power_difference/100) + (competitor_feature_cost - (feature_version_cost - base_version_cost))`
+  - 客户支付意愿法：`customer_wtp - (feature_version_cost - base_version_cost)`
+
+---
+
+### 文件4: `supabase/sql/11_value_item_master_and_assessment.sql`
+
+#### 表4.1: `product_value_item_master` - 产品价值评估项清单表（主数据）
 
 **业务含义**: 管理产品价值评估的具体项目，分为内在价值（需求/功能）、认知价值（品牌/认知）、体验价值（体验点）三大类。
 
