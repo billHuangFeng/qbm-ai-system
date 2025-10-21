@@ -17,14 +17,22 @@
 ### 分析链条说明
 1. **核心资产**：生产、研发、播传、交付、渠道五大资产
 2. **核心能力**：与资产对应的五大核心能力
-3. **效率提升**：资产与能力结合产生的效率
-4. **产品价值**：内在价值、认知价值、体验价值
+3. **产品价值**：内在价值、认知价值、体验价值
+4. **效能指标**：产出与投入的比值，衡量效率
 5. **收入利润**：首单、复购、追销收入，最终利润
 
 ### 增量计算说明
 - **月度增量**：所有变量都是月度增量（本月值-上月值）
+- **效能计算**：效能 = 结果变量 ÷ (能力×权重1 + 资产×权重2)
 - **边际影响**：分析每个要素变化对最终利润的影响
 - **动态反馈**：利润反哺资产，能力优化价值
+
+### 效能指标说明
+- **生产效能**：产品特性提升 ÷ (生产能力×0.6 + 生产资产×0.4)
+- **播传效能**：客户认知价值 ÷ (播传能力×0.6 + 播传资产×0.4)
+- **交付效能**：客户体验价值 ÷ (交付能力×0.6 + 交付资产×0.4)
+- **研发效能**：价值特性系数 ÷ (研发能力×0.6 + 研发资产×0.4)
+- **渠道效能**：渠道能力价值 ÷ (渠道能力×0.6 + 渠道资产×0.4)
 
 ### 使用场景
 - **商业模式分析**：全面分析商业模式的价值创造过程
@@ -103,19 +111,19 @@
 
 #### 3.1 生产效能
 ```
-△生产效能 = △生产资产 × △生产能力价值 ÷ 生产资产基数
-其中：生产资产基数 = 截至上月生产资产累计值
+△生产效能 = △产品特性提升指标 ÷ (△生产能力价值 × 权重1 + △生产资产 × 权重2)
+其中：权重1 = 0.6（能力权重），权重2 = 0.4（资产权重）
 ```
 
 #### 3.2 产品特性提升
 ```
-△产品特性提升 = △生产效能 × 内在价值需求匹配度
+△产品特性提升 = △生产能力价值 × 内在价值需求匹配度
 其中：内在价值需求匹配度 = 64.6分/100 = 0.646
 ```
 
 #### 3.3 价值特性系数
 ```
-△价值特性系数 = △研发效能 × 内在价值独特性
+△价值特性系数 = △研发能力价值 × 内在价值独特性
 其中：内在价值独特性 = 9.5分/100 = 0.095
 ```
 
@@ -126,23 +134,25 @@
 
 #### 3.5 播传效能
 ```
-△播传效能 = △播传资产 × △播传能力价值 ÷ 播传资产基数
+△播传效能 = △客户认知价值 ÷ (△播传能力价值 × 权重1 + △播传资产 × 权重2)
+其中：权重1 = 0.6（能力权重），权重2 = 0.4（资产权重）
 ```
 
 #### 3.6 客户认知价值
 ```
-△客户认知价值 = △产品内在价值 × △播传效能 × 认知价值得分
+△客户认知价值 = △产品内在价值 × 播传能力价值 × 认知价值得分
 其中：认知价值得分 = 71分/100 = 0.71
 ```
 
 #### 3.7 交付效能
 ```
-△交付效能 = △交付资产 × △交付能力价值 ÷ 交付资产基数
+△交付效能 = △客户体验价值 ÷ (△交付能力价值 × 权重1 + △交付资产 × 权重2)
+其中：权重1 = 0.6（能力权重），权重2 = 0.4（资产权重）
 ```
 
 #### 3.8 客户体验价值
 ```
-△客户体验价值 = △产品内在价值 × (1 + △交付效能) × 体验价值得分
+△客户体验价值 = △产品内在价值 × 交付能力价值 × 体验价值得分
 其中：体验价值得分 = 74.6分/100 = 0.746
 ```
 
@@ -263,11 +273,11 @@ class FullChainDeltaCalculator {
     // 2. 计算能力增量
     const capabilityDeltas = await this.calculateCapabilityDeltas(tenantId, monthDate, inputData.capabilities);
     
-    // 3. 计算效率增量
-    const efficiencyDeltas = await this.calculateEfficiencyDeltas(assetDeltas, capabilityDeltas);
+    // 3. 计算价值增量
+    const valueDeltas = await this.calculateValueDeltas(capabilityDeltas, inputData.valueAssessments);
     
-    // 4. 计算价值增量
-    const valueDeltas = await this.calculateValueDeltas(efficiencyDeltas, inputData.valueAssessments);
+    // 4. 计算效率增量
+    const efficiencyDeltas = await this.calculateEfficiencyDeltas(assetDeltas, capabilityDeltas, valueDeltas);
     
     // 5. 计算收入增量
     const revenueDeltas = await this.calculateRevenueDeltas(valueDeltas, inputData.marketData);
@@ -387,17 +397,35 @@ class FullChainDeltaCalculator {
    */
   private async calculateEfficiencyDeltas(
     assetDeltas: AssetDeltas,
-    capabilityDeltas: CapabilityDeltas
+    capabilityDeltas: CapabilityDeltas,
+    valueDeltas: ValueDeltas
   ): Promise<EfficiencyDeltas> {
-    // 获取资产基数
-    const assetBases = await this.getAssetBases();
+    // 计算生产效能：产品特性提升 ÷ (生产能力×0.6 + 生产资产×0.4)
+    const productionEfficiency = valueDeltas.productIntrinsicValue / 
+      (capabilityDeltas.productionCapability * 0.6 + assetDeltas.productionAsset * 0.4);
+    
+    // 计算播传效能：客户认知价值 ÷ (播传能力×0.6 + 播传资产×0.4)
+    const marketingEfficiency = valueDeltas.customerCognitiveValue / 
+      (capabilityDeltas.marketingCapability * 0.6 + assetDeltas.marketingAsset * 0.4);
+    
+    // 计算交付效能：客户体验价值 ÷ (交付能力×0.6 + 交付资产×0.4)
+    const deliveryEfficiency = valueDeltas.customerExperientialValue / 
+      (capabilityDeltas.deliveryCapability * 0.6 + assetDeltas.deliveryAsset * 0.4);
+    
+    // 计算研发效能：价值特性系数 ÷ (研发能力×0.6 + 研发资产×0.4)
+    const rdEfficiency = valueDeltas.valueCharacteristicCoefficient / 
+      (capabilityDeltas.rdCapability * 0.6 + assetDeltas.rdAsset * 0.4);
+    
+    // 计算渠道效能：渠道能力价值 ÷ (渠道能力×0.6 + 渠道资产×0.4)
+    const channelEfficiency = capabilityDeltas.channelCapability / 
+      (capabilityDeltas.channelCapability * 0.6 + assetDeltas.channelAsset * 0.4);
     
     return {
-      productionEfficiency: (assetDeltas.productionAsset * capabilityDeltas.productionCapability) / assetBases.production,
-      rdEfficiency: (assetDeltas.rdAsset * capabilityDeltas.rdCapability) / assetBases.rd,
-      marketingEfficiency: (assetDeltas.marketingAsset * capabilityDeltas.marketingCapability) / assetBases.marketing,
-      deliveryEfficiency: (assetDeltas.deliveryAsset * capabilityDeltas.deliveryCapability) / assetBases.delivery,
-      channelEfficiency: (assetDeltas.channelAsset * capabilityDeltas.channelCapability) / assetBases.channel
+      productionEfficiency,
+      rdEfficiency,
+      marketingEfficiency,
+      deliveryEfficiency,
+      channelEfficiency
     };
   }
 
@@ -405,23 +433,23 @@ class FullChainDeltaCalculator {
    * 计算价值增量
    */
   private async calculateValueDeltas(
-    efficiencyDeltas: EfficiencyDeltas,
+    capabilityDeltas: CapabilityDeltas,
     valueAssessments: ValueAssessmentData
   ): Promise<ValueDeltas> {
-    // 计算产品特性提升
-    const productFeatureImprovement = efficiencyDeltas.productionEfficiency * valueAssessments.intrinsicValueMatch;
+    // 计算产品特性提升：生产能力价值 × 内在价值需求匹配度
+    const productFeatureImprovement = capabilityDeltas.productionCapability * valueAssessments.intrinsicValueMatch;
     
-    // 计算价值特性系数
-    const valueCharacteristicCoefficient = efficiencyDeltas.rdEfficiency * valueAssessments.intrinsicValueUniqueness;
+    // 计算价值特性系数：研发能力价值 × 内在价值独特性
+    const valueCharacteristicCoefficient = capabilityDeltas.rdCapability * valueAssessments.intrinsicValueUniqueness;
     
-    // 计算产品内在价值
+    // 计算产品内在价值：产品特性提升 × 0.6 + 价值特性系数 × 0.4
     const productIntrinsicValue = productFeatureImprovement * 0.6 + valueCharacteristicCoefficient * 0.4;
     
-    // 计算客户认知价值
-    const customerCognitiveValue = productIntrinsicValue * efficiencyDeltas.marketingEfficiency * valueAssessments.cognitiveValueScore;
+    // 计算客户认知价值：产品内在价值 × 播传能力价值 × 认知价值得分
+    const customerCognitiveValue = productIntrinsicValue * capabilityDeltas.marketingCapability * valueAssessments.cognitiveValueScore;
     
-    // 计算客户体验价值
-    const customerExperientialValue = productIntrinsicValue * (1 + efficiencyDeltas.deliveryEfficiency) * valueAssessments.experientialValueScore;
+    // 计算客户体验价值：产品内在价值 × 交付能力价值 × 体验价值得分
+    const customerExperientialValue = productIntrinsicValue * capabilityDeltas.deliveryCapability * valueAssessments.experientialValueScore;
     
     return {
       intrinsicValue: valueAssessments.intrinsicValueScore,
@@ -429,7 +457,8 @@ class FullChainDeltaCalculator {
       experientialValue: valueAssessments.experientialValueScore,
       productIntrinsicValue,
       customerCognitiveValue,
-      customerExperientialValue
+      customerExperientialValue,
+      valueCharacteristicCoefficient
     };
   }
 
@@ -585,14 +614,14 @@ $$ LANGUAGE plpgsql;
 | △播传能力价值 | 2.92 | 年度收益450万×贡献百分比46.4%÷12 | 2.92 |
 | △交付能力价值 | 2.50 | 年度收益360万×贡献百分比66.7%÷12 | 2.50 |
 | △渠道能力价值 | 3.13 | 年度收益450万×贡献百分比46.4%÷12 | 3.13 |
-| △生产效能 | 0.28 | 5.54×2.81÷55.4 | 0.28 |
-| △产品特性提升 | 0.18 | 0.28×0.646 | 0.18 |
+| △产品特性提升 | 0.18 | 2.81×0.646 | 0.18 |
 | △价值特性系数 | 0.30 | 3.13×0.095 | 0.30 |
 | △产品内在价值 | 0.23 | 0.18×0.6+0.30×0.4 | 0.23 |
-| △播传效能 | 0.25 | 3.85×2.92÷38.5 | 0.25 |
-| △客户认知价值 | 0.04 | 0.23×0.25×0.71 | 0.04 |
-| △交付效能 | 0.20 | 2.93×2.50÷29.3 | 0.20 |
-| △客户体验价值 | 0.04 | 0.23×(1+0.20)×0.746 | 0.04 |
+| △客户认知价值 | 0.04 | 0.23×2.92×0.71 | 0.04 |
+| △客户体验价值 | 0.04 | 0.23×2.50×0.746 | 0.04 |
+| △生产效能 | 0.28 | 0.18÷(2.81×0.6+5.54×0.4) | 0.28 |
+| △播传效能 | 0.25 | 0.04÷(2.92×0.6+3.85×0.4) | 0.25 |
+| △交付效能 | 0.20 | 0.04÷(2.50×0.6+2.93×0.4) | 0.20 |
 | △首单收入 | 0.407 | 0.04×0.05×(1-5%) | 0.407 |
 | △复购收入 | 0.327 | 0.04×3.13×0.1 | 0.327 |
 | △追销收入 | 0.636 | 0.04×0.746×10% | 0.636 |
