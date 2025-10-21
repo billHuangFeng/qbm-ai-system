@@ -74,8 +74,8 @@
 - **生产效能**：产品成本优势 ÷ (生产能力×a2 + 生产资产×b2) → 影响实际成本-竞品成本
 - **研发效能**：产品特性估值 ÷ (研发能力×a3 + 研发资产×b3) → 影响产品特性价值
 - **产品效能**：(产品内在价值-产品特性价值) ÷ (设计能力×a1 + 设计资产×b1) → 影响产品内在价值-产品特性价值
-- **播传效能**：客户认知价值 ÷ (播传能力×a4 + 播传资产×b4) → 影响客户认知价值
-- **交付效能**：客户体验价值 ÷ (交付能力×a5 + 交付资产×b5) → 影响客户体验价值
+- **播传效能**：（客户认知价值-产品内在价值） ÷ (播传能力×a4 + 播传资产×b4) → 影响客户认知价值-产品内在价值
+- **交付效能**：（客户体验价值-产品内在价值） ÷ (交付能力×a5 + 交付资产×b5) → 影响客户体验价值-产品内在价值
 - **渠道效能**：产品销售收入 ÷ (渠道能力×a6 + 渠道资产×b6) → 影响销售收入
 
 ### 使用场景
@@ -238,44 +238,57 @@
 
 #### 3.1 生产效能
 ```
-△生产效能 = △产品特性提升指标 ÷ (△生产能力价值 × 权重1 + △生产资产 × 权重2)
-其中：权重1 = 0.6（能力权重），权重2 = 0.4（资产权重）
+△生产效能 = △产品成本优势 ÷ (△生产能力 × a2 + △生产资产 × b2)
+其中：a2 = 生产能力权重，b2 = 生产资产权重
+产品成本优势 = 竞品成本 - 企业产品成本
 ```
 
-#### 3.2 产品特性提升
+#### 3.2 产品特性价值
 ```
-△产品特性提升 = △生产能力价值 × 内在价值需求匹配度
-其中：内在价值需求匹配度 = 64.6分/100 = 0.646
+△产品特性价值 = 基于特性单独估值方法计算的总估值 × 需求匹配修正系数
+其中：需求匹配修正系数 = （需求洞察准确率×0.6 + 需求转化落地率×0.4）
+
+特性价值计算方法：
+1. 内部价差法：特性价值=（含特性版售价-基础版售价）-特性边际成本
+2. 外部竞品法：特性价值=（竞品特性选装价-竞品边际成本）×品牌修正系数
+3. 支付意愿法：特性价值=客户平均WTP-特性边际成本
 ```
 
 #### 3.3 价值特性系数
 ```
-△价值特性系数 = △产品内在价值 ÷ △产品特性提升
+价值特性系数 = 产品内在价值 ÷ 产品特性价值
 其中：△产品内在价值 = 基于特性单独估值的内在价值
-△产品特性提升 = △生产能力价值 × 内在价值需求匹配度
+△产品特性价值 = 基于特性单独估值方法计算的总估值 × 需求匹配修正系数
 ```
 
 #### 3.4 产品内在价值
 ```
-△产品内在价值 = 基于特性单独估值的内在价值
-（通过产品特性单独估值方法计算得出）
+△产品内在价值 = 客户支付意愿（WTP）× 产品内在价值得分
+其中：产品内在价值得分 = 需求匹配度总分×70% + 功能独特性总分×30%
+
+需求匹配度总分 = 核心需求覆盖率×50% + 综合满足深度×50%
+核心需求覆盖率 = （产品达标需求项数 ÷ 客户核心需求总项数）× 100%
+综合满足深度 = Σ（单需求深度×需求重要性权重）÷ Σ需求权重
+
+功能独特性总分 = 独特功能占比×60% + 独特功能需求权重×40%×100
+独特功能占比 = （竞品未覆盖的需求功能项数 ÷ 自身核心功能总项数）× 100%
 ```
 
 #### 3.5 播传效能
 ```
-△播传效能 = △客户认知价值 ÷ (△播传能力价值 × 权重1 + △播传资产 × 权重2)
-其中：权重1 = 0.6（能力权重），权重2 = 0.4（资产权重）
+△播传效能 = (△客户认知价值 - △产品内在价值) ÷ (△播传能力 × a4 + △播传资产 × b4)
+其中：a4 = 播传能力权重，b4 = 播传资产权重
 ```
 
 #### 3.6 客户认知价值
 ```
-△客户认知价值 = △产品内在价值 × 播传能力价值 × 认知价值得分
-其中：认知价值得分 = 71分/100 = 0.71
+△客户认知价值 = 客户支付意愿（WTP）
+其中：客户支付意愿（WTP）= 客户平均愿意支付的价格
 ```
 
 #### 3.7 产品效能
 ```
-△产品效能 = (△产品内在价值 - △产品特性价值) ÷ (△设计能力 × a1 + △设计资产 × b1)
+△产品效能 = △产品内在价值 ÷ (△设计能力 × a1 + △设计资产 × b1)
 其中：a1 = 设计能力权重，b1 = 设计资产权重
 ```
 
@@ -301,7 +314,7 @@
 
 #### 3.11 交付效能
 ```
-△交付效能 = △客户体验价值 ÷ (△交付能力 × a5 + △交付资产 × b5)
+△交付效能 = (△客户体验价值 - △产品内在价值) ÷ (△交付能力 × a5 + △交付资产 × b5)
 其中：a5 = 交付能力权重，b5 = 交付资产权重
 ```
 
@@ -314,8 +327,12 @@
 
 #### 3.13 客户体验价值
 ```
-△客户体验价值 = △产品内在价值 × 交付能力价值 × 体验价值得分
-其中：体验价值得分 = 74.6分/100 = 0.746
+△客户体验价值 = 客户体验价值得分
+其中：客户体验价值得分 = 体验-认知偏差×40% + 场景满意度×30% + 行为转化总分×30%
+
+体验-认知偏差 = 1 - |（实际使用值 - 认知值）÷ 认知值|×100%
+场景满意度 = （某场景中选择"满意/非常满意"的客户数 ÷ 该场景调研总客户数）× 100%
+行为转化总分 = 复购意愿率×60% + （NPS÷100）×40%×100
 ```
 
 ### 4. 收入利润模块（5个△函数）
@@ -372,6 +389,7 @@ interface FullChainDeltaCalculation {
 
 // 资产增量
 interface AssetDeltas {
+  designAsset: number; // 产品设计资产
   productionAsset: number;
   rdAsset: number;
   marketingAsset: number;
@@ -381,6 +399,7 @@ interface AssetDeltas {
 
 // 能力增量
 interface CapabilityDeltas {
+  designCapability: number; // 产品设计能力
   productionCapability: number;
   rdCapability: number;
   marketingCapability: number;
@@ -527,6 +546,7 @@ class FullChainDeltaCalculator {
     monthDate: Date,
     assets: AssetInputData
   ): Promise<AssetDeltas> {
+    const designAsset = await this.calculateDesignAsset(tenantId, monthDate, assets.design);
     const productionAsset = await this.calculateProductionAsset(tenantId, monthDate, assets.production);
     const rdAsset = await this.calculateRDAsset(tenantId, monthDate, assets.rd);
     const marketingAsset = await this.calculateMarketingAsset(tenantId, monthDate, assets.marketing);
@@ -534,12 +554,41 @@ class FullChainDeltaCalculator {
     const channelAsset = await this.calculateChannelAsset(tenantId, monthDate, assets.channel);
     
     return {
+      designAsset,
       productionAsset,
       rdAsset,
       marketingAsset,
       deliveryAsset,
       channelAsset
     };
+  }
+
+  /**
+   * 计算产品设计资产增量
+   */
+  private async calculateDesignAsset(
+    tenantId: string,
+    monthDate: Date,
+    designData: DesignAssetData
+  ): Promise<number> {
+    // 获取历史基准现金流
+    const baselineCashflow = await this.getBaselineCashflow(tenantId, 'design', monthDate);
+    
+    // 计算未来5年现金流增量
+    const cashflowIncrements = designData.year1to5Cashflows.map(cashflow => 
+      cashflow - baselineCashflow
+    );
+    
+    // 计算NPV现值
+    let npv = 0;
+    for (let year = 1; year <= this.PROJECTION_YEARS; year++) {
+      const discountFactor = 1 / Math.pow(1 + this.DISCOUNT_RATE, year);
+      const presentValue = cashflowIncrements[year - 1] * discountFactor;
+      npv += presentValue;
+    }
+    
+    // 计算月度增量
+    return npv / (this.PROJECTION_YEARS * this.MONTHS_PER_YEAR);
   }
 
   /**
@@ -578,6 +627,7 @@ class FullChainDeltaCalculator {
     monthDate: Date,
     capabilities: CapabilityInputData
   ): Promise<CapabilityDeltas> {
+    const designCapability = await this.calculateDesignCapability(tenantId, monthDate, capabilities.design);
     const productionCapability = await this.calculateProductionCapability(tenantId, monthDate, capabilities.production);
     const rdCapability = await this.calculateRDCapability(tenantId, monthDate, capabilities.rd);
     const marketingCapability = await this.calculateMarketingCapability(tenantId, monthDate, capabilities.marketing);
@@ -585,12 +635,32 @@ class FullChainDeltaCalculator {
     const channelCapability = await this.calculateChannelCapability(tenantId, monthDate, capabilities.channel);
     
     return {
+      designCapability,
       productionCapability,
       rdCapability,
       marketingCapability,
       deliveryCapability,
       channelCapability
     };
+  }
+
+  /**
+   * 计算产品设计能力增量
+   */
+  private async calculateDesignCapability(
+    tenantId: string,
+    monthDate: Date,
+    designData: DesignCapabilityData
+  ): Promise<number> {
+    // 计算贡献百分比
+    const contributionPercentage = (designData.currentMatchRate - designData.baselineMatchRate) / 
+                                  designData.currentMatchRate;
+    
+    // 计算年度收益
+    const annualRevenue = designData.demandMatchPremium + designData.repurchaseIncrement + designData.validationCostSaving;
+    
+    // 计算月度价值
+    return (annualRevenue * contributionPercentage) / 12;
   }
 
   /**
@@ -622,8 +692,8 @@ class FullChainDeltaCalculator {
     revenueDeltas: RevenueDeltas,
     efficiencyWeights: EfficiencyWeights
   ): Promise<EfficiencyDeltas> {
-    // 计算产品效能：(产品内在价值 - 产品特性价值) ÷ (设计能力×a1 + 设计资产×b1)
-    const productEfficiency = (valueDeltas.productIntrinsicValue - valueDeltas.productFeatureValuation) / 
+    // 计算产品效能：产品内在价值 ÷ (设计能力×a1 + 设计资产×b1)
+    const productEfficiency = valueDeltas.productIntrinsicValue / 
       (capabilityDeltas.designCapability * efficiencyWeights.designCapabilityWeight + 
        assetDeltas.designAsset * efficiencyWeights.designAssetWeight);
     
@@ -637,13 +707,13 @@ class FullChainDeltaCalculator {
       (capabilityDeltas.rdCapability * efficiencyWeights.rdCapabilityWeight + 
        assetDeltas.rdAsset * efficiencyWeights.rdAssetWeight);
     
-    // 计算播传效能：客户认知价值 ÷ (播传能力×a4 + 播传资产×b4)
-    const marketingEfficiency = valueDeltas.customerCognitiveValue / 
+    // 计算播传效能：(客户认知价值-产品内在价值) ÷ (播传能力×a4 + 播传资产×b4)
+    const marketingEfficiency = (valueDeltas.customerCognitiveValue - valueDeltas.productIntrinsicValue) / 
       (capabilityDeltas.marketingCapability * efficiencyWeights.marketingCapabilityWeight + 
        assetDeltas.marketingAsset * efficiencyWeights.marketingAssetWeight);
     
-    // 计算交付效能：客户体验价值 ÷ (交付能力×a5 + 交付资产×b5)
-    const deliveryEfficiency = valueDeltas.customerExperientialValue / 
+    // 计算交付效能：(客户体验价值-产品内在价值) ÷ (交付能力×a5 + 交付资产×b5)
+    const deliveryEfficiency = (valueDeltas.customerExperientialValue - valueDeltas.productIntrinsicValue) / 
       (capabilityDeltas.deliveryCapability * efficiencyWeights.deliveryCapabilityWeight + 
        assetDeltas.deliveryAsset * efficiencyWeights.deliveryAssetWeight);
     
@@ -673,8 +743,8 @@ class FullChainDeltaCalculator {
     // 计算产品特性提升：生产能力价值 × 内在价值需求匹配度
     const productFeatureImprovement = capabilityDeltas.productionCapability * valueAssessments.intrinsicValueMatch;
     
-    // 计算产品内在价值：基于特性单独估值的内在价值
-    const productIntrinsicValue = await this.calculateProductIntrinsicValue(valueAssessments.featureValuationData);
+    // 计算产品内在价值：客户支付意愿（WTP）× 产品内在价值得分
+    const productIntrinsicValue = valueAssessments.customerWTP * await this.calculateProductIntrinsicValueScore(valueAssessments.intrinsicData);
     
     // 计算产品特性估值：基于特性单独估值方法计算的总估值
     const productFeatureValuation = await this.calculateProductFeatureValuation(valueAssessments.featureValuationData);
@@ -685,11 +755,11 @@ class FullChainDeltaCalculator {
     // 计算价值特性系数：产品内在价值 ÷ 产品特性提升
     const valueCharacteristicCoefficient = productIntrinsicValue / productFeatureImprovement;
     
-    // 计算客户认知价值：产品内在价值 × 播传能力价值 × 认知价值得分
-    const customerCognitiveValue = productIntrinsicValue * capabilityDeltas.marketingCapability * valueAssessments.cognitiveValueScore;
+    // 计算客户认知价值：客户支付意愿（WTP）
+    const customerCognitiveValue = valueAssessments.customerWTP;
     
-    // 计算客户体验价值：产品内在价值 × 交付能力价值 × 体验价值得分
-    const customerExperientialValue = productIntrinsicValue * capabilityDeltas.deliveryCapability * valueAssessments.experientialValueScore;
+    // 计算客户体验价值：客户体验价值得分
+    const customerExperientialValue = await this.calculateCustomerExperientialValue(valueAssessments.experientialData);
     
     return {
       intrinsicValue: valueAssessments.intrinsicValueScore,
@@ -726,16 +796,52 @@ class FullChainDeltaCalculator {
   }
 
   /**
-   * 计算产品特性估值（基于特性单独估值方法 + 设计要素修正）
+   * 计算产品特性价值（基于特性单独估值方法 + 需求匹配修正）
    */
   private async calculateProductFeatureValuation(featureValuationData: any): Promise<number> {
     // 基于特性单独估值方法计算产品特性估值
     const featureValuationCalculator = new FeatureValuationCalculator();
     const baseFeatureValue = await featureValuationCalculator.calculateTotalFeatureValue(featureValuationData);
     
-    // 应用设计要素修正系数
-    const designEnhancementFactor = await this.calculateDesignEnhancementFactor(featureValuationData);
-    return baseFeatureValue * (1 + designEnhancementFactor);
+    // 计算需求匹配修正系数
+    const demandMatchCoefficient = await this.calculateDemandMatchCoefficient(featureValuationData);
+    
+    // 应用需求匹配修正系数
+    return baseFeatureValue * demandMatchCoefficient;
+  }
+
+  /**
+   * 计算需求匹配修正系数
+   */
+  private async calculateDemandMatchCoefficient(featureValuationData: any): Promise<number> {
+    // 需求匹配修正系数 = （需求洞察准确率×0.6 + 需求转化落地率×0.4）
+    const insightAccuracy = featureValuationData.designCapability?.insightAccuracy || 0.85;
+    const conversionRate = featureValuationData.designCapability?.conversionRate || 0.90;
+    
+    return insightAccuracy * 0.6 + conversionRate * 0.4;
+  }
+
+  /**
+   * 计算产品内在价值得分
+   */
+  private async calculateProductIntrinsicValueScore(intrinsicData: any): Promise<number> {
+    // 产品内在价值得分 = 需求匹配度总分×70% + 功能独特性总分×30%
+    const demandMatchScore = intrinsicData.demandMatchScore || 0.646;
+    const functionUniquenessScore = intrinsicData.functionUniquenessScore || 0.095;
+    
+    return demandMatchScore * 0.7 + functionUniquenessScore * 0.3;
+  }
+
+  /**
+   * 计算客户体验价值
+   */
+  private async calculateCustomerExperientialValue(experientialData: any): Promise<number> {
+    // 客户体验价值得分 = 体验-认知偏差×40% + 场景满意度×30% + 行为转化总分×30%
+    const experienceCognitiveDeviation = experientialData.experienceCognitiveDeviation || 0.833;
+    const scenarioSatisfaction = experientialData.scenarioSatisfaction || 0.85;
+    const behaviorConversion = experientialData.behaviorConversion || 0.54;
+    
+    return experienceCognitiveDeviation * 0.4 + scenarioSatisfaction * 0.3 + behaviorConversion * 0.3;
   }
 
   /**
@@ -960,7 +1066,7 @@ $$ LANGUAGE plpgsql;
 | △客户认知价值 | 0.04 | 0.23×2.92×0.71 | 0.04 |
 | △客户体验价值 | 0.04 | 0.23×2.50×0.746 | 0.04 |
 | △销售转化收入 | 1.37 | 首单收入+复购收入+追销收入 | 1.37 |
-| △产品效能 | 0.53 | (0.23-0.15)÷(2.5×0.6+3.0×0.4) | 0.53 |
+| △产品效能 | 0.08 | 0.23÷(2.5×0.6+3.0×0.4) | 0.08 |
 | △生产效能 | 0.03 | 0.12÷(2.81×0.6+5.54×0.4) | 0.03 |
 | △播传效能 | 0.25 | 0.04÷(2.92×0.6+3.85×0.4) | 0.25 |
 | △交付效能 | 0.20 | 0.04÷(2.50×0.6+2.93×0.4) | 0.20 |
