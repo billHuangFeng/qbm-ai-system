@@ -73,9 +73,9 @@
 ### 效能指标说明
 - **生产效能**：产品成本优势 ÷ (生产能力×a2 + 生产资产×b2) → 影响实际成本-竞品成本
 - **研发效能**：产品特性估值 ÷ (研发能力×a3 + 研发资产×b3) → 影响产品特性价值
-- **产品效能**：(产品内在价值-产品特性价值) ÷ (设计能力×a1 + 设计资产×b1) → 影响产品内在价值-产品特性价值
-- **播传效能**：（客户认知价值-产品内在价值） ÷ (播传能力×a4 + 播传资产×b4) → 影响客户认知价值
-- **交付效能**：（客户体验价值-产品内在价值） ÷ (交付能力×a5 + 交付资产×b5) → 影响客户体验价值
+- **产品效能**：产品内在价值 ÷ (设计能力×a1 + 设计资产×b1) → 影响产品内在价值
+- **播传效能**：客户认知价值 ÷ (播传能力×a4 + 播传资产×b4) → 影响客户认知价值
+- **交付效能**：客户体验价值 ÷ (交付能力×a5 + 交付资产×b5) → 影响客户体验价值
 - **渠道效能**：产品销售收入 ÷ (渠道能力×a6 + 渠道资产×b6) → 影响产品销售收入
 
 ### 使用场景
@@ -276,7 +276,7 @@
 
 #### 3.5 播传效能
 ```
-播传效能 = (客户认知价值 - 产品内在价值) ÷ (播传能力 × a4 + 播传资产 × b4)
+播传效能 = 客户认知价值 ÷ (播传能力 × a4 + 播传资产 × b4)
 其中：a4 = 播传能力权重，b4 = 播传资产权重
 ```
 
@@ -288,7 +288,7 @@
 
 #### 3.7 产品效能
 ```
-产品效能 = (产品内在价值 - 产品特性价值) ÷ (设计能力 × a1 + 设计资产 × b1)
+产品效能 = 产品内在价值 ÷ (设计能力 × a1 + 设计资产 × b1)
 其中：a1 = 设计能力权重，b1 = 设计资产权重
 ```
 
@@ -309,7 +309,7 @@
 
 #### 3.11 交付效能
 ```
-交付效能 = (客户体验价值 - 产品内在价值) ÷ (交付能力 × a5 + 交付资产 × b5)
+交付效能 = 客户体验价值 ÷ (交付能力 × a5 + 交付资产 × b5)
 其中：a5 = 交付能力权重，b5 = 交付资产权重
 ```
 
@@ -709,8 +709,8 @@ class FullChainDeltaCalculator {
     revenueDeltas: RevenueDeltas,
     efficiencyWeights: EfficiencyWeights
   ): Promise<EfficiencyDeltas> {
-    // 计算产品效能：(产品内在价值 - 产品特性价值) ÷ (设计能力×a1 + 设计资产×b1)
-    const productEfficiency = (valueDeltas.productIntrinsicValue - valueDeltas.productFeatureValuation) / 
+    // 计算产品效能：产品内在价值 ÷ (设计能力×a1 + 设计资产×b1)
+    const productEfficiency = valueDeltas.productIntrinsicValue / 
       (capabilityDeltas.designCapability * efficiencyWeights.designCapabilityWeight + 
        assetDeltas.designAsset * efficiencyWeights.designAssetWeight);
     
@@ -724,13 +724,13 @@ class FullChainDeltaCalculator {
       (capabilityDeltas.rdCapability * efficiencyWeights.rdCapabilityWeight + 
        assetDeltas.rdAsset * efficiencyWeights.rdAssetWeight);
     
-    // 计算播传效能：(客户认知价值-产品内在价值) ÷ (播传能力×a4 + 播传资产×b4)
-    const marketingEfficiency = (valueDeltas.customerCognitiveValue - valueDeltas.productIntrinsicValue) / 
+    // 计算播传效能：客户认知价值 ÷ (播传能力×a4 + 播传资产×b4)
+    const marketingEfficiency = valueDeltas.customerCognitiveValue / 
       (capabilityDeltas.marketingCapability * efficiencyWeights.marketingCapabilityWeight + 
        assetDeltas.marketingAsset * efficiencyWeights.marketingAssetWeight);
     
-    // 计算交付效能：(客户体验价值-产品内在价值) ÷ (交付能力×a5 + 交付资产×b5)
-    const deliveryEfficiency = (valueDeltas.customerExperientialValue - valueDeltas.productIntrinsicValue) / 
+    // 计算交付效能：客户体验价值 ÷ (交付能力×a5 + 交付资产×b5)
+    const deliveryEfficiency = valueDeltas.customerExperientialValue / 
       (capabilityDeltas.deliveryCapability * efficiencyWeights.deliveryCapabilityWeight + 
        assetDeltas.deliveryAsset * efficiencyWeights.deliveryAssetWeight);
     
@@ -1104,13 +1104,13 @@ $$ LANGUAGE plpgsql;
 | △产品成本优势 | 0.12 | 竞品成本 - 企业产品成本 | 0.12 |
 | △客户认知价值 | 0.23 | 客户支付意愿（WTP） | 0.23 |
 | △客户体验价值 | 0.17 | 0.23×0.746 | 0.17 |
-| △销售转化收入 | 1.37 | 首单收入+复购收入+追销收入 | 1.37 |
-| △产品效能 | 0.11 | (0.23-0.15)÷(2.5×0.6+3.0×0.4) | 0.11 |
+| △销售转化收入 | 1.26 | 首单收入+复购收入+追销收入 | 1.26 |
+| △产品效能 | 0.08 | 0.23÷(2.5×0.6+3.0×0.4) | 0.08 |
 | △生产效能 | 0.03 | 0.12÷(2.81×0.6+5.54×0.4) | 0.03 |
-| △播传效能 | 0.00 | (0.23-0.23)÷(2.92×0.6+3.85×0.4) | 0.00 |
-| △交付效能 | -0.02 | (0.17-0.23)÷(2.50×0.6+2.93×0.4) | -0.02 |
+| △播传效能 | 0.06 | 0.23÷(2.92×0.6+3.85×0.4) | 0.06 |
+| △交付效能 | 0.05 | 0.17÷(2.50×0.6+2.93×0.4) | 0.05 |
 | △研发效能 | 0.36 | 0.15÷(3.13×0.6+4.21×0.4) | 0.36 |
-| △渠道效能 | 0.44 | 1.37÷(3.13×0.6+4.62×0.4) | 0.44 |
+| △渠道效能 | 0.40 | 1.26÷(3.13×0.6+4.62×0.4) | 0.40 |
 | △首单收入 | 0.46 | 汇总首单销售记录销售收入 | 0.46 |
 | △复购收入 | 0.34 | 汇总复购销售记录销售收入 | 0.34 |
 | △追销收入 | 0.46 | 汇总追销销售记录销售收入 | 0.46 |
