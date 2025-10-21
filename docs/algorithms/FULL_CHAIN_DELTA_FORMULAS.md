@@ -315,9 +315,9 @@
 
 #### 3.12 渠道效能
 ```
-渠道效能 = 销售收入 ÷ (渠道能力 × a6 + 渠道资产 × b6)
+渠道效能 = 产品销售收入 ÷ (渠道能力 × a6 + 渠道资产 × b6)
 其中：a6 = 渠道能力权重，b6 = 渠道资产权重
-销售收入 = 首单收入 + 复购收入 + 追销收入
+产品销售收入 = 首单收入 + 复购收入 + 追销收入
 ```
 
 #### 3.13 客户体验价值
@@ -734,9 +734,9 @@ class FullChainDeltaCalculator {
       (capabilityDeltas.deliveryCapability * efficiencyWeights.deliveryCapabilityWeight + 
        assetDeltas.deliveryAsset * efficiencyWeights.deliveryAssetWeight);
     
-    // 计算渠道效能：销售转化收入 ÷ (渠道能力×a6 + 渠道资产×b6)
-    const salesConversionRevenue = revenueDeltas.firstOrderRevenue + revenueDeltas.repurchaseRevenue + revenueDeltas.upsellRevenue;
-    const channelEfficiency = salesConversionRevenue / 
+    // 计算渠道效能：产品销售收入 ÷ (渠道能力×a6 + 渠道资产×b6)
+    const productSalesRevenue = revenueDeltas.firstOrderRevenue + revenueDeltas.repurchaseRevenue + revenueDeltas.upsellRevenue;
+    const channelEfficiency = productSalesRevenue / 
       (capabilityDeltas.channelCapability * efficiencyWeights.channelCapabilityWeight + 
        assetDeltas.channelAsset * efficiencyWeights.channelAssetWeight);
     
