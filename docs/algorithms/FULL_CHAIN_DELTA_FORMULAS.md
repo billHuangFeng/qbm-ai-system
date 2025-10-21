@@ -146,7 +146,20 @@
 其中：认知价值得分 = 71分/100 = 0.71
 ```
 
-#### 3.7 交付效能
+#### 3.7 产品效能
+```
+△产品效能 = △产品内在价值 ÷ (△设计能力价值 × 权重1 + △设计资产 × 权重2)
+其中：权重1 = 0.6（能力权重），权重2 = 0.4（资产权重）
+```
+
+#### 3.8 研发效能
+```
+△研发效能 = 产品特性估值 ÷ (△研发能力价值 × 权重1 + △研发资产 × 权重2)
+其中：权重1 = 0.6（能力权重），权重2 = 0.4（资产权重）
+产品特性估值 = 基于特性单独估值方法计算的总估值
+```
+
+#### 3.9 交付效能
 ```
 △交付效能 = △客户体验价值 ÷ (△交付能力价值 × 权重1 + △交付资产 × 权重2)
 其中：权重1 = 0.6（能力权重），权重2 = 0.4（资产权重）
@@ -230,6 +243,7 @@ interface CapabilityDeltas {
 
 // 效率增量
 interface EfficiencyDeltas {
+  productEfficiency: number; // 产品效能
   productionEfficiency: number;
   rdEfficiency: number;
   marketingEfficiency: number;
@@ -243,6 +257,7 @@ interface ValueDeltas {
   cognitiveValue: number;
   experientialValue: number;
   productIntrinsicValue: number;
+  productFeatureValuation: number; // 产品特性估值
   customerCognitiveValue: number;
   customerExperientialValue: number;
 }
@@ -402,6 +417,10 @@ class FullChainDeltaCalculator {
     capabilityDeltas: CapabilityDeltas,
     valueDeltas: ValueDeltas
   ): Promise<EfficiencyDeltas> {
+    // 计算产品效能：产品内在价值 ÷ (设计能力×0.6 + 设计资产×0.4)
+    const productEfficiency = valueDeltas.productIntrinsicValue / 
+      (capabilityDeltas.designCapability * 0.6 + assetDeltas.designAsset * 0.4);
+    
     // 计算生产效能：产品特性提升 ÷ (生产能力×0.6 + 生产资产×0.4)
     const productionEfficiency = valueDeltas.productIntrinsicValue / 
       (capabilityDeltas.productionCapability * 0.6 + assetDeltas.productionAsset * 0.4);
@@ -414,8 +433,8 @@ class FullChainDeltaCalculator {
     const deliveryEfficiency = valueDeltas.customerExperientialValue / 
       (capabilityDeltas.deliveryCapability * 0.6 + assetDeltas.deliveryAsset * 0.4);
     
-    // 计算研发效能：价值特性系数 ÷ (研发能力×0.6 + 研发资产×0.4)
-    const rdEfficiency = valueDeltas.valueCharacteristicCoefficient / 
+    // 计算研发效能：产品特性估值 ÷ (研发能力×0.6 + 研发资产×0.4)
+    const rdEfficiency = valueDeltas.productFeatureValuation / 
       (capabilityDeltas.rdCapability * 0.6 + assetDeltas.rdAsset * 0.4);
     
     // 计算渠道效能：渠道能力价值 ÷ (渠道能力×0.6 + 渠道资产×0.4)
@@ -423,6 +442,7 @@ class FullChainDeltaCalculator {
       (capabilityDeltas.channelCapability * 0.6 + assetDeltas.channelAsset * 0.4);
     
     return {
+      productEfficiency,
       productionEfficiency,
       rdEfficiency,
       marketingEfficiency,
@@ -443,6 +463,9 @@ class FullChainDeltaCalculator {
     
     // 计算产品内在价值：基于特性单独估值的内在价值
     const productIntrinsicValue = await this.calculateProductIntrinsicValue(valueAssessments.featureValuationData);
+    
+    // 计算产品特性估值：基于特性单独估值方法计算的总估值
+    const productFeatureValuation = await this.calculateProductFeatureValuation(valueAssessments.featureValuationData);
     
     // 计算价值特性系数：产品内在价值 ÷ 产品特性提升
     const valueCharacteristicCoefficient = productIntrinsicValue / productFeatureImprovement;
@@ -630,11 +653,14 @@ $$ LANGUAGE plpgsql;
 | △产品特性提升 | 0.18 | 2.81×0.646 | 0.18 |
 | △价值特性系数 | 1.28 | 0.23÷0.18 | 1.28 |
 | △产品内在价值 | 0.23 | 基于特性单独估值计算 | 0.23 |
+| △产品特性估值 | 0.15 | 基于特性单独估值方法计算的总估值 | 0.15 |
 | △客户认知价值 | 0.04 | 0.23×2.92×0.71 | 0.04 |
 | △客户体验价值 | 0.04 | 0.23×2.50×0.746 | 0.04 |
+| △产品效能 | 0.46 | 0.23÷(2.5×0.6+3.0×0.4) | 0.46 |
 | △生产效能 | 0.28 | 0.18÷(2.81×0.6+5.54×0.4) | 0.28 |
 | △播传效能 | 0.25 | 0.04÷(2.92×0.6+3.85×0.4) | 0.25 |
 | △交付效能 | 0.20 | 0.04÷(2.50×0.6+2.93×0.4) | 0.20 |
+| △研发效能 | 0.36 | 0.15÷(3.13×0.6+4.21×0.4) | 0.36 |
 | △首单收入 | 0.407 | 0.04×0.05×(1-5%) | 0.407 |
 | △复购收入 | 0.327 | 0.04×3.13×0.1 | 0.327 |
 | △追销收入 | 0.636 | 0.04×0.746×10% | 0.636 |
