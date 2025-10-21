@@ -123,13 +123,15 @@
 
 #### 3.3 价值特性系数
 ```
-△价值特性系数 = △研发能力价值 × 内在价值独特性
-其中：内在价值独特性 = 9.5分/100 = 0.095
+△价值特性系数 = △产品内在价值 ÷ △产品特性提升
+其中：△产品内在价值 = 基于特性单独估值的内在价值
+△产品特性提升 = △生产能力价值 × 内在价值需求匹配度
 ```
 
 #### 3.4 产品内在价值
 ```
-△产品内在价值 = △产品特性提升 × 0.6 + △价值特性系数 × 0.4
+△产品内在价值 = 基于特性单独估值的内在价值
+（通过产品特性单独估值方法计算得出）
 ```
 
 #### 3.5 播传效能
@@ -439,11 +441,11 @@ class FullChainDeltaCalculator {
     // 计算产品特性提升：生产能力价值 × 内在价值需求匹配度
     const productFeatureImprovement = capabilityDeltas.productionCapability * valueAssessments.intrinsicValueMatch;
     
-    // 计算价值特性系数：研发能力价值 × 内在价值独特性
-    const valueCharacteristicCoefficient = capabilityDeltas.rdCapability * valueAssessments.intrinsicValueUniqueness;
+    // 计算产品内在价值：基于特性单独估值的内在价值
+    const productIntrinsicValue = await this.calculateProductIntrinsicValue(valueAssessments.featureValuationData);
     
-    // 计算产品内在价值：产品特性提升 × 0.6 + 价值特性系数 × 0.4
-    const productIntrinsicValue = productFeatureImprovement * 0.6 + valueCharacteristicCoefficient * 0.4;
+    // 计算价值特性系数：产品内在价值 ÷ 产品特性提升
+    const valueCharacteristicCoefficient = productIntrinsicValue / productFeatureImprovement;
     
     // 计算客户认知价值：产品内在价值 × 播传能力价值 × 认知价值得分
     const customerCognitiveValue = productIntrinsicValue * capabilityDeltas.marketingCapability * valueAssessments.cognitiveValueScore;
@@ -460,6 +462,17 @@ class FullChainDeltaCalculator {
       customerExperientialValue,
       valueCharacteristicCoefficient
     };
+  }
+
+  /**
+   * 计算产品内在价值（基于特性单独估值）
+   */
+  private async calculateProductIntrinsicValue(featureValuationData: any): Promise<number> {
+    // 基于特性单独估值方法计算产品内在价值
+    // 这里调用特性估值计算器
+    const featureValuationCalculator = new FeatureValuationCalculator();
+    const totalFeatureValue = await featureValuationCalculator.calculateTotalFeatureValue(featureValuationData);
+    return totalFeatureValue;
   }
 
   /**
@@ -615,8 +628,8 @@ $$ LANGUAGE plpgsql;
 | △交付能力价值 | 2.50 | 年度收益360万×贡献百分比66.7%÷12 | 2.50 |
 | △渠道能力价值 | 3.13 | 年度收益450万×贡献百分比46.4%÷12 | 3.13 |
 | △产品特性提升 | 0.18 | 2.81×0.646 | 0.18 |
-| △价值特性系数 | 0.30 | 3.13×0.095 | 0.30 |
-| △产品内在价值 | 0.23 | 0.18×0.6+0.30×0.4 | 0.23 |
+| △价值特性系数 | 1.28 | 0.23÷0.18 | 1.28 |
+| △产品内在价值 | 0.23 | 基于特性单独估值计算 | 0.23 |
 | △客户认知价值 | 0.04 | 0.23×2.92×0.71 | 0.04 |
 | △客户体验价值 | 0.04 | 0.23×2.50×0.746 | 0.04 |
 | △生产效能 | 0.28 | 0.18÷(2.81×0.6+5.54×0.4) | 0.28 |
