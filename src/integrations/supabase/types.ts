@@ -14,16 +14,173 @@ export type Database = {
   }
   public: {
     Tables: {
-      [_ in never]: never
+      cross_tenant_access: {
+        Row: {
+          access_id: string
+          access_level: string | null
+          analyst_id: string
+          expires_at: string | null
+          granted_at: string | null
+          granted_by: string | null
+          tenant_id: string
+        }
+        Insert: {
+          access_id?: string
+          access_level?: string | null
+          analyst_id: string
+          expires_at?: string | null
+          granted_at?: string | null
+          granted_by?: string | null
+          tenant_id: string
+        }
+        Update: {
+          access_id?: string
+          access_level?: string | null
+          analyst_id?: string
+          expires_at?: string | null
+          granted_at?: string | null
+          granted_by?: string | null
+          tenant_id?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "cross_tenant_access_tenant_id_fkey"
+            columns: ["tenant_id"]
+            isOneToOne: false
+            referencedRelation: "tenants"
+            referencedColumns: ["tenant_id"]
+          },
+        ]
+      }
+      tenants: {
+        Row: {
+          created_at: string | null
+          industry: string | null
+          is_active: boolean | null
+          tenant_code: string
+          tenant_id: string
+          tenant_name: string
+          updated_at: string | null
+        }
+        Insert: {
+          created_at?: string | null
+          industry?: string | null
+          is_active?: boolean | null
+          tenant_code: string
+          tenant_id?: string
+          tenant_name: string
+          updated_at?: string | null
+        }
+        Update: {
+          created_at?: string | null
+          industry?: string | null
+          is_active?: boolean | null
+          tenant_code?: string
+          tenant_id?: string
+          tenant_name?: string
+          updated_at?: string | null
+        }
+        Relationships: []
+      }
+      user_profiles: {
+        Row: {
+          created_at: string | null
+          department: string | null
+          email: string
+          full_name: string | null
+          is_active: boolean | null
+          phone: string | null
+          tenant_id: string | null
+          updated_at: string | null
+          user_id: string
+        }
+        Insert: {
+          created_at?: string | null
+          department?: string | null
+          email: string
+          full_name?: string | null
+          is_active?: boolean | null
+          phone?: string | null
+          tenant_id?: string | null
+          updated_at?: string | null
+          user_id: string
+        }
+        Update: {
+          created_at?: string | null
+          department?: string | null
+          email?: string
+          full_name?: string | null
+          is_active?: boolean | null
+          phone?: string | null
+          tenant_id?: string | null
+          updated_at?: string | null
+          user_id?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "user_profiles_tenant_id_fkey"
+            columns: ["tenant_id"]
+            isOneToOne: false
+            referencedRelation: "tenants"
+            referencedColumns: ["tenant_id"]
+          },
+        ]
+      }
+      user_roles: {
+        Row: {
+          granted_at: string | null
+          granted_by: string | null
+          id: string
+          role: Database["public"]["Enums"]["app_role"]
+          tenant_id: string | null
+          user_id: string
+        }
+        Insert: {
+          granted_at?: string | null
+          granted_by?: string | null
+          id?: string
+          role: Database["public"]["Enums"]["app_role"]
+          tenant_id?: string | null
+          user_id: string
+        }
+        Update: {
+          granted_at?: string | null
+          granted_by?: string | null
+          id?: string
+          role?: Database["public"]["Enums"]["app_role"]
+          tenant_id?: string | null
+          user_id?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "user_roles_tenant_id_fkey"
+            columns: ["tenant_id"]
+            isOneToOne: false
+            referencedRelation: "tenants"
+            referencedColumns: ["tenant_id"]
+          },
+        ]
+      }
     }
     Views: {
       [_ in never]: never
     }
     Functions: {
-      [_ in never]: never
+      get_user_tenant_id: { Args: { _user_id: string }; Returns: string }
+      has_cross_tenant_access: {
+        Args: { _tenant_id: string; _user_id: string }
+        Returns: boolean
+      }
+      has_role: {
+        Args: {
+          _role: Database["public"]["Enums"]["app_role"]
+          _user_id: string
+        }
+        Returns: boolean
+      }
     }
     Enums: {
-      [_ in never]: never
+      app_role: "admin" | "analyst" | "manager" | "operator"
     }
     CompositeTypes: {
       [_ in never]: never
@@ -150,6 +307,8 @@ export type CompositeTypes<
 
 export const Constants = {
   public: {
-    Enums: {},
+    Enums: {
+      app_role: ["admin", "analyst", "manager", "operator"],
+    },
   },
 } as const
