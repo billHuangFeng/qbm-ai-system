@@ -59,6 +59,14 @@ DOC001 | 2024-01-01 | 客户A | 1800 | 汇总单据
 产品3 | 3  | 300  | 销售部
 ```
 
+#### **格式6: 纯单据头记录（无明细）**
+```
+单据号 | 单据日期 | 客户名称 | 总金额 | 单据类型 | 备注
+DOC001 | 2024-01-01 | 客户A | 1800 | 服务费 | 咨询服务
+DOC002 | 2024-01-02 | 客户B | 500  | 服务费 | 技术支持
+DOC003 | 2024-01-03 | 客户C | 1200 | 服务费 | 培训服务
+```
+
 ---
 
 ## 2. 智能单据格式识别算法
@@ -75,7 +83,8 @@ class DocumentFormatDetector:
             'first_row_header': self.detect_first_row_header,
             'separated_tables': self.detect_separated_tables,
             'header_only': self.detect_header_only,
-            'detail_only': self.detect_detail_only
+            'detail_only': self.detect_detail_only,
+            'pure_header': self.detect_pure_header
         }
     
     def detect_format(self, data: pd.DataFrame, metadata: dict = None) -> str:
@@ -199,6 +208,33 @@ class DocumentFormatDetector:
             score += 0.2
         
         return min(score, 1.0)
+    
+    def detect_pure_header(self, data: pd.DataFrame, metadata: dict = None) -> float:
+        """检测纯单据头格式（无明细）"""
+        score = 0.0
+        
+        # 检查是否有单据头字段
+        header_cols = ['单据号', 'document_id', '客户名称', 'customer_name', '总金额', 'total_amount']
+        header_count = sum(1 for col in header_cols if col in data.columns)
+        if header_count >= 3:
+            score += 0.4
+        
+        # 检查是否有服务类型等纯头字段
+        service_cols = ['单据类型', 'document_type', '服务类型', 'service_type']
+        if any(col in data.columns for col in service_cols):
+            score += 0.3
+        
+        # 检查是否没有明细字段
+        detail_cols = ['产品名称', 'product_name', '数量', 'quantity']
+        detail_count = sum(1 for col in detail_cols if col in data.columns)
+        if detail_count == 0:
+            score += 0.3
+        
+        # 检查行数是否较少（纯头记录通常不多）
+        if len(data) < 100:
+            score += 0.2
+        
+        return min(score, 1.0)
 ```
 
 ### 2.2 智能数据处理器
@@ -214,7 +250,8 @@ class IntelligentDocumentProcessor:
             'first_row_header': self.process_first_row_header,
             'separated_tables': self.process_separated_tables,
             'header_only': self.process_header_only,
-            'detail_only': self.process_detail_only
+            'detail_only': self.process_detail_only,
+            'pure_header': self.process_pure_header
         }
     
     def process_document(self, data: pd.DataFrame, metadata: dict = None) -> ProcessResult:
@@ -280,6 +317,17 @@ class IntelligentDocumentProcessor:
         """处理只有明细格式"""
         # 为明细数据创建虚拟单据头
         processed_data = self.create_virtual_header(data)
+        
+        return processed_data
+    
+    def process_pure_header(self, data: pd.DataFrame, metadata: dict = None) -> pd.DataFrame:
+        """处理纯单据头格式（无明细）"""
+        # 纯单据头记录直接使用，不需要创建明细
+        processed_data = data.copy()
+        
+        # 添加标记字段表示这是纯头记录
+        processed_data['record_type'] = 'header_only'
+        processed_data['has_details'] = False
         
         return processed_data
     
@@ -378,7 +426,370 @@ class IntelligentDocumentProcessor:
 
 ---
 
-## 3. 配置驱动的处理策略
+## 3. 事后补充功能
+
+### 3.1 事后补充管理器
+
+```python
+class DocumentSupplementManager:
+    """单据事后补充管理器"""
+    
+    def __init__(self, db_connection):
+        self.db = db_connection
+        self.supplement_log = []
+    
+    def supplement_missing_header(self, detail_data: pd.DataFrame, 
+                                 header_data: pd.DataFrame = None,
+                                 supplement_rules: dict = None) -> SupplementResult:
+        """补充缺失的单据头"""
+        
+        if header_data is not None:
+            # 使用提供的头表数据
+            return self.supplement_with_provided_header(detail_data, header_data)
+        else:
+            # 使用补充规则生成头信息
+            return self.supplement_with_rules(detail_data, supplement_rules)
+    
+    def supplement_missing_details(self, header_data: pd.DataFrame,
+                                 detail_data: pd.DataFrame = None,
+                                 supplement_rules: dict = None) -> SupplementResult:
+        """补充缺失的单据明细"""
+        
+        if detail_data is not None:
+            # 使用提供的明细数据
+            return self.supplement_with_provided_details(header_data, detail_data)
+        else:
+            # 使用补充规则生成明细
+            return self.supplement_with_rules(header_data, supplement_rules)
+    
+    def supplement_with_provided_header(self, detail_data: pd.DataFrame, 
+                                      header_data: pd.DataFrame) -> SupplementResult:
+        """使用提供的头表数据补充"""
+        try:
+            # 找到关联字段
+            detail_key = self.find_join_key(detail_data)
+            header_key = self.find_join_key(header_data)
+            
+            if not detail_key or not header_key:
+                raise ValueError("无法找到关联字段")
+            
+            # 执行关联
+            supplemented_data = detail_data.merge(
+                header_data,
+                left_on=detail_key,
+                right_on=header_key,
+                how='left'
+            )
+            
+            # 记录补充操作
+            self.log_supplement_operation('header', len(supplemented_data))
+            
+            return SupplementResult(
+                success=True,
+                supplemented_data=supplemented_data,
+                operation_type='header_supplement',
+                records_processed=len(supplemented_data)
+            )
+            
+        except Exception as e:
+            return SupplementResult(
+                success=False,
+                error_message=str(e),
+                operation_type='header_supplement'
+            )
+    
+    def supplement_with_provided_details(self, header_data: pd.DataFrame,
+                                       detail_data: pd.DataFrame) -> SupplementResult:
+        """使用提供的明细数据补充"""
+        try:
+            # 找到关联字段
+            header_key = self.find_join_key(header_data)
+            detail_key = self.find_join_key(detail_data)
+            
+            if not header_key or not detail_key:
+                raise ValueError("无法找到关联字段")
+            
+            # 执行关联
+            supplemented_data = header_data.merge(
+                detail_data,
+                left_on=header_key,
+                right_on=detail_key,
+                how='left'
+            )
+            
+            # 记录补充操作
+            self.log_supplement_operation('details', len(supplemented_data))
+            
+            return SupplementResult(
+                success=True,
+                supplemented_data=supplemented_data,
+                operation_type='details_supplement',
+                records_processed=len(supplemented_data)
+            )
+            
+        except Exception as e:
+            return SupplementResult(
+                success=False,
+                error_message=str(e),
+                operation_type='details_supplement'
+            )
+    
+    def supplement_with_rules(self, data: pd.DataFrame, 
+                             supplement_rules: dict) -> SupplementResult:
+        """使用补充规则生成缺失数据"""
+        try:
+            supplemented_data = data.copy()
+            
+            # 应用补充规则
+            for field, rule in supplement_rules.items():
+                if rule['type'] == 'default_value':
+                    supplemented_data[field] = rule['value']
+                elif rule['type'] == 'calculated':
+                    supplemented_data[field] = self.calculate_field(
+                        supplemented_data, rule['formula']
+                    )
+                elif rule['type'] == 'lookup':
+                    supplemented_data[field] = self.lookup_field(
+                        supplemented_data, rule['lookup_table'], rule['lookup_field']
+                    )
+            
+            # 记录补充操作
+            self.log_supplement_operation('rules', len(supplemented_data))
+            
+            return SupplementResult(
+                success=True,
+                supplemented_data=supplemented_data,
+                operation_type='rules_supplement',
+                records_processed=len(supplemented_data)
+            )
+            
+        except Exception as e:
+            return SupplementResult(
+                success=False,
+                error_message=str(e),
+                operation_type='rules_supplement'
+            )
+    
+    def calculate_field(self, data: pd.DataFrame, formula: str) -> pd.Series:
+        """计算字段值"""
+        # 简单的公式计算，可以扩展为更复杂的表达式
+        if formula == 'sum_amount':
+            return data['金额'].sum()
+        elif formula == 'count_items':
+            return data['数量'].sum()
+        else:
+            return pd.Series([0] * len(data))
+    
+    def lookup_field(self, data: pd.DataFrame, lookup_table: str, 
+                    lookup_field: str) -> pd.Series:
+        """查找字段值"""
+        # 从数据库查找表获取值
+        # 这里简化处理，实际应该查询数据库
+        return pd.Series(['lookup_value'] * len(data))
+    
+    def log_supplement_operation(self, operation_type: str, records_count: int):
+        """记录补充操作"""
+        log_entry = {
+            'timestamp': pd.Timestamp.now(),
+            'operation_type': operation_type,
+            'records_count': records_count,
+            'status': 'success'
+        }
+        self.supplement_log.append(log_entry)
+    
+    def get_supplement_history(self) -> pd.DataFrame:
+        """获取补充历史"""
+        return pd.DataFrame(self.supplement_log)
+    
+    def find_join_key(self, data: pd.DataFrame) -> str:
+        """查找关联字段"""
+        key_patterns = ['单据号', 'document_id', '单号', 'id']
+        
+        for pattern in key_patterns:
+            for col in data.columns:
+                if pattern in col.lower():
+                    return col
+        
+        return None
+```
+
+### 3.2 补充规则配置
+
+```python
+@dataclass
+class SupplementRule:
+    """补充规则"""
+    field_name: str
+    rule_type: str  # default_value, calculated, lookup
+    rule_config: dict
+    
+    def apply(self, data: pd.DataFrame) -> pd.Series:
+        """应用补充规则"""
+        if self.rule_type == 'default_value':
+            return pd.Series([self.rule_config['value']] * len(data))
+        elif self.rule_type == 'calculated':
+            return self.calculate_field(data, self.rule_config['formula'])
+        elif self.rule_type == 'lookup':
+            return self.lookup_field(data, self.rule_config['lookup_table'])
+        else:
+            return pd.Series([None] * len(data))
+
+@dataclass
+class SupplementConfig:
+    """补充配置"""
+    # 头表补充规则
+    header_supplement_rules: List[SupplementRule] = None
+    
+    # 明细补充规则
+    detail_supplement_rules: List[SupplementRule] = None
+    
+    # 自动补充设置
+    auto_supplement: bool = True
+    supplement_threshold: float = 0.8  # 80%以上缺失才自动补充
+    
+    # 补充策略
+    supplement_strategy: str = 'conservative'  # conservative, aggressive, manual
+    
+    def __post_init__(self):
+        if self.header_supplement_rules is None:
+            self.header_supplement_rules = [
+                SupplementRule(
+                    field_name='单据日期',
+                    rule_type='default_value',
+                    rule_config={'value': pd.Timestamp.now().strftime('%Y-%m-%d')}
+                ),
+                SupplementRule(
+                    field_name='客户名称',
+                    rule_type='default_value',
+                    rule_config={'value': '未知客户'}
+                )
+            ]
+        
+        if self.detail_supplement_rules is None:
+            self.detail_supplement_rules = [
+                SupplementRule(
+                    field_name='产品名称',
+                    rule_type='default_value',
+                    rule_config={'value': '汇总项目'}
+                ),
+                SupplementRule(
+                    field_name='数量',
+                    rule_type='default_value',
+                    rule_config={'value': 1}
+                )
+            ]
+```
+
+### 3.3 补充操作示例
+
+```python
+# 示例1: 补充缺失的单据头
+def supplement_missing_headers():
+    """补充缺失的单据头"""
+    
+    # 加载明细数据
+    detail_data = pd.read_excel('detail_only.xlsx')
+    
+    # 创建补充管理器
+    supplement_manager = DocumentSupplementManager(db_connection)
+    
+    # 定义补充规则
+    supplement_rules = {
+        '单据号': {
+            'type': 'calculated',
+            'formula': 'generate_document_id'
+        },
+        '单据日期': {
+            'type': 'default_value',
+            'value': '2024-01-01'
+        },
+        '客户名称': {
+            'type': 'lookup',
+            'lookup_table': 'customer_master',
+            'lookup_field': 'customer_name'
+        }
+    }
+    
+    # 执行补充
+    result = supplement_manager.supplement_missing_header(
+        detail_data, 
+        supplement_rules=supplement_rules
+    )
+    
+    if result.success:
+        print(f"补充成功，处理了 {result.records_processed} 条记录")
+        return result.supplemented_data
+    else:
+        print(f"补充失败: {result.error_message}")
+        return None
+
+# 示例2: 补充缺失的单据明细
+def supplement_missing_details():
+    """补充缺失的单据明细"""
+    
+    # 加载头表数据
+    header_data = pd.read_excel('header_only.xlsx')
+    
+    # 创建补充管理器
+    supplement_manager = DocumentSupplementManager(db_connection)
+    
+    # 定义补充规则
+    supplement_rules = {
+        '产品名称': {
+            'type': 'default_value',
+            'value': '汇总项目'
+        },
+        '数量': {
+            'type': 'default_value',
+            'value': 1
+        },
+        '金额': {
+            'type': 'calculated',
+            'formula': 'use_total_amount'
+        }
+    }
+    
+    # 执行补充
+    result = supplement_manager.supplement_missing_details(
+        header_data,
+        supplement_rules=supplement_rules
+    )
+    
+    if result.success:
+        print(f"补充成功，处理了 {result.records_processed} 条记录")
+        return result.supplemented_data
+    else:
+        print(f"补充失败: {result.error_message}")
+        return None
+
+# 示例3: 使用提供的头表数据补充
+def supplement_with_provided_header():
+    """使用提供的头表数据补充"""
+    
+    # 加载明细数据和头表数据
+    detail_data = pd.read_excel('detail_only.xlsx')
+    header_data = pd.read_excel('header_table.xlsx')
+    
+    # 创建补充管理器
+    supplement_manager = DocumentSupplementManager(db_connection)
+    
+    # 执行补充
+    result = supplement_manager.supplement_missing_header(
+        detail_data,
+        header_data=header_data
+    )
+    
+    if result.success:
+        print(f"补充成功，处理了 {result.records_processed} 条记录")
+        return result.supplemented_data
+    else:
+        print(f"补充失败: {result.error_message}")
+        return None
+```
+
+---
+
+## 4. 配置驱动的处理策略
 
 ### 3.1 处理配置定义
 
@@ -847,18 +1258,23 @@ document_processing:
 
 ### 6.1 核心特性
 
-✅ **智能格式识别**: 自动检测5种复杂单据格式
+✅ **智能格式识别**: 自动检测6种复杂单据格式（包括纯单据头格式）
 ✅ **灵活处理策略**: 支持多种处理模式和错误恢复
+✅ **事后补充功能**: 支持事后补充缺失的单据头或明细
+✅ **纯单据头处理**: 专门处理无明细的纯单据头记录
 ✅ **配置驱动**: 通过配置文件灵活调整处理行为
 ✅ **错误处理**: 完善的错误处理和恢复机制
 ✅ **扩展性**: 易于扩展新的格式和处理策略
 
 ### 6.2 技术亮点
 
-- **模式识别算法**: 基于数据特征自动识别单据格式
+- **模式识别算法**: 基于数据特征自动识别6种单据格式
 - **智能数据填充**: 自动填充空值和关联数据
 - **虚拟记录生成**: 为不完整数据创建虚拟记录
+- **事后补充机制**: 支持事后补充缺失的单据头或明细
+- **纯单据头处理**: 专门处理无明细的服务类单据
 - **多策略处理**: 支持不同的处理策略和错误恢复
+- **补充规则引擎**: 灵活的补充规则配置和执行
 
 ### 6.3 下一步行动
 
@@ -866,11 +1282,14 @@ document_processing:
 - [x] 复杂单据格式处理算法设计（本文档）
 
 **Lovable的实施任务** ⏳:
-1. 实现智能格式识别器
+1. 实现智能格式识别器（支持6种格式）
 2. 实现各种格式的处理器
-3. 集成到现有ETL系统
-4. 添加配置管理界面
-5. 实现错误处理和恢复机制
+3. 实现事后补充功能管理器
+4. 实现纯单据头记录处理
+5. 集成到现有ETL系统
+6. 添加配置管理界面
+7. 实现错误处理和恢复机制
+8. 实现补充规则引擎
 
 ---
 
