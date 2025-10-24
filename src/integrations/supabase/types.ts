@@ -21,6 +21,7 @@ export type Database = {
           created_at: string | null
           order_id: string | null
           shapley_value: number | null
+          tenant_id: string | null
           touchpoint_id: string | null
           touchpoint_type: string | null
         }
@@ -30,6 +31,7 @@ export type Database = {
           created_at?: string | null
           order_id?: string | null
           shapley_value?: number | null
+          tenant_id?: string | null
           touchpoint_id?: string | null
           touchpoint_type?: string | null
         }
@@ -39,6 +41,7 @@ export type Database = {
           created_at?: string | null
           order_id?: string | null
           shapley_value?: number | null
+          tenant_id?: string | null
           touchpoint_id?: string | null
           touchpoint_type?: string | null
         }
@@ -50,6 +53,13 @@ export type Database = {
             referencedRelation: "fact_order"
             referencedColumns: ["order_id"]
           },
+          {
+            foreignKeyName: "bridge_attribution_tenant_id_fkey"
+            columns: ["tenant_id"]
+            isOneToOne: false
+            referencedRelation: "tenants"
+            referencedColumns: ["tenant_id"]
+          },
         ]
       }
       bridge_conv_vpt: {
@@ -58,6 +68,7 @@ export type Database = {
           conv_channel_id: string | null
           conversion_count: number | null
           created_at: string | null
+          tenant_id: string | null
           vpt_id: string | null
         }
         Insert: {
@@ -65,6 +76,7 @@ export type Database = {
           conv_channel_id?: string | null
           conversion_count?: number | null
           created_at?: string | null
+          tenant_id?: string | null
           vpt_id?: string | null
         }
         Update: {
@@ -72,6 +84,7 @@ export type Database = {
           conv_channel_id?: string | null
           conversion_count?: number | null
           created_at?: string | null
+          tenant_id?: string | null
           vpt_id?: string | null
         }
         Relationships: [
@@ -81,6 +94,13 @@ export type Database = {
             isOneToOne: false
             referencedRelation: "dim_conv_channel"
             referencedColumns: ["conv_channel_id"]
+          },
+          {
+            foreignKeyName: "bridge_conv_vpt_tenant_id_fkey"
+            columns: ["tenant_id"]
+            isOneToOne: false
+            referencedRelation: "tenants"
+            referencedColumns: ["tenant_id"]
           },
           {
             foreignKeyName: "bridge_conv_vpt_vpt_id_fkey"
@@ -98,6 +118,7 @@ export type Database = {
           impression_count: number | null
           media_channel_id: string | null
           reach_count: number | null
+          tenant_id: string | null
           vpt_id: string | null
         }
         Insert: {
@@ -106,6 +127,7 @@ export type Database = {
           impression_count?: number | null
           media_channel_id?: string | null
           reach_count?: number | null
+          tenant_id?: string | null
           vpt_id?: string | null
         }
         Update: {
@@ -114,6 +136,7 @@ export type Database = {
           impression_count?: number | null
           media_channel_id?: string | null
           reach_count?: number | null
+          tenant_id?: string | null
           vpt_id?: string | null
         }
         Relationships: [
@@ -123,6 +146,13 @@ export type Database = {
             isOneToOne: false
             referencedRelation: "dim_media_channel"
             referencedColumns: ["media_channel_id"]
+          },
+          {
+            foreignKeyName: "bridge_media_vpt_tenant_id_fkey"
+            columns: ["tenant_id"]
+            isOneToOne: false
+            referencedRelation: "tenants"
+            referencedColumns: ["tenant_id"]
           },
           {
             foreignKeyName: "bridge_media_vpt_vpt_id_fkey"
@@ -139,6 +169,7 @@ export type Database = {
           created_at: string | null
           pft_id: string | null
           sku_id: string | null
+          tenant_id: string | null
           weight: number | null
         }
         Insert: {
@@ -146,6 +177,7 @@ export type Database = {
           created_at?: string | null
           pft_id?: string | null
           sku_id?: string | null
+          tenant_id?: string | null
           weight?: number | null
         }
         Update: {
@@ -153,6 +185,7 @@ export type Database = {
           created_at?: string | null
           pft_id?: string | null
           sku_id?: string | null
+          tenant_id?: string | null
           weight?: number | null
         }
         Relationships: [
@@ -170,6 +203,13 @@ export type Database = {
             referencedRelation: "dim_sku"
             referencedColumns: ["sku_id"]
           },
+          {
+            foreignKeyName: "bridge_sku_pft_tenant_id_fkey"
+            columns: ["tenant_id"]
+            isOneToOne: false
+            referencedRelation: "tenants"
+            referencedColumns: ["tenant_id"]
+          },
         ]
       }
       bridge_vpt_pft: {
@@ -178,6 +218,7 @@ export type Database = {
           correlation: number | null
           created_at: string | null
           pft_id: string | null
+          tenant_id: string | null
           vpt_id: string | null
         }
         Insert: {
@@ -185,6 +226,7 @@ export type Database = {
           correlation?: number | null
           created_at?: string | null
           pft_id?: string | null
+          tenant_id?: string | null
           vpt_id?: string | null
         }
         Update: {
@@ -192,6 +234,7 @@ export type Database = {
           correlation?: number | null
           created_at?: string | null
           pft_id?: string | null
+          tenant_id?: string | null
           vpt_id?: string | null
         }
         Relationships: [
@@ -201,6 +244,13 @@ export type Database = {
             isOneToOne: false
             referencedRelation: "dim_pft"
             referencedColumns: ["pft_id"]
+          },
+          {
+            foreignKeyName: "bridge_vpt_pft_tenant_id_fkey"
+            columns: ["tenant_id"]
+            isOneToOne: false
+            referencedRelation: "tenants"
+            referencedColumns: ["tenant_id"]
           },
           {
             foreignKeyName: "bridge_vpt_pft_vpt_id_fkey"
@@ -257,6 +307,7 @@ export type Database = {
           activity_type: string | null
           created_at: string | null
           description: string | null
+          tenant_id: string | null
         }
         Insert: {
           activity_code: string
@@ -265,6 +316,7 @@ export type Database = {
           activity_type?: string | null
           created_at?: string | null
           description?: string | null
+          tenant_id?: string | null
         }
         Update: {
           activity_code?: string
@@ -273,8 +325,17 @@ export type Database = {
           activity_type?: string | null
           created_at?: string | null
           description?: string | null
+          tenant_id?: string | null
         }
-        Relationships: []
+        Relationships: [
+          {
+            foreignKeyName: "dim_activity_tenant_id_fkey"
+            columns: ["tenant_id"]
+            isOneToOne: false
+            referencedRelation: "tenants"
+            referencedColumns: ["tenant_id"]
+          },
+        ]
       }
       dim_channel: {
         Row: {
@@ -284,6 +345,7 @@ export type Database = {
           channel_type: string | null
           created_at: string | null
           description: string | null
+          tenant_id: string | null
         }
         Insert: {
           channel_code: string
@@ -292,6 +354,7 @@ export type Database = {
           channel_type?: string | null
           created_at?: string | null
           description?: string | null
+          tenant_id?: string | null
         }
         Update: {
           channel_code?: string
@@ -300,8 +363,17 @@ export type Database = {
           channel_type?: string | null
           created_at?: string | null
           description?: string | null
+          tenant_id?: string | null
         }
-        Relationships: []
+        Relationships: [
+          {
+            foreignKeyName: "dim_channel_tenant_id_fkey"
+            columns: ["tenant_id"]
+            isOneToOne: false
+            referencedRelation: "tenants"
+            referencedColumns: ["tenant_id"]
+          },
+        ]
       }
       dim_conv_channel: {
         Row: {
@@ -310,6 +382,7 @@ export type Database = {
           channel_type: string | null
           conv_channel_id: string
           created_at: string | null
+          tenant_id: string | null
         }
         Insert: {
           channel_code: string
@@ -317,6 +390,7 @@ export type Database = {
           channel_type?: string | null
           conv_channel_id?: string
           created_at?: string | null
+          tenant_id?: string | null
         }
         Update: {
           channel_code?: string
@@ -324,8 +398,17 @@ export type Database = {
           channel_type?: string | null
           conv_channel_id?: string
           created_at?: string | null
+          tenant_id?: string | null
         }
-        Relationships: []
+        Relationships: [
+          {
+            foreignKeyName: "dim_conv_channel_tenant_id_fkey"
+            columns: ["tenant_id"]
+            isOneToOne: false
+            referencedRelation: "tenants"
+            referencedColumns: ["tenant_id"]
+          },
+        ]
       }
       dim_customer: {
         Row: {
@@ -335,6 +418,7 @@ export type Database = {
           customer_name: string
           customer_segment: string | null
           region: string | null
+          tenant_id: string | null
         }
         Insert: {
           created_at?: string | null
@@ -343,6 +427,7 @@ export type Database = {
           customer_name: string
           customer_segment?: string | null
           region?: string | null
+          tenant_id?: string | null
         }
         Update: {
           created_at?: string | null
@@ -351,8 +436,17 @@ export type Database = {
           customer_name?: string
           customer_segment?: string | null
           region?: string | null
+          tenant_id?: string | null
         }
-        Relationships: []
+        Relationships: [
+          {
+            foreignKeyName: "dim_customer_tenant_id_fkey"
+            columns: ["tenant_id"]
+            isOneToOne: false
+            referencedRelation: "tenants"
+            referencedColumns: ["tenant_id"]
+          },
+        ]
       }
       dim_media_channel: {
         Row: {
@@ -362,6 +456,7 @@ export type Database = {
           cost_per_impression: number | null
           created_at: string | null
           media_channel_id: string
+          tenant_id: string | null
         }
         Insert: {
           channel_code: string
@@ -370,6 +465,7 @@ export type Database = {
           cost_per_impression?: number | null
           created_at?: string | null
           media_channel_id?: string
+          tenant_id?: string | null
         }
         Update: {
           channel_code?: string
@@ -378,8 +474,17 @@ export type Database = {
           cost_per_impression?: number | null
           created_at?: string | null
           media_channel_id?: string
+          tenant_id?: string | null
         }
-        Relationships: []
+        Relationships: [
+          {
+            foreignKeyName: "dim_media_channel_tenant_id_fkey"
+            columns: ["tenant_id"]
+            isOneToOne: false
+            referencedRelation: "tenants"
+            referencedColumns: ["tenant_id"]
+          },
+        ]
       }
       dim_pft: {
         Row: {
@@ -389,6 +494,7 @@ export type Database = {
           pft_code: string
           pft_id: string
           pft_name: string
+          tenant_id: string | null
         }
         Insert: {
           created_at?: string | null
@@ -397,6 +503,7 @@ export type Database = {
           pft_code: string
           pft_id?: string
           pft_name: string
+          tenant_id?: string | null
         }
         Update: {
           created_at?: string | null
@@ -405,8 +512,17 @@ export type Database = {
           pft_code?: string
           pft_id?: string
           pft_name?: string
+          tenant_id?: string | null
         }
-        Relationships: []
+        Relationships: [
+          {
+            foreignKeyName: "dim_pft_tenant_id_fkey"
+            columns: ["tenant_id"]
+            isOneToOne: false
+            referencedRelation: "tenants"
+            referencedColumns: ["tenant_id"]
+          },
+        ]
       }
       dim_sku: {
         Row: {
@@ -415,6 +531,7 @@ export type Database = {
           sku_code: string
           sku_id: string
           sku_name: string
+          tenant_id: string | null
           unit_price: number | null
         }
         Insert: {
@@ -423,6 +540,7 @@ export type Database = {
           sku_code: string
           sku_id?: string
           sku_name: string
+          tenant_id?: string | null
           unit_price?: number | null
         }
         Update: {
@@ -431,9 +549,18 @@ export type Database = {
           sku_code?: string
           sku_id?: string
           sku_name?: string
+          tenant_id?: string | null
           unit_price?: number | null
         }
-        Relationships: []
+        Relationships: [
+          {
+            foreignKeyName: "dim_sku_tenant_id_fkey"
+            columns: ["tenant_id"]
+            isOneToOne: false
+            referencedRelation: "tenants"
+            referencedColumns: ["tenant_id"]
+          },
+        ]
       }
       dim_supplier: {
         Row: {
@@ -443,6 +570,7 @@ export type Database = {
           supplier_code: string
           supplier_id: string
           supplier_name: string
+          tenant_id: string | null
         }
         Insert: {
           created_at?: string | null
@@ -451,6 +579,7 @@ export type Database = {
           supplier_code: string
           supplier_id?: string
           supplier_name: string
+          tenant_id?: string | null
         }
         Update: {
           created_at?: string | null
@@ -459,13 +588,23 @@ export type Database = {
           supplier_code?: string
           supplier_id?: string
           supplier_name?: string
+          tenant_id?: string | null
         }
-        Relationships: []
+        Relationships: [
+          {
+            foreignKeyName: "dim_supplier_tenant_id_fkey"
+            columns: ["tenant_id"]
+            isOneToOne: false
+            referencedRelation: "tenants"
+            referencedColumns: ["tenant_id"]
+          },
+        ]
       }
       dim_vpt: {
         Row: {
           created_at: string | null
           description: string | null
+          tenant_id: string | null
           vpt_category: string | null
           vpt_code: string
           vpt_id: string
@@ -474,6 +613,7 @@ export type Database = {
         Insert: {
           created_at?: string | null
           description?: string | null
+          tenant_id?: string | null
           vpt_category?: string | null
           vpt_code: string
           vpt_id?: string
@@ -482,12 +622,21 @@ export type Database = {
         Update: {
           created_at?: string | null
           description?: string | null
+          tenant_id?: string | null
           vpt_category?: string | null
           vpt_code?: string
           vpt_id?: string
           vpt_name?: string
         }
-        Relationships: []
+        Relationships: [
+          {
+            foreignKeyName: "dim_vpt_tenant_id_fkey"
+            columns: ["tenant_id"]
+            isOneToOne: false
+            referencedRelation: "tenants"
+            referencedColumns: ["tenant_id"]
+          },
+        ]
       }
       fact_expense: {
         Row: {
@@ -497,6 +646,7 @@ export type Database = {
           expense_date: string
           expense_id: string
           expense_type: string | null
+          tenant_id: string | null
         }
         Insert: {
           activity_id?: string | null
@@ -505,6 +655,7 @@ export type Database = {
           expense_date: string
           expense_id?: string
           expense_type?: string | null
+          tenant_id?: string | null
         }
         Update: {
           activity_id?: string | null
@@ -513,6 +664,7 @@ export type Database = {
           expense_date?: string
           expense_id?: string
           expense_type?: string | null
+          tenant_id?: string | null
         }
         Relationships: [
           {
@@ -521,6 +673,13 @@ export type Database = {
             isOneToOne: false
             referencedRelation: "dim_activity"
             referencedColumns: ["activity_id"]
+          },
+          {
+            foreignKeyName: "fact_expense_tenant_id_fkey"
+            columns: ["tenant_id"]
+            isOneToOne: false
+            referencedRelation: "tenants"
+            referencedColumns: ["tenant_id"]
           },
         ]
       }
@@ -534,6 +693,7 @@ export type Database = {
           order_id: string
           quantity: number
           sku_id: string | null
+          tenant_id: string | null
         }
         Insert: {
           channel_id?: string | null
@@ -544,6 +704,7 @@ export type Database = {
           order_id?: string
           quantity: number
           sku_id?: string | null
+          tenant_id?: string | null
         }
         Update: {
           channel_id?: string | null
@@ -554,6 +715,7 @@ export type Database = {
           order_id?: string
           quantity?: number
           sku_id?: string | null
+          tenant_id?: string | null
         }
         Relationships: [
           {
@@ -577,6 +739,13 @@ export type Database = {
             referencedRelation: "dim_sku"
             referencedColumns: ["sku_id"]
           },
+          {
+            foreignKeyName: "fact_order_tenant_id_fkey"
+            columns: ["tenant_id"]
+            isOneToOne: false
+            referencedRelation: "tenants"
+            referencedColumns: ["tenant_id"]
+          },
         ]
       }
       fact_produce: {
@@ -587,6 +756,7 @@ export type Database = {
           produce_id: string
           quantity: number
           sku_id: string | null
+          tenant_id: string | null
         }
         Insert: {
           cost?: number | null
@@ -595,6 +765,7 @@ export type Database = {
           produce_id?: string
           quantity: number
           sku_id?: string | null
+          tenant_id?: string | null
         }
         Update: {
           cost?: number | null
@@ -603,6 +774,7 @@ export type Database = {
           produce_id?: string
           quantity?: number
           sku_id?: string | null
+          tenant_id?: string | null
         }
         Relationships: [
           {
@@ -611,6 +783,13 @@ export type Database = {
             isOneToOne: false
             referencedRelation: "dim_sku"
             referencedColumns: ["sku_id"]
+          },
+          {
+            foreignKeyName: "fact_produce_tenant_id_fkey"
+            columns: ["tenant_id"]
+            isOneToOne: false
+            referencedRelation: "tenants"
+            referencedColumns: ["tenant_id"]
           },
         ]
       }
@@ -622,6 +801,7 @@ export type Database = {
           supplier_id: string | null
           supply_amount: number | null
           supply_date: string
+          tenant_id: string | null
         }
         Insert: {
           created_at?: string | null
@@ -630,6 +810,7 @@ export type Database = {
           supplier_id?: string | null
           supply_amount?: number | null
           supply_date: string
+          tenant_id?: string | null
         }
         Update: {
           created_at?: string | null
@@ -638,6 +819,7 @@ export type Database = {
           supplier_id?: string | null
           supply_amount?: number | null
           supply_date?: string
+          tenant_id?: string | null
         }
         Relationships: [
           {
@@ -654,6 +836,13 @@ export type Database = {
             referencedRelation: "dim_supplier"
             referencedColumns: ["supplier_id"]
           },
+          {
+            foreignKeyName: "fact_supplier_tenant_id_fkey"
+            columns: ["tenant_id"]
+            isOneToOne: false
+            referencedRelation: "tenants"
+            referencedColumns: ["tenant_id"]
+          },
         ]
       }
       fact_voice: {
@@ -663,6 +852,7 @@ export type Database = {
           satisfaction_score: number | null
           sentiment: string | null
           sku_id: string | null
+          tenant_id: string | null
           voice_content: string | null
           voice_date: string
           voice_id: string
@@ -673,6 +863,7 @@ export type Database = {
           satisfaction_score?: number | null
           sentiment?: string | null
           sku_id?: string | null
+          tenant_id?: string | null
           voice_content?: string | null
           voice_date: string
           voice_id?: string
@@ -683,6 +874,7 @@ export type Database = {
           satisfaction_score?: number | null
           sentiment?: string | null
           sku_id?: string | null
+          tenant_id?: string | null
           voice_content?: string | null
           voice_date?: string
           voice_id?: string
@@ -701,6 +893,13 @@ export type Database = {
             isOneToOne: false
             referencedRelation: "dim_sku"
             referencedColumns: ["sku_id"]
+          },
+          {
+            foreignKeyName: "fact_voice_tenant_id_fkey"
+            columns: ["tenant_id"]
+            isOneToOne: false
+            referencedRelation: "tenants"
+            referencedColumns: ["tenant_id"]
           },
         ]
       }
