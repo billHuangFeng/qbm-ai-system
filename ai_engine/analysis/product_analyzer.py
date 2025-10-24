@@ -458,3 +458,6 @@ class ProductAnalyzer:
                 suggestions.append("产品收入过于集中，建议分散风险，开发新产品")
         
         return suggestions
+
+
+

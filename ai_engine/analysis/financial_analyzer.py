@@ -568,3 +568,6 @@ class FinancialAnalyzer:
             insights.append("现金流风险较高，需要加强资金管理")
         
         return insights
+
+
+

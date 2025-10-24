@@ -127,3 +127,6 @@ docker exec bmos_backend curl -s http://localhost:8000/health
 - 前端服务的问题可能是端口转发或网络配置问题
 - 建议优先尝试LetsVPN的本地网络绕过设置
 
+
+
+

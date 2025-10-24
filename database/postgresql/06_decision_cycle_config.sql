@@ -21,3 +21,6 @@ CREATE TABLE decision_cycle_execution (
     decisions_generated INT,
     execution_log JSONB
 );
+
+
+

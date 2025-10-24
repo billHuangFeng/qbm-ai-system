@@ -375,3 +375,6 @@ class CustomerAnalyzer:
         except Exception as e:
             self.logger.error(f"流失风险计算失败: {e}")
             return {'error': str(e)}
+
+
+

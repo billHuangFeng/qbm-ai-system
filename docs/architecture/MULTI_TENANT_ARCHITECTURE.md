@@ -202,3 +202,6 @@ CREATE TABLE asset_accumulation_p0 PARTITION OF asset_accumulation
 ---
 
 **本架构设计确保100家企业的数据完全隔离，同时支持分析师跨租户分析，满足企业级安全要求和业务需求。**
+
+
+

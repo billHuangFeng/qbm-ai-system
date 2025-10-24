@@ -221,3 +221,6 @@ CREATE TABLE bridge_decision_core_capabilities (
     priority_level VARCHAR(20),
     created_at TIMESTAMP WITH TIME ZONE DEFAULT NOW()
 );
+
+
+

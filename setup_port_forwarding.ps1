@@ -38,3 +38,6 @@ Write-Host ""
 Write-Host "按任意键退出..." -ForegroundColor Yellow
 $null = $Host.UI.RawUI.ReadKey("NoEcho,IncludeKeyDown")
 
+
+
+

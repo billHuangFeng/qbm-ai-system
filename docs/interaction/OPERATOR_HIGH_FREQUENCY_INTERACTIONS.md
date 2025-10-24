@@ -94,3 +94,6 @@ Backends to call: Supabase Edge Functions
 
 ---
 Deliverable: This document defines the interaction contract for Lovable to build UI/EF and for Cursor to provide algorithms/specs. It’s intentionally concise, implementation-ready, and aligned with current code and EF specs.
+
+
+

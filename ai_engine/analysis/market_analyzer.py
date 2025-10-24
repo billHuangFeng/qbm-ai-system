@@ -661,3 +661,6 @@ class MarketAnalyzer:
             insights.append(f"影响市场需求的最重要因素是{most_important}")
         
         return insights
+
+
+

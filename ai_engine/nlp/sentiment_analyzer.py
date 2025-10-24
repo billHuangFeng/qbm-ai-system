@@ -510,3 +510,6 @@ class SentimentAnalyzer:
                 insights.append("客户满意度呈下降趋势，需要紧急关注")
         
         return insights
+
+
+

@@ -57,3 +57,6 @@ SELECT 'n0','n7', COALESCE(SUM(e.expense_amount),0)
 FROM fact_expense e
 WHERE e.expense_date >= now() - interval '30 days'
 GROUP BY 1,2;
+
+
+

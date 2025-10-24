@@ -278,3 +278,6 @@ echo 备份目录: %BACKUP_DIR%
 echo lovable文件列表: lovable_files.txt
 echo.
 pause
+
+
+

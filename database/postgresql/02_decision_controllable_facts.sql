@@ -71,3 +71,6 @@ CREATE TABLE fact_promotion (
     target_audience TEXT,
     created_at TIMESTAMP WITH TIME ZONE DEFAULT NOW()
 );
+
+
+

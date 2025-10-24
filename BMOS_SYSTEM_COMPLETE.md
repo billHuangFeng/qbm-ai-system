@@ -216,3 +216,6 @@ BMOS系统已成功实现了商业模式量化优化的核心功能，具备：
 **开发环境**: Windows 10 + Docker Desktop + WSL2  
 **技术栈**: Vue.js 3 + FastAPI + ClickHouse + Redis + Docker
 
+
+
+

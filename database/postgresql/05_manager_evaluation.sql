@@ -28,3 +28,6 @@ CREATE TABLE metric_confirmation (
     confirmed_by UUID,
     confirmation_date TIMESTAMP WITH TIME ZONE DEFAULT NOW()
 );
+
+
+

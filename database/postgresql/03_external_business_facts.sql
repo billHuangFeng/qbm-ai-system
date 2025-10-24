@@ -35,3 +35,6 @@ CREATE TABLE fact_voice (
     record_date DATE,
     created_at TIMESTAMP WITH TIME ZONE DEFAULT NOW()
 );
+
+
+

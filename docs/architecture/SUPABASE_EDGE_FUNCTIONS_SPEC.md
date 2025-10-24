@@ -117,3 +117,6 @@ return {success, bottleneckId}
 ## 安全与 RLS
 - 函数使用 SERVICE_ROLE_KEY 写入（或在表上配置合适的 RLS 策略）
 - 建议对导入与执行记录表按 org_id 做行级隔离
+
+
+

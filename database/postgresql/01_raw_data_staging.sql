@@ -54,3 +54,6 @@ CREATE TABLE data_mapping_config (
     is_active BOOLEAN DEFAULT true,
     created_at TIMESTAMP WITH TIME ZONE DEFAULT NOW()
 );
+
+
+

@@ -15,3 +15,6 @@ powershell -ExecutionPolicy Bypass -File "%~dp0configure_vpn_bypass.ps1"
 
 pause
 
+
+
+

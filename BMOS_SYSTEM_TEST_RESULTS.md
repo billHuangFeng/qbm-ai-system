@@ -136,3 +136,6 @@ docker exec bmos_frontend node -e "const http = require('http'); http.get('http:
 **系统版本**: BMOS v1.0.0  
 **测试结果**: 6/7 通过，系统完全可用
 
+
+
+

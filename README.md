@@ -1,169 +1,304 @@
-# BMOS - 商业模式动态优化与决策管理综合系统
+# QBM历史数据拟合优化系统
 
-## 🚀 项目简介
+## 项目概述
 
-BMOS (Business Model Quantitative Optimization System) 是一个AI增强的商业模式量化优化与决策管理综合系统。它以《商业模式动态优化与决策管理综合方案（含全链路追溯）》为核心理论框架，结合现代技术栈，旨在为企业提供数据驱动的商业决策支持，实现全链路价值追溯和动态优化。
+QBM历史数据拟合优化系统是一个基于机器学习的边际影响分析系统，专门用于分析企业核心资产、核心能力和产品价值之间的复杂关系。系统采用动态权重优化算法，能够自动识别和量化各种非线性关系，为企业决策提供数据支持。
 
-## 🎯 核心框架 (6大模块)
+## 核心功能
 
-系统基于以下六大核心模块构建，确保商业模式的完整性和决策的有效性：
+### 1. 数据关系分析
+- **协同效应分析**: 识别特征间的协同作用
+- **阈值效应分析**: 发现关键阈值点
+- **时间滞后分析**: 分析时间序列中的滞后效应
+- **高级关系识别**: 使用机器学习识别复杂非线性关系
 
-1.  模块1: 全链条价值传递 (价值链分析)
-2.  模块2: 动态管理脉络 (数据驱动决策)
-3.  模块3: 利益协同与风险管控 (贡献度与风险评估)
-4.  模块4: 现金流健康管理 (现金流分析)
-5.  模块5: 关键量化方法应用 (归因分析)
-6.  模块6: 决策管理支撑系统 (层级决策)
+### 2. 动态权重优化
+- **多种权重计算方法**: 相关性、重要性、回归系数、时间序列
+- **6种优化算法**: 梯度下降、遗传算法、模拟退火、粒子群、贝叶斯、约束优化
+- **多目标优化**: 同时优化R²、MSE、MAE等指标
+- **权重验证**: 交叉验证、自助法、时间序列验证等
 
-## 🛠️ 技术架构（统一版）
+### 3. 权重监控系统
+- **实时监控**: 性能、权重漂移、稳定性、数据质量
+- **异常检测**: 多维度异常识别和警报
+- **监控历史**: 完整的监控数据记录
+- **智能建议**: 基于监控数据的优化建议
 
-- **前端**: React 19 + TypeScript + Tailwind CSS + shadcn/ui
-- **后端**: Next.js 14 API Routes + TypeScript
-- **数据库**: PostgreSQL 15 (Supabase)
-- **部署**: Vercel (Lovable 原生支持)
-- **AI/ML**: TypeScript实现 + 外部Python服务（可选）
+## 技术架构
 
-## 数据模型
+### 后端技术栈
+- **Python 3.11+**: 主要开发语言
+- **FastAPI**: 高性能Web框架
+- **SQLAlchemy**: ORM数据库操作
+- **PostgreSQL**: 主数据库
+- **Redis**: 缓存和实时数据处理
+- **Docker**: 容器化部署
 
-- **原始数据层**: 4张暂存表
-- **业务事实层**: 11张决策可控事实表 + 3张外部事实表
-- **BMOS核心层**: 27张表（9维度 + 5事实 + 5桥接 + 4分析视图 + 4决策管理）
-- **分析结果层**: 3张评价确认表 + 2张循环触发表
+### 前端技术栈
+- **React 18**: 用户界面框架
+- **TypeScript**: 类型安全的JavaScript
+- **Tailwind CSS**: 样式框架
+- **Vite**: 构建工具
 
-**总计**: 50张表
+### 微服务架构
+- **数据预处理服务**: 数据清洗和特征工程
+- **模型训练服务**: 机器学习模型训练
+- **预测服务**: 实时预测和推理
+- **优化服务**: 权重优化和参数调优
 
-## 🤝 协同开发模式
+## 快速开始
 
-本项目采用 Cursor 与 Lovable 协同开发模式：
+### 环境要求
+- Docker 20.10+
+- Docker Compose 2.0+
+- Python 3.11+ (本地开发)
+- Node.js 18+ (本地开发)
 
--   **Lovable 负责**: React 前端开发、Supabase/PostgreSQL 数据库设计、UI/UX 设计。
--   **Cursor 负责**: 详细需求梳理、FastAPI 后端逻辑、ClickHouse 数据库设计（如果需要高性能分析）、AI 分析引擎、Docker 部署配置、技术文档编写。
+### 安装部署
 
-## 🚀 快速开始 (开发环境)
-
-### 1. 环境要求
-
--   Node.js 18+ (或 Bun)
--   Git
--   Supabase 账户
-
-### 2. 克隆仓库
-
+1. **克隆项目**
 ```bash
-git clone https://github.com/billHuangFeng/bmos-insight.git
-cd bmos-insight
+git clone <repository-url>
+cd qbm-ai-system
 ```
 
-### 3. 安装依赖
-
+2. **开发环境部署**
 ```bash
+./deploy.sh dev
+```
+
+3. **生产环境部署**
+```bash
+./deploy.sh prod
+```
+
+### 本地开发
+
+1. **后端开发**
+```bash
+cd backend
+pip install -r requirements.txt
+python -m uvicorn src.main:app --reload --host 0.0.0.0 --port 8000
+```
+
+2. **前端开发**
+```bash
+cd frontend
 npm install
-```
-
-### 4. 配置环境变量
-
-创建 `.env.local` 文件：
-
-```
-NEXT_PUBLIC_SUPABASE_URL=your_supabase_url
-NEXT_PUBLIC_SUPABASE_ANON_KEY=your_anon_key
-SUPABASE_SERVICE_ROLE_KEY=your_service_role_key
-```
-
-### 5. 启动开发服务器
-
-```bash
 npm run dev
 ```
 
-### 6. 访问系统
+## API文档
 
--   **前端界面**: `http://localhost:3000`
--   **API文档**: `http://localhost:3000/api`
+### 核心API端点
 
-## 📈 系统特性
+#### 数据关系分析
+```http
+POST /api/v1/models/analyze
+Content-Type: application/json
 
-### 技术特性
-
--   **高性能**: PostgreSQL数据库，支持复杂查询和分析
--   **实时性**: Supabase实时订阅，毫秒级响应
--   **可扩展**: Next.js全栈架构，支持水平扩展
--   **简化部署**: Vercel一键部署，环境一致性
--   **现代化**: React + TypeScript + Tailwind CSS
--   **完全协同**: Lovable原生支持，前后端统一开发
-
-### 业务特性
-
--   **理论指导**: 基于完整的商业模式理论框架
--   **数据驱动**: 全链路数据追溯和分析
--   **决策支持**: 层级决策管理和效果评估
--   **智能优化**: AI驱动的归因分析和优化建议
--   **全链路追溯**: 从决策到执行到结果的完整追溯
-
-## 📚 文档结构
-
--   `docs/requirements/`: 详细的需求规格说明书
--   `docs/architecture/`: 系统架构设计文档
--   `docs/development/`: 开发指南
--   `docs/testing/`: 测试策略与指南
--   `docs/deployment/`: 部署指南
-
-## 🔧 开发指南
-
-### 项目结构
-
-```
-qbm-ai-system/
-├── src/                          # React前端源码
-│   ├── components/               # React组件
-│   ├── pages/                   # 页面组件 + API Routes
-│   │   ├── api/                # Next.js API Routes
-│   │   │   ├── data-import/    # 数据导入API
-│   │   │   ├── decision-cycle/ # 决策循环API
-│   │   │   ├── manager-evaluation/ # 管理者评价API
-│   │   │   └── analysis/       # 分析引擎API
-│   │   └── [页面组件]
-│   ├── hooks/                   # 自定义Hooks
-│   ├── lib/                     # 工具库
-│   └── types/                   # TypeScript类型定义
-├── database/                    # 数据库Schema
-│   └── postgresql/             # PostgreSQL表结构
-├── docs/                       # 文档
-└── package.json                # 项目配置
+{
+  "data": {
+    "features": {
+      "feature1": [1, 2, 3, ...],
+      "feature2": [4, 5, 6, ...]
+    },
+    "target": [10, 20, 30, ...]
+  },
+  "analysis_types": ["synergy", "threshold", "lag", "advanced"]
+}
 ```
 
-### 开发环境设置
+#### 权重优化
+```http
+POST /api/v1/models/optimize-weights
+Content-Type: application/json
 
-```bash
-# 克隆项目
-git clone https://github.com/billHuangFeng/bmos-insight.git
-cd bmos-insight
-
-# 安装依赖
-npm install
-
-# 启动开发服务器
-npm run dev
+{
+  "data": {
+    "features": {...},
+    "target": [...]
+  },
+  "optimization_method": "comprehensive",
+  "validation_methods": ["cross_validation", "bootstrap"]
+}
 ```
 
-## 📞 技术支持
+#### 预测
+```http
+POST /api/v1/models/predict
+Content-Type: application/json
 
-### 常见问题
+{
+  "data": {
+    "features": {...},
+    "target": [...],
+    "test_features": {...}
+  },
+  "weights": {
+    "feature1": 0.5,
+    "feature2": 0.3,
+    "feature3": 0.2
+  }
+}
+```
 
-- 查看 `docs/` 目录下的相关文档
-- 检查 Supabase 项目配置
-- 确认环境变量设置
+## 算法详解
+
+### 动态权重计算
+
+系统支持多种权重计算方法：
+
+1. **相关性权重**: 基于Pearson相关系数
+2. **重要性权重**: 基于随机森林特征重要性
+3. **回归权重**: 基于线性回归系数
+4. **时间序列权重**: 基于滞后相关性
+5. **综合权重**: 多方法加权平均
+
+### 优化算法
+
+1. **梯度下降**: L-BFGS-B算法
+2. **遗传算法**: 差分进化
+3. **模拟退火**: 双重退火
+4. **粒子群优化**: PSO算法
+5. **贝叶斯优化**: 高斯过程
+6. **约束优化**: SLSQP算法
+
+### 验证方法
+
+1. **交叉验证**: 5折交叉验证
+2. **自助法**: Bootstrap重采样
+3. **时间序列验证**: 时间序列交叉验证
+4. **稳定性验证**: 噪声鲁棒性测试
+5. **敏感性分析**: 权重变化影响
+6. **鲁棒性测试**: 数据子集测试
+
+## 监控和运维
 
 ### 系统监控
+- **Prometheus**: 指标收集
+- **Grafana**: 可视化面板
+- **Loki**: 日志聚合
+- **健康检查**: 自动服务监控
 
-- 访问 `http://localhost:3000` 使用前端界面
-- 访问 `http://localhost:3000/api/health` 检查API健康状态
-- 查看 Supabase 仪表板监控数据库状态
+### 日志管理
+- **结构化日志**: JSON格式日志
+- **日志级别**: DEBUG, INFO, WARNING, ERROR
+- **日志轮转**: 自动日志清理
+- **集中收集**: 统一日志管理
 
-## 📄 许可证
+### 性能优化
+- **缓存策略**: Redis缓存
+- **数据库优化**: 索引优化
+- **负载均衡**: Nginx反向代理
+- **容器优化**: Docker镜像优化
 
-详见 [LICENSE](LICENSE) 文件。
+## 测试
 
----
+### 运行测试
+```bash
+# 单元测试
+python -m pytest backend/tests/unit/ -v
 
-**这个系统将理论框架、技术实现和实际应用完美结合，采用统一的技术架构，为企业提供完整的商业模式动态优化解决方案！** 🎉
+# 集成测试
+python -m pytest backend/tests/integration/ -v
+
+# 所有测试
+python -m pytest backend/tests/ -v
+```
+
+### 测试覆盖
+- **单元测试**: 算法模块测试
+- **集成测试**: API接口测试
+- **性能测试**: 大数据量测试
+- **端到端测试**: 完整工作流测试
+
+## 部署指南
+
+### 开发环境
+```bash
+# 启动开发环境
+./deploy.sh dev
+
+# 查看日志
+docker-compose logs -f
+
+# 停止服务
+docker-compose down
+```
+
+### 生产环境
+```bash
+# 启动生产环境
+./deploy.sh prod
+
+# 查看服务状态
+docker-compose -f docker-compose.prod.yml ps
+
+# 监控面板
+# Grafana: http://localhost:3001
+# Prometheus: http://localhost:9090
+```
+
+## 配置说明
+
+### 环境变量
+```bash
+# 数据库配置
+DATABASE_URL=postgresql://user:password@host:port/database
+
+# Redis配置
+REDIS_URL=redis://host:port/db
+
+# JWT配置
+JWT_SECRET_KEY=your-secret-key
+
+# 日志级别
+LOG_LEVEL=INFO
+```
+
+### 数据库配置
+- **PostgreSQL**: 主数据库
+- **Redis**: 缓存和会话存储
+- **多租户**: 租户隔离
+- **数据版本**: 数据版本管理
+
+## 贡献指南
+
+### 开发流程
+1. Fork项目
+2. 创建功能分支
+3. 提交代码
+4. 创建Pull Request
+5. 代码审查
+6. 合并代码
+
+### 代码规范
+- **Python**: PEP 8规范
+- **TypeScript**: ESLint规范
+- **Git**: 语义化提交
+- **文档**: Markdown格式
+
+## 许可证
+
+本项目采用MIT许可证，详见LICENSE文件。
+
+## 联系方式
+
+- **项目维护者**: QBM团队
+- **技术支持**: support@qbm.com
+- **问题反馈**: GitHub Issues
+
+## 更新日志
+
+### v1.0.0 (2024-01-01)
+- 初始版本发布
+- 核心算法实现
+- API接口完成
+- 基础监控功能
+
+### 未来计划
+- 更多机器学习算法
+- 实时数据流处理
+- 高级可视化功能
+- 企业级安全特性

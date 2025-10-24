@@ -312,3 +312,6 @@ import Image from 'next/image';
 **现在项目完全兼容Lovable，可以开始愉快的协同开发了！** 🎉
 
 所有必需的配置文件都已就位，Lovable可以立即开始开发工作。
+
+
+

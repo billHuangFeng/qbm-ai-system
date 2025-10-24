@@ -34,16 +34,21 @@
 
 ## 🎯 核心公式
 
-### 1. 产品内在价值评估（客观需求满足能力）
+### 1. 产品内在价值评估（基于特性单独估值）
 ```
-内在价值总得分 = 需求匹配度总分 × 70% + 功能独特性总分 × 30%
+内在价值总得分 = Σ(特性单独估值 × 特性权重) ÷ 产品总价值
 
-需求匹配度总分 = 核心需求覆盖率 × 50% + 综合满足深度 × 50%
-核心需求覆盖率 = (产品达标需求项数 ÷ 客户核心需求总项数) × 100%
-综合满足深度 = Σ(单需求满足深度 × 需求重要性权重) ÷ Σ需求权重
+特性单独估值 = (含该特性版本售价 - 基础版售价) - 该特性的边际成本增量
 
-功能独特性总分 = 独特功能占比 × 60% + 独特功能需求权重 × 40% × 100
-独特功能占比 = (竞品未覆盖的需求功能项数 ÷ 自身核心功能总项数) × 100%
+特性分类估值：
+- 功能型特性：基于参数提升幅度的溢价
+- 体验型特性：基于体验改善可感知度的溢价  
+- 稀缺型特性：基于稀缺性与独家性的溢价
+- 服务型特性：基于服务必要性与便捷性的溢价
+
+估值修正：
+- 协同效应修正：多特性叠加的协同效应系数
+- 生命周期修正：特性价值随时间变化的修正系数
 ```
 
 ### 2. 客户认知价值评估（主观感知数据）
@@ -80,19 +85,60 @@ interface ValueAssessment {
   productId: string;
 }
 
-// 产品内在价值数据
-interface IntrinsicValueData {
-  // 需求匹配度数据
-  totalDemandItems: number; // 客户核心需求总项数
-  metDemandItems: number; // 产品达标需求项数
-  demandWeights: DemandWeight[]; // 需求权重
-  productValues: ProductValue[]; // 产品实际值
-  customerExpectations: CustomerExpectation[]; // 客户最低期望
+// 产品特性单独估值数据
+interface ProductFeatureValuationData {
+  features: ProductFeature[];
+  totalProductValue: number; // 产品总价值
+}
+
+// 产品特性
+interface ProductFeature {
+  featureId: string;
+  featureName: string;
+  featureType: 'functional' | 'experiential' | 'scarce' | 'service';
+  valuationMethod: 'internal_price_diff' | 'external_competitor' | 'customer_wtp';
   
-  // 功能独特性数据
-  totalCoreFunctions: number; // 自身核心功能总项数
-  uniqueFunctions: number; // 竞品未覆盖的需求功能项数
-  uniqueFunctionDemandWeight: number; // 独特功能需求权重
+  // 内部价差法数据
+  baseVersionPrice: number; // 基础版售价
+  featureVersionPrice: number; // 含特性版售价
+  baseVersionCost: number; // 基础版成本
+  featureVersionCost: number; // 含特性版成本
+  
+  // 外部竞品法数据
+  competitorFeaturePrice: number; // 竞品特性价格
+  competitorFeatureCost: number; // 竞品特性成本
+  brandPowerDifference: number; // 品牌力差异（%）
+  
+  // 客户支付意愿法数据
+  customerWTP: number; // 客户平均支付意愿
+  customerWTPDistribution: WTPDistribution[]; // WTP分布
+  
+  // 修正系数
+  synergyCoefficient: number; // 协同效应修正系数
+  lifecycleCoefficient: number; // 生命周期修正系数
+  
+  // 验证数据
+  salesRatio: number; // 升级版销量占比
+  customerFeedback: number; // 客户反馈评分
+}
+
+// WTP分布
+interface WTPDistribution {
+  priceRange: string; // 价格区间
+  customerRatio: number; // 客户占比
+  weightedWTP: number; // 加权WTP
+}
+
+// 特性估值结果
+interface FeatureValuationResult {
+  featureId: string;
+  featureName: string;
+  preliminaryValuation: number; // 初步估值
+  finalValuation: number; // 最终估值
+  synergyCoefficient: number; // 协同效应修正系数
+  lifecycleCoefficient: number; // 生命周期修正系数
+  salesRatio: number; // 销量占比
+  customerFeedback: number; // 客户反馈评分
 }
 
 // 客户认知价值数据
@@ -137,30 +183,28 @@ class ValueAssessmentCalculator {
   };
 
   /**
-   * 计算产品内在价值
+   * 计算产品内在价值（基于特性单独估值）
    */
   async calculateIntrinsicValue(
     assessmentId: string,
-    intrinsicData: IntrinsicValueData,
+    valuationData: ProductFeatureValuationData,
     tenantId: string,
     productId: string
   ): Promise<ValueAssessment> {
     // 1. 验证输入数据
-    this.validateIntrinsicInputs(intrinsicData);
+    this.validateValuationInputs(valuationData);
     
-    // 2. 计算需求匹配度总分
-    const demandMatchScore = this.calculateDemandMatchScore(intrinsicData);
+    // 2. 计算各特性单独估值
+    const featureValuations = await this.calculateFeatureValuations(valuationData.features);
     
-    // 3. 计算功能独特性总分
-    const uniquenessScore = this.calculateUniquenessScore(intrinsicData);
+    // 3. 计算内在价值总得分
+    const totalFeatureValue = featureValuations.reduce((sum, feature) => sum + feature.finalValuation, 0);
+    const overallScore = (totalFeatureValue / valuationData.totalProductValue) * 100;
     
-    // 4. 计算内在价值总得分
-    const overallScore = demandMatchScore * 0.7 + uniquenessScore * 0.3;
-    
-    // 5. 构建评估详情
+    // 4. 构建评估详情
     const assessmentDetails: AssessmentDetails = {
-      coverage: intrinsicData.coverageRate,
-      satisfaction: intrinsicData.satisfactionDepth,
+      coverage: this.calculateFeatureCoverage(featureValuations),
+      satisfaction: this.calculateFeatureSatisfaction(featureValuations),
       recallRate: 0,
       wtpDeviation: 0,
       cognitiveDeviation: 0,
@@ -276,41 +320,87 @@ class ValueAssessmentCalculator {
   }
 
   /**
-   * 计算需求匹配度总分
+   * 计算特性单独估值
    */
-  private calculateDemandMatchScore(data: IntrinsicValueData): number {
-    // 计算核心需求覆盖率
-    const coverageRate = (data.metDemandItems / data.totalDemandItems) * 100;
+  private async calculateFeatureValuations(features: ProductFeature[]): Promise<FeatureValuationResult[]> {
+    const results: FeatureValuationResult[] = [];
     
-    // 计算综合满足深度
-    let totalWeightedDepth = 0;
-    let totalWeight = 0;
-    
-    for (let i = 0; i < data.demandWeights.length; i++) {
-      const weight = data.demandWeights[i].weight;
-      const productValue = data.productValues[i].value;
-      const customerExpectation = data.customerExpectations[i].expectation;
+    for (const feature of features) {
+      let preliminaryValuation = 0;
       
-      const singleDepth = Math.max(0, (productValue - customerExpectation) / customerExpectation * 100);
-      totalWeightedDepth += singleDepth * weight;
-      totalWeight += weight;
+      // 根据估值方法计算初步估值
+      switch (feature.valuationMethod) {
+        case 'internal_price_diff':
+          preliminaryValuation = this.calculateInternalPriceDiffValuation(feature);
+          break;
+        case 'external_competitor':
+          preliminaryValuation = this.calculateExternalCompetitorValuation(feature);
+          break;
+        case 'customer_wtp':
+          preliminaryValuation = this.calculateCustomerWTPValuation(feature);
+          break;
+      }
+      
+      // 应用修正系数
+      const finalValuation = preliminaryValuation * feature.synergyCoefficient * feature.lifecycleCoefficient;
+      
+      results.push({
+        featureId: feature.featureId,
+        featureName: feature.featureName,
+        preliminaryValuation,
+        finalValuation,
+        synergyCoefficient: feature.synergyCoefficient,
+        lifecycleCoefficient: feature.lifecycleCoefficient,
+        salesRatio: feature.salesRatio,
+        customerFeedback: feature.customerFeedback
+      });
     }
     
-    const satisfactionDepth = totalWeightedDepth / totalWeight;
-    
-    // 需求匹配度总分 = 覆盖率 × 50% + 综合满足深度 × 50%
-    return coverageRate * 0.5 + satisfactionDepth * 0.5;
+    return results;
   }
 
   /**
-   * 计算功能独特性总分
+   * 内部价差法估值
    */
-  private calculateUniquenessScore(data: IntrinsicValueData): number {
-    // 计算独特功能占比
-    const uniqueFunctionRatio = (data.uniqueFunctions / data.totalCoreFunctions) * 100;
-    
-    // 功能独特性总分 = 独特功能占比 × 60% + 独特功能需求权重 × 40% × 100
-    return uniqueFunctionRatio * 0.6 + data.uniqueFunctionDemandWeight * 0.4 * 100;
+  private calculateInternalPriceDiffValuation(feature: ProductFeature): number {
+    const priceDiff = feature.featureVersionPrice - feature.baseVersionPrice;
+    const costDiff = feature.featureVersionCost - feature.baseVersionCost;
+    return priceDiff - costDiff;
+  }
+
+  /**
+   * 外部竞品法估值
+   */
+  private calculateExternalCompetitorValuation(feature: ProductFeature): number {
+    const competitorPremium = feature.competitorFeaturePrice - feature.competitorFeatureCost;
+    const brandAdjustment = 1 - (feature.brandPowerDifference / 100);
+    const costAdvantage = feature.competitorFeatureCost - (feature.featureVersionCost - feature.baseVersionCost);
+    return (competitorPremium * brandAdjustment) + costAdvantage;
+  }
+
+  /**
+   * 客户支付意愿法估值
+   */
+  private calculateCustomerWTPValuation(feature: ProductFeature): number {
+    const marginalCost = feature.featureVersionCost - feature.baseVersionCost;
+    return feature.customerWTP - marginalCost;
+  }
+
+  /**
+   * 计算特性覆盖率
+   */
+  private calculateFeatureCoverage(valuations: FeatureValuationResult[]): number {
+    const totalFeatures = valuations.length;
+    const valuableFeatures = valuations.filter(v => v.finalValuation > 0).length;
+    return (valuableFeatures / totalFeatures) * 100;
+  }
+
+  /**
+   * 计算特性满意度
+   */
+  private calculateFeatureSatisfaction(valuations: FeatureValuationResult[]): number {
+    const totalFeedback = valuations.reduce((sum, v) => sum + v.customerFeedback, 0);
+    return totalFeedback / valuations.length;
   }
 
   /**
@@ -431,22 +521,49 @@ $$ LANGUAGE plpgsql;
 
 ## 📊 数据采集表模板
 
-### 产品价值评估数据采集表
+### 产品特性单独估值数据采集表
 
-| 一级分类 | 二级维度 | 三级指标 | 数据来源 | 填写/计算栏 | 权重 | 维度得分 |
-|----------|----------|----------|----------|-------------|------|----------|
-| **一、产品内在价值（总分）** | | | | | 100% | =需求匹配度×70% + 功能独特性×30% |
-| | 1. 需求匹配度 | | | | 70% | =覆盖率×50% + 综合满足深度×50% |
-| | | 1.1 核心需求总项数 | 客户需求调研问卷 | ______ 项 | - | - |
-| | | 1.2 产品达标需求项数 | 产品测试报告+需求清单 | ______ 项 | - | - |
-| | | 1.3 核心需求覆盖率 | - | =达标项数/总项数×100% → ______% | 50% | - |
-| | | 1.4 单需求满足深度 | - | =MAX(0,(实际值-期望值)/期望值×100%) | - | - |
-| | | 1.5 综合满足深度 | - | =Σ(单需求深度×权重)/Σ权重×100% | 50% | - |
-| | 2. 功能独特性 | | | | 30% | =独特功能占比×60% + 独特功能需求权重×40%×100 |
-| | | 2.1 自身核心功能总项数 | 产品功能清单 | ______ 项 | - | - |
-| | | 2.2 竞品未覆盖功能项数 | 竞品功能对比表 | ______ 项 | - | - |
-| | | 2.3 独特功能占比 | - | =未覆盖项数/总项数×100% → ______% | 60% | - |
-| | | 2.4 独特功能需求权重 | 需求调研 | ______% | 40% | - |
+| 特性名称 | 特性类型 | 估值方法 | 基础数据 | 裸价差/竞品溢价/平均WTP | 边际成本增量 | 初步估值 | 修正系数 | 最终估值 | 验证数据 |
+|----------|----------|----------|----------|------------------------|-------------|----------|----------|----------|----------|
+| **手机67W快充** | 功能型 | 内部价差法 | 基础版2999元(成本1800)，升级版3299元(成本1880) | 300元 | 80元 | 220元 | 成长期1.0 | 220元 | 升级版销量占比60% |
+| **冰箱除菌功能** | 功能型 | 外部竞品法 | 竞品选装包499元(成本150)，自身成本140元 | 349元(竞品溢价) | 140元 | 341.55元 | 导入期1.2 | 409.86元 | 调研80%客户愿多付400+元 |
+| **AI语音助手** | 体验型 | 支付意愿法 | 调研1000人，平均WTP80元，自身成本25元 | 80元(平均WTP) | 25元 | 55元 | 导入期1.2 | 66元 | 新品测试中，意向占比75% |
+
+### 特性分类与估值方法说明
+
+| 特性类型 | 定义 | 单独售卖场景示例 | 核心溢价驱动因素 | 估值方法 |
+|----------|------|------------------|------------------|----------|
+| **功能型特性** | 解决客户具体功能需求，参数可量化 | 基础款手机(续航4000mAh) + 续航升级包(+2000mAh) | 功能参数提升幅度 | 内部价差法/外部竞品法 |
+| **体验型特性** | 优化使用感受，非参数化但可感知 | 基础款耳机(普通降噪) + 深度降噪升级包 | 体验改善的可感知度 | 客户支付意愿法 |
+| **稀缺型特性** | 独家或限量供应，具备差异化壁垒 | 基础款汽车(标准版车漆) + 独家定制车漆选装包 | 稀缺性与独家性 | 外部竞品法/客户支付意愿法 |
+| **服务型特性** | 配套服务支持，延伸特性价值 | 基础款家电(1年质保) + 延保2年服务包 | 服务的必要性与便捷性 | 客户支付意愿法 |
+
+### 估值方法详细说明
+
+#### 1. 内部价差法
+```
+特性单独估值 = (含该特性版本售价 - 基础版售价) - 该特性的边际成本增量
+适用场景：自有产品有清晰的"基础-升级"版本划分
+```
+
+#### 2. 外部竞品法
+```
+自有特性估值 = (竞品溢价 × (1 - 品牌力差异)) + (竞品边际成本 - 自身边际成本)
+适用场景：自有产品无多版本，但竞品有明确的特性单独售卖定价
+```
+
+#### 3. 客户支付意愿法
+```
+特性单独估值 = 客户平均WTP - 边际成本增量
+适用场景：全新特性(无竞品参考)或niche市场产品
+```
+
+### 修正系数说明
+
+| 修正类型 | 修正系数 | 说明 | 示例 |
+|----------|----------|------|------|
+| **协同效应修正** | 1.0-1.5 | 多特性叠加的协同效应 | 高分辨率屏幕+高刷新率的视觉体验协同 |
+| **生命周期修正** | 0.7-1.2 | 特性价值随时间变化 | 导入期1.2，成长期1.0，成熟期0.7 |
 | **二、客户认知价值（总分）** | | | | | 100% | =功能认知覆盖率×50% + 支付意愿偏差×30% + 认知偏差率×20% |
 | | 1. 功能认知覆盖率 | | | | 50% | =客户回忆项数/产品功能总项数×100% |
 | | | 1.1 产品核心功能总项数 | 产品功能清单 | ______ 项 | - | - |
