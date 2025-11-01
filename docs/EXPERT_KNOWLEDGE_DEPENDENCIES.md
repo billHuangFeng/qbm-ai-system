@@ -166,3 +166,4 @@ brew install tesseract tesseract-lang  # 包含中文语言包
 
 如果需要完整的OCR功能，请安装Tesseract-OCR引擎（见上方安装说明）。
 
+

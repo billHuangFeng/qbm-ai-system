@@ -820,3 +820,4 @@ kubectl exec -it backend-0 -n qbm-ai-system -- pip install --upgrade -r requirem
 **部署和运维指南版本**: 1.0.0  
 **最后更新**: 2024-01-15
 
+

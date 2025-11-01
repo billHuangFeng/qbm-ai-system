@@ -229,3 +229,4 @@ COMMENT ON TABLE prediction_accuracy_log IS '预测准确度日志 - 记录预�
 COMMENT ON TABLE model_training_history IS '模型训练历史 - 记录模型训练和性能改进历史';
 
 
+

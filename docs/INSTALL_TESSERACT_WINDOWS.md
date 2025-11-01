@@ -239,3 +239,4 @@ python -c "import pytesseract; from PIL import Image; print('Tesseract版本:', 
 - **Windows安装包**: https://github.com/UB-Mannheim/tesseract/wiki
 - **语言包**: https://github.com/tesseract-ocr/tessdata
 
+

@@ -420,3 +420,4 @@ COMMENT ON TABLE learning_exercises IS '练习题表 - 交互式学习练习题'
 COMMENT ON TABLE learning_tests IS '测试表 - 学习测试和评估';
 COMMENT ON TABLE learning_test_records IS '测试记录表 - 记录用户测试结果';
 
+

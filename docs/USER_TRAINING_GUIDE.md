@@ -383,3 +383,4 @@ curl -X POST "http://localhost:8000/ai-strategic/predict-conflicts" \
 ---
 
 **开始使用QBM AI System，让AI助力您的企业决策！** 🚀
+

@@ -167,3 +167,4 @@ python scripts/test_expert_knowledge_dependencies.py
 
 **安装完成后，专家知识库系统即可完整使用图片OCR功能！** 🎉
 
+

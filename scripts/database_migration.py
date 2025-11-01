@@ -348,3 +348,4 @@ async def run_migrations():
 if __name__ == "__main__":
     asyncio.run(run_migrations())
 
+

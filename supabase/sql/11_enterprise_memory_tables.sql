@@ -377,3 +377,4 @@ SELECT
 FROM learning_insights
 GROUP BY tenant_id, insight_type, insight_category;
 
+

@@ -299,3 +299,4 @@ class DataQualityCheckerRefactored:
         """将字典转换为DataFrame"""
         return pd.DataFrame(data)
 
+

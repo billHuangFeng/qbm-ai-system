@@ -367,3 +367,4 @@ SELECT
 FROM evaluation_improvement_suggestions
 GROUP BY tenant_id, suggestion_type, suggestion_category;
 
+

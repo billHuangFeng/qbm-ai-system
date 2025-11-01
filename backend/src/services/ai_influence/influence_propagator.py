@@ -666,3 +666,4 @@ class AIInfluencePropagator:
         except Exception as e:
             logger.error(f"保存影响分析失败: {e}")
             return str(uuid4())
+

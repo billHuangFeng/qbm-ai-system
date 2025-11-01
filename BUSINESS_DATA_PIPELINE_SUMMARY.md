@@ -331,3 +331,4 @@ alignmentScore = valueAlignment × 0.6 + marketPerformance × 0.4
 
 
 
+

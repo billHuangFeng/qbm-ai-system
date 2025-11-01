@@ -60,3 +60,4 @@ SELECT * FROM l1_sales_fact WHERE amount_cny < 0 LIMIT 100;
 SELECT DISTINCT channel FROM l1_sales_fact WHERE channel NOT IN ('B2B','B2C','DTC');
 
 
+

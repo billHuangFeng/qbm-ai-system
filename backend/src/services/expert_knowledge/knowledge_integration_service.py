@@ -367,3 +367,4 @@ class KnowledgeIntegrationService:
         
         return conclusion
 
+

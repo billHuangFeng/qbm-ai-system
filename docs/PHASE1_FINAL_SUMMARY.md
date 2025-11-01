@@ -288,3 +288,4 @@ pytest tests/test_ai_planning_loop.py -v
 **项目状态**: Phase 1 ✅ **完成** | Phase 2 ⏳ **准备就绪**
 
 **感谢使用QBM AI System！** 🙏
+

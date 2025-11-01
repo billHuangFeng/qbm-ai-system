@@ -528,3 +528,4 @@ class ExpertKnowledgeService:
         
         return summary
 
+

@@ -225,3 +225,4 @@ CREATE TABLE bridge_decision_core_capabilities (
 
 
 
+

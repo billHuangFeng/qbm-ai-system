@@ -238,3 +238,4 @@ CREATE TRIGGER update_dynamic_feedback_updated_at BEFORE UPDATE ON dynamic_feedb
 CREATE TRIGGER update_model_params_updated_at BEFORE UPDATE ON model_parameters_storage
     FOR EACH ROW EXECUTE FUNCTION update_updated_at_column();
 
+

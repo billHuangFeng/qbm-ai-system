@@ -348,3 +348,4 @@ COMMENT ON COLUMN okr_objectives.ai_achievement_probability IS 'AI预测的达�
 COMMENT ON COLUMN okr_objectives.ai_best_practices IS 'AI推荐的最佳实践，来自企业记忆系统';
 COMMENT ON COLUMN okr_key_results.ai_threshold_analysis IS 'AI阈值分析结果，基于ThresholdAnalysis算法';
 
+

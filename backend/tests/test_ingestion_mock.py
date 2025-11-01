@@ -23,3 +23,4 @@ def test_ingestion_rules_get():
     data = resp.json()
     assert isinstance(data, list)
 
+

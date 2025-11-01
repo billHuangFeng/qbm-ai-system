@@ -374,3 +374,4 @@ COMMENT ON COLUMN decision_baselines.ai_predicted_outcomes IS 'AI预测的结果
 COMMENT ON COLUMN decision_alignment_checks.ai_conflict_probability IS 'AI预测的冲突概率，基于RandomForest';
 COMMENT ON COLUMN decision_alignment_checks.ai_consistency_score IS 'AI一致性得分，基于MLPModel和SynergyAnalysis';
 
+

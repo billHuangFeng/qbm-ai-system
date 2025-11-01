@@ -182,3 +182,4 @@ class CacheService:
         
         return round((hits / total) * 100, 2)
 
+

@@ -40,3 +40,4 @@ def setup_middleware(app: FastAPI):
     
     return app
 
+

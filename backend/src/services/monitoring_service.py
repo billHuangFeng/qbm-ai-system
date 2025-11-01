@@ -473,3 +473,4 @@ class AlertManager:
             logger.error(f"Failed to get alert stats: {str(e)}")
             return {}
 
+

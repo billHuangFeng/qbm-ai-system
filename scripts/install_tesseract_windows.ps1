@@ -148,3 +148,4 @@ Write-Host ""
 Write-Host "📖 详细安装指南: docs/INSTALL_TESSERACT_WINDOWS.md" -ForegroundColor Cyan
 Write-Host ""
 
+

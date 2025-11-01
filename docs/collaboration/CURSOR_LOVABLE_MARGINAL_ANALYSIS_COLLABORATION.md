@@ -20,7 +20,7 @@
 |------|---------------------|----------------------|------|
 | **Shapley边际贡献计算** | TypeScript简化版（线性回归+敏感性分析） | Google Cloud Run Python服务（完整Shapley） | MVP: $0<br>扩展: $2-3/月 |
 | **时间序列拟合** | TypeScript简化版（线性回归+滞后项） | Google Cloud Run Prophet服务 | MVP: $0<br>扩展: $2-3/月 |
-| **其他API** | Next.js API Routes | Next.js API Routes | $0（Vercel免费额度内） |
+| **其他API** | Supabase Edge Functions (轻量级) | FastAPI (复杂算法) | $0（Supabase免费额度内） |
 
 **触发升级条件**：
 - Shapley计算调用>1万次/月 → 迁移到Cloud Run完整版
@@ -122,18 +122,20 @@
 - 创建索引和外键关系
 
 ### 阶段2: API实现（Week 2-4）
-- **选择实现方式**：Next.js API Routes（推荐，成本$0）
-- 实现11个API端点（基于Cursor的API契约文档）：
-  - 3个清单CRUD API（资产/能力/价值评估项）
-  - 4个计算引擎API（资产NPV/能力价值/价值评估/全链路增量）
-  - 2个边际分析MVP API（TypeScript简化版Shapley+时间序列）
-  - 2个动态反馈与场景模拟API
+- **选择实现方式**：Supabase Edge Functions (轻量级逻辑) + FastAPI (复杂算法)
+- **Edge Functions实现**（基于Cursor的API契约文档）：
+  - 3个清单CRUD API（资产/能力/价值评估项）- Edge Functions
+  - 简单查询和状态管理 - Edge Functions
+- **FastAPI实现**（Cursor已完成）：
+  - 4个计算引擎API（资产NPV/能力价值/价值评估/全链路增量）- FastAPI
+  - 2个边际分析API（Shapley归因已在FastAPI实现）
+  - 2个动态反馈与场景模拟API - FastAPI
 - 单元测试（基于Cursor的测试用例）
 
 ### 阶段3: 前端开发（Week 5-8）
 - 创建9个页面组件（基于Cursor的UI/UX文档）
 - 实现7个可视化组件（使用Recharts/D3.js）
-- 集成API调用（调用自己的Next.js API Routes）
+- 集成API调用（调用Supabase Edge Functions和FastAPI端点）
 - 响应式布局与加载状态
 
 ### 阶段4: 数据导入ETL（Week 9）
@@ -231,6 +233,7 @@
 ---
 
 **此协作框架确保Cursor与Lovable在边际影响分析系统开发中高效分工，通过文档驱动和检查点机制实现双方理解一致，最终交付高质量系统。**
+
 
 
 

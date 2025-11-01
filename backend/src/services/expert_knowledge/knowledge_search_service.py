@@ -375,3 +375,4 @@ class KnowledgeSearchService:
         
         return min(1.0, relevance)
 
+
