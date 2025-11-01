@@ -1,0 +1,28 @@
+{
+  "insight_id": "0d6ef0ef8711467d",
+  "category": "performance",
+  "title": "feature1是成功的关键因素",
+  "description": "分析发现feature1与成功高度相关，置信度为0.70",
+  "evidence": [
+    {
+      "pattern_id": "8b3028f2e3c6c615",
+      "confidence": 0.7
+    },
+    {
+      "pattern_id": "2158d597dd8f3ad1",
+      "confidence": 0.7
+    },
+    {
+      "pattern_id": "110c397cdb951dd2",
+      "confidence": 0.7
+    }
+  ],
+  "impact_score": 0.7,
+  "confidence": 0.7,
+  "recommendations": [
+    "重点关注feature1的优化",
+    "建立feature1的监控机制",
+    "制定feature1的改进计划"
+  ],
+  "created_at": "2025-10-28 22:27:48.372911"
+}

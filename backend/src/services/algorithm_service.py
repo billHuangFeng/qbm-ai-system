@@ -6,10 +6,14 @@ import pandas as pd
 import numpy as np
 from typing import Dict, Any, List, Optional, Tuple
 import logging
-from ..algorithms import (
-    SynergyAnalysis, ThresholdAnalysis, LagAnalysis, AdvancedRelationshipAnalysis,
-    DynamicWeightCalculator, WeightOptimizer, WeightValidator, WeightMonitor
-)
+from ..algorithms.synergy_analysis import SynergyAnalysis
+from ..algorithms.threshold_analysis import ThresholdAnalysis
+from ..algorithms.lag_analysis import LagAnalysis
+from ..algorithms.advanced_relationships import AdvancedRelationships
+from ..algorithms.dynamic_weights import DynamicWeights
+from ..algorithms.weight_optimization import WeightOptimization
+from ..algorithms.weight_validation import WeightValidation
+from ..algorithms.weight_monitoring import WeightMonitoring
 from ..logging_config import get_logger
 
 logger = get_logger("algorithm_service")
@@ -21,11 +25,11 @@ class AlgorithmService:
         self.synergy_analysis = SynergyAnalysis()
         self.threshold_analysis = ThresholdAnalysis()
         self.lag_analysis = LagAnalysis()
-        self.advanced_relationships = AdvancedRelationshipAnalysis()
-        self.dynamic_weights = DynamicWeightCalculator()
-        self.weight_optimizer = WeightOptimizer()
-        self.weight_validator = WeightValidator()
-        self.weight_monitor = WeightMonitor()
+        self.advanced_relationships = AdvancedRelationships()
+        self.dynamic_weights = DynamicWeights()
+        self.weight_optimizer = WeightOptimization()
+        self.weight_validator = WeightValidation()
+        self.weight_monitor = WeightMonitoring()
         
         self.analysis_results = {}
         self.optimization_history = {}
@@ -69,7 +73,7 @@ class AlgorithmService:
             
             # 4. 高级关系识别
             if 'advanced' in analysis_types:
-                advanced_results = self.advanced_relationships.identify_advanced_relationships(X, y)
+                advanced_results = self.advanced_relationships.analyze_complex_relationships(X, y)
                 analysis_results['advanced'] = advanced_results
             
             # 5. 综合特征工程
@@ -107,15 +111,15 @@ class AlgorithmService:
             
             # 2. 权重优化
             optimized_weights = self.weight_optimizer.optimize_weights(
-                X, y, method=optimization_method
+                X, y, optimization_methods=['gradient_descent', 'genetic_algorithm']
             )
             optimization_results['optimized_weights'] = optimized_weights
             
             # 3. 权重验证
-            if 'final' in dynamic_weights.get('normalized', {}):
-                final_weights = dynamic_weights['normalized']['final']
+            if 'ensemble' in optimized_weights and 'mse' in optimized_weights['ensemble']:
+                final_weights = optimized_weights['ensemble']['mse']['ensemble_weights']
             else:
-                final_weights = optimized_weights.get('best_result', {}).get('weights', {})
+                final_weights = {feature: 1.0/len(X.columns) for feature in X.columns}
             
             validation_results = self.weight_validator.validate_weights(
                 X, y, final_weights, validation_methods
@@ -312,7 +316,11 @@ class AlgorithmService:
             
             # 优化权重评分
             if 'optimized_weights' in optimization_results:
-                optimized_score = optimization_results['optimized_weights'].get('best_result', {}).get('r2_score', 0)
+                optimized_results = optimization_results['optimized_weights']
+                if 'ensemble' in optimized_results and 'mse' in optimized_results['ensemble']:
+                    optimized_score = 1 - optimized_results['ensemble']['mse']['ensemble_score']  # 转换为正数
+                else:
+                    optimized_score = 0
                 score += weights['optimized_weights'] * optimized_score
             
             # 验证评分

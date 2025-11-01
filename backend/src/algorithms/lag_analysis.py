@@ -515,3 +515,4 @@ class LagAnalysis:
             logger.error(f"滞后效应建议生成失败: {e}")
             return []
 
+

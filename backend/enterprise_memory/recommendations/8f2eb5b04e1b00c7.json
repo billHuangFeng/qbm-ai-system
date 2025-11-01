@@ -1,0 +1,16 @@
+{
+  "recommendation_id": "8f2eb5b04e1b00c7",
+  "type": "optimization",
+  "priority": "medium",
+  "title": "优化feature3是成功的关键因素",
+  "description": "基于洞察：分析发现feature3与成功高度相关，置信度为0.70",
+  "rationale": "置信度：0.70，影响分数：0.70",
+  "expected_impact": 0.7,
+  "confidence": 0.7,
+  "action_items": [
+    "重点关注feature3的优化",
+    "建立feature3的监控机制",
+    "制定feature3的改进计划"
+  ],
+  "created_at": "2025-10-28 22:27:48.319112"
+}

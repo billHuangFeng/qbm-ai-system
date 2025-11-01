@@ -1,34 +1,35 @@
-# 多阶段构建
-# 构建阶段
-FROM node:18-alpine AS builder
+# Frontend Dockerfile
+FROM node:18-alpine
 
+# Set working directory
 WORKDIR /app
 
-# 复制package文件
-COPY package*.json ./
+# Copy package files
+COPY frontend/package*.json ./
 
-# 安装依赖
+# Install dependencies
 RUN npm ci --only=production
 
-# 复制源代码
-COPY . .
+# Copy application code
+COPY frontend/ .
 
-# 构建应用
+# Build the application
 RUN npm run build
 
-# 生产阶段
-FROM nginx:alpine
+# Create non-root user
+RUN addgroup -g 1001 -S nodejs && \
+    adduser -S nextjs -u 1001
 
-# 复制构建结果
-COPY --from=builder /app/dist /usr/share/nginx/html
+# Change ownership of the app directory
+RUN chown -R nextjs:nodejs /app
+USER nextjs
 
-# 复制nginx配置
-COPY nginx.conf /etc/nginx/nginx.conf
-
-# 暴露端口
+# Expose port
 EXPOSE 3000
 
-# 启动nginx
-CMD ["nginx", "-g", "daemon off;"]
+# Health check
+HEALTHCHECK --interval=30s --timeout=10s --start-period=5s --retries=3 \
+    CMD curl -f http://localhost:3000/api/health || exit 1
 
-
+# Run the application
+CMD ["npm", "start"]

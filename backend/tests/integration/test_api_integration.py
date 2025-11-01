@@ -430,3 +430,4 @@ class TestAPIIntegration:
             assert "synergy" in analysis_results
             assert "overall_score" in analysis_results
 
+

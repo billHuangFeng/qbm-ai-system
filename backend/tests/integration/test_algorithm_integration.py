@@ -407,3 +407,4 @@ class TestAlgorithmIntegration:
         assert prediction_result is not None
         assert insights is not None
 
+

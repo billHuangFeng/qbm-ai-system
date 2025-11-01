@@ -7,7 +7,8 @@ from sqlalchemy.orm import Session
 from pydantic import BaseModel
 from typing import List, Optional
 from datetime import datetime, date
-from ...database import get_db
+from ...services.database_service import DatabaseService
+from ..dependencies import get_database_service
 from ...auth import get_current_user, require_permission, Permission, User
 from ...models import HistoricalData
 
@@ -135,7 +136,7 @@ class HistoricalDataResponse(BaseModel):
 async def create_historical_data(
     data: HistoricalDataCreate,
     current_user: User = Depends(require_permission(Permission.WRITE_DATA)),
-    db: Session = Depends(get_db)
+    db: DatabaseService = Depends(get_database_service)
 ):
     """创建历史数据"""
     import uuid
@@ -199,7 +200,7 @@ async def get_historical_data(
     start_date: Optional[date] = Query(None),
     end_date: Optional[date] = Query(None),
     current_user: User = Depends(require_permission(Permission.READ_DATA)),
-    db: Session = Depends(get_db)
+    db: DatabaseService = Depends(get_database_service)
 ):
     """获取历史数据列表"""
     query = db.query(HistoricalData).filter(
@@ -224,7 +225,7 @@ async def get_historical_data(
 async def get_historical_data_by_id(
     data_id: str,
     current_user: User = Depends(require_permission(Permission.READ_DATA)),
-    db: Session = Depends(get_db)
+    db: DatabaseService = Depends(get_database_service)
 ):
     """获取单个历史数据"""
     historical_data = db.query(HistoricalData).filter(
@@ -246,7 +247,7 @@ async def update_historical_data(
     data_id: str,
     data: HistoricalDataUpdate,
     current_user: User = Depends(require_permission(Permission.WRITE_DATA)),
-    db: Session = Depends(get_db)
+    db: DatabaseService = Depends(get_database_service)
 ):
     """更新历史数据"""
     historical_data = db.query(HistoricalData).filter(
@@ -280,7 +281,7 @@ async def update_historical_data(
 async def delete_historical_data(
     data_id: str,
     current_user: User = Depends(require_permission(Permission.WRITE_DATA)),
-    db: Session = Depends(get_db)
+    db: DatabaseService = Depends(get_database_service)
 ):
     """删除历史数据"""
     historical_data = db.query(HistoricalData).filter(
@@ -304,7 +305,7 @@ async def delete_historical_data(
 async def create_historical_data_batch(
     data_list: List[HistoricalDataCreate],
     current_user: User = Depends(require_permission(Permission.WRITE_DATA)),
-    db: Session = Depends(get_db)
+    db: DatabaseService = Depends(get_database_service)
 ):
     """批量创建历史数据"""
     import uuid
@@ -364,7 +365,7 @@ async def create_historical_data_batch(
 @router.get("/historical/quality-report")
 async def get_data_quality_report(
     current_user: User = Depends(require_permission(Permission.READ_DATA)),
-    db: Session = Depends(get_db)
+    db: DatabaseService = Depends(get_database_service)
 ):
     """获取数据质量报告"""
     # 获取数据质量统计

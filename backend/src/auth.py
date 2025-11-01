@@ -1,6 +1,7 @@
 """
 认证和授权框架
 """
+from __future__ import annotations
 
 import os
 import jwt
@@ -10,8 +11,15 @@ from fastapi import HTTPException, Depends, status
 from fastapi.security import HTTPBearer, HTTPAuthorizationCredentials
 from passlib.context import CryptContext
 from sqlalchemy.orm import Session
-from .database import get_db, get_async_db
-from .models import User
+from .services.database_service import DatabaseService
+from .api.dependencies import get_database_service
+# from .models import User  # User模型需要定义或从其他地方导入
+from typing import TYPE_CHECKING, Any as _Any
+if TYPE_CHECKING:
+    from .models import User
+else:
+    # 供外部导入类型名使用，避免运行时导入循环/缺失
+    User = _Any  # type: ignore
 import logging
 
 # 配置日志
@@ -150,7 +158,7 @@ auth_manager = AuthManager()
 # 依赖注入函数
 async def get_current_user(
     credentials: HTTPAuthorizationCredentials = Depends(security),
-    db: Session = Depends(get_db)
+    db: DatabaseService = Depends(get_database_service)
 ) -> User:
     """获取当前用户"""
     token = credentials.credentials
@@ -278,5 +286,6 @@ def refresh_access_token(refresh_token: str) -> str:
     return auth_manager.create_access_token(
         data={"sub": payload["sub"], "tenant_id": payload["tenant_id"], "role": payload["role"]}
     )
+
 
 

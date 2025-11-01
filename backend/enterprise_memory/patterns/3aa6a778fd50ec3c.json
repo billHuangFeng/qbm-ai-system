@@ -1,0 +1,21 @@
+{
+  "pattern_id": "3aa6a778fd50ec3c",
+  "pattern_type": "anomaly",
+  "description": "profit_margin列存在1个异常值",
+  "conditions": {
+    "profit_margin": {
+      "range": [
+        0.00795258972241615,
+        0.29823192433635826
+      ]
+    }
+  },
+  "outcomes": {
+    "anomaly_count": 1,
+    "anomaly_rate": 0.005
+  },
+  "confidence": 0.8,
+  "frequency": 1,
+  "last_seen": "2025-10-28 17:51:38.822880",
+  "created_at": "2025-10-28 17:51:38.822881"
+}

@@ -581,3 +581,4 @@ export class MarginalAnalysisCalculator {
     return (n * sumXY - sumX * sumY) / (n * sumXX - sumX * sumX);
   }
 }
+

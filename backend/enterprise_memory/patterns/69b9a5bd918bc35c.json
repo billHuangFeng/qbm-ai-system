@@ -1,0 +1,21 @@
+{
+  "pattern_id": "69b9a5bd918bc35c",
+  "pattern_type": "anomaly",
+  "description": "feature1列存在5个异常值",
+  "conditions": {
+    "feature1": {
+      "range": [
+        -2.599797097733373,
+        2.6445331716799467
+      ]
+    }
+  },
+  "outcomes": {
+    "anomaly_count": 5,
+    "anomaly_rate": 0.01
+  },
+  "confidence": 0.8,
+  "frequency": 5,
+  "last_seen": "2025-10-28 22:27:48.334234",
+  "created_at": "2025-10-28 22:27:48.334236"
+}

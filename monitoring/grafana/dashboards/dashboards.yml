@@ -1,0 +1,14 @@
+# Grafana Dashboard Configuration
+apiVersion: 1
+
+providers:
+  - name: 'QBM AI System Dashboards'
+    orgId: 1
+    folder: 'QBM AI System'
+    type: file
+    disableDeletion: false
+    updateIntervalSeconds: 10
+    allowUiUpdates: true
+    options:
+      path: /etc/grafana/provisioning/dashboards
+

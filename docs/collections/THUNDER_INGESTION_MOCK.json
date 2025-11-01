@@ -1,0 +1,109 @@
+{
+  "$schema": "https://www.thunderclient.com/schema/collection.json",
+  "client": "Thunder Client",
+  "collectionName": "QBM Ingestion Mock",
+  "dateExported": "2025-10-30",
+  "folders": [],
+  "requests": [
+    {
+      "_id": "ing-start",
+      "colId": "qbm-ingestion",
+      "name": "Start Batch",
+      "method": "POST",
+      "url": "http://localhost:8000/ingestion/batches:start",
+      "headers": [
+        { "name": "Content-Type", "value": "application/json" }
+      ],
+      "body": {
+        "type": "json",
+        "raw": "{\n  \"source_system\": \"ERP\",\n  \"files\": [\"sales_2025_01.csv\"]\n}"
+      }
+    },
+    {
+      "_id": "ing-status",
+      "colId": "qbm-ingestion",
+      "name": "Get Batch Status",
+      "method": "GET",
+      "url": "http://localhost:8000/ingestion/batches/batch_123"
+    },
+    {
+      "_id": "ing-upload",
+      "colId": "qbm-ingestion",
+      "name": "Upload File (Mock)",
+      "method": "POST",
+      "url": "http://localhost:8000/ingestion/upload?file_name=sales_2025_01.csv"
+    },
+    {
+      "_id": "ing-issues",
+      "colId": "qbm-ingestion",
+      "name": "List Issues",
+      "method": "GET",
+      "url": "http://localhost:8000/ingestion/issues?batch_id=batch_123"
+    },
+    {
+      "_id": "ing-preview",
+      "colId": "qbm-ingestion",
+      "name": "Preview Issue Fix",
+      "method": "GET",
+      "url": "http://localhost:8000/ingestion/issues/iss-1/preview"
+    },
+    {
+      "_id": "ing-apply",
+      "colId": "qbm-ingestion",
+      "name": "Apply Issue Fix",
+      "method": "POST",
+      "url": "http://localhost:8000/ingestion/issues/iss-1/apply",
+      "headers": [
+        { "name": "Content-Type", "value": "application/json" }
+      ],
+      "body": {
+        "type": "json",
+        "raw": "{\n  \"action\": \"apply\",\n  \"patch\": {\n    \"product_name\": \"iPhone 15 Pro\"\n  }\n}"
+      }
+    },
+    {
+      "_id": "ing-rules",
+      "colId": "qbm-ingestion",
+      "name": "Get Rules",
+      "method": "GET",
+      "url": "http://localhost:8000/ingestion/rules"
+    },
+    {
+      "_id": "ing-upsert-rule",
+      "colId": "qbm-ingestion",
+      "name": "Upsert Rule",
+      "method": "POST",
+      "url": "http://localhost:8000/ingestion/rules",
+      "headers": [
+        { "name": "Content-Type", "value": "application/json" }
+      ],
+      "body": {
+        "type": "json",
+        "raw": "{\n  \"name\": \"currency_normalize\",\n  \"params\": {\n    \"to\": \"CNY\"\n  }\n}"
+      }
+    },
+    {
+      "_id": "ing-alias",
+      "colId": "qbm-ingestion",
+      "name": "Alias Dictionary",
+      "method": "GET",
+      "url": "http://localhost:8000/ingestion/alias-dictionary?dict_type=customer"
+    },
+    {
+      "_id": "ing-reconcile",
+      "colId": "qbm-ingestion",
+      "name": "Reconcile Report",
+      "method": "GET",
+      "url": "http://localhost:8000/ingestion/reconcile/report?batch_id=batch_123"
+    },
+    {
+      "_id": "ing-actions",
+      "colId": "qbm-ingestion",
+      "name": "Actions Log",
+      "method": "GET",
+      "url": "http://localhost:8000/ingestion/actions?batch_id=batch_123"
+    }
+  ]
+}
+
+

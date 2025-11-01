@@ -1,216 +1,108 @@
 """
-数据库配置和连接管理
+BMOS系统 - 数据库管理模块
+提供数据库连接和基本操作功能
 """
 
-import os
-from sqlalchemy import create_engine, MetaData
-from sqlalchemy.ext.asyncio import create_async_engine, AsyncSession
-from sqlalchemy.orm import sessionmaker, declarative_base
-from sqlalchemy.pool import StaticPool
+import asyncio
+import asyncpg
+from typing import Optional, Dict, Any, List
 import logging
+from contextlib import asynccontextmanager
 
-# 配置日志
-logging.basicConfig(level=logging.INFO)
 logger = logging.getLogger(__name__)
 
-# 数据库配置
-DATABASE_URL = os.getenv(
-    "DATABASE_URL", 
-    "postgresql://qbm_user:qbm_password@localhost:5432/qbm_historical_fitting"
-)
-ASYNC_DATABASE_URL = os.getenv(
-    "ASYNC_DATABASE_URL",
-    "postgresql+asyncpg://qbm_user:qbm_password@localhost:5432/qbm_historical_fitting"
-)
-
-# Redis配置
-REDIS_URL = os.getenv("REDIS_URL", "redis://localhost:6379/0")
-
-# 创建同步引擎
-engine = create_engine(
-    DATABASE_URL,
-    pool_pre_ping=True,
-    pool_recycle=300,
-    echo=False  # 生产环境设为False
-)
-
-# 创建异步引擎
-async_engine = create_async_engine(
-    ASYNC_DATABASE_URL,
-    pool_pre_ping=True,
-    pool_recycle=300,
-    echo=False
-)
-
-# 创建会话工厂
-SessionLocal = sessionmaker(autocommit=False, autoflush=False, bind=engine)
-AsyncSessionLocal = sessionmaker(
-    async_engine, 
-    class_=AsyncSession, 
-    expire_on_commit=False
-)
-
-# 创建基础模型类
-Base = declarative_base()
-
-# 元数据
-metadata = MetaData()
-
-# 多租户Schema管理
-TENANT_SCHEMAS = {
-    "tenant_001": "enterprise_001",
-    "tenant_002": "enterprise_002",
-    # 可以动态添加更多租户
-}
-
-def get_tenant_schema(tenant_id: str) -> str:
-    """获取租户对应的Schema名称"""
-    return TENANT_SCHEMAS.get(tenant_id, f"tenant_{tenant_id}")
-
-def create_tenant_schema(tenant_id: str) -> str:
-    """为租户创建Schema"""
-    schema_name = f"tenant_{tenant_id}"
-    if schema_name not in TENANT_SCHEMAS.values():
-        TENANT_SCHEMAS[tenant_id] = schema_name
-    return schema_name
-
-# 数据库连接管理
 class DatabaseManager:
-    """数据库连接管理器"""
+    """数据库管理器"""
     
-    def __init__(self):
-        self.engine = engine
-        self.async_engine = async_engine
+    def __init__(self, database_url: str):
+        self.database_url = database_url
+        self.pool: Optional[asyncpg.Pool] = None
+        self._connected = False
     
-    def get_sync_session(self):
-        """获取同步会话"""
-        return SessionLocal()
+    async def initialize(self):
+        """初始化数据库连接池"""
+        try:
+            self.pool = await asyncpg.create_pool(
+                self.database_url,
+                min_size=5,
+                max_size=20,
+                command_timeout=30
+            )
+            self._connected = True
+            logger.info("数据库连接池初始化成功")
+        except Exception as e:
+            logger.error(f"数据库连接池初始化失败: {e}")
+            raise
     
-    def get_async_session(self):
-        """获取异步会话"""
-        return AsyncSessionLocal()
-    
-    async def create_tables(self):
-        """创建所有表"""
-        async with async_engine.begin() as conn:
-            # 这里将导入所有模型并创建表
-            # 暂时跳过，等模型定义完成后再实现
-            logger.info("数据表创建功能待实现")
-            pass
-    
-    async def drop_tables(self):
-        """删除所有表"""
-        async with async_engine.begin() as conn:
-            # 删除所有表
-            logger.info("数据表删除功能待实现")
-            pass
+    async def close(self):
+        """关闭数据库连接池"""
+        if self.pool:
+            await self.pool.close()
+            self._connected = False
+            logger.info("数据库连接池已关闭")
     
     def health_check(self) -> bool:
-        """数据库健康检查"""
+        """健康检查"""
+        return self._connected and self.pool is not None
+    
+    async def execute_query(self, query: str, *args) -> List[Dict[str, Any]]:
+        """执行查询"""
+        if not self.pool:
+            raise Exception("数据库连接池未初始化")
+        
         try:
-            with engine.connect() as conn:
-                conn.execute("SELECT 1")
-            return True
+            async with self.pool.acquire() as conn:
+                results = await conn.fetch(query, *args)
+                return [dict(row) for row in results]
         except Exception as e:
-            logger.error(f"数据库健康检查失败: {e}")
-            return False
+            logger.error(f"查询执行失败: {e}")
+            raise
+    
+    async def execute_one(self, query: str, *args) -> Optional[Dict[str, Any]]:
+        """执行单行查询"""
+        if not self.pool:
+            raise Exception("数据库连接池未初始化")
+        
+        try:
+            async with self.pool.acquire() as conn:
+                result = await conn.fetchrow(query, *args)
+                return dict(result) if result else None
+        except Exception as e:
+            logger.error(f"单行查询执行失败: {e}")
+            raise
+    
+    async def execute(self, query: str, *args) -> str:
+        """执行命令"""
+        if not self.pool:
+            raise Exception("数据库连接池未初始化")
+        
+        try:
+            async with self.pool.acquire() as conn:
+                result = await conn.execute(query, *args)
+                return result
+        except Exception as e:
+            logger.error(f"命令执行失败: {e}")
+            raise
 
 # 全局数据库管理器实例
-db_manager = DatabaseManager()
+db_manager: Optional[DatabaseManager] = None
 
-# 依赖注入函数
-def get_db():
-    """获取数据库会话（同步）"""
-    db = SessionLocal()
-    try:
-        yield db
-    finally:
-        db.close()
+def get_db_manager() -> DatabaseManager:
+    """获取数据库管理器实例"""
+    global db_manager
+    if not db_manager:
+        raise Exception("数据库管理器未初始化")
+    return db_manager
 
-async def get_async_db():
-    """获取数据库会话（异步）"""
-    async with AsyncSessionLocal() as session:
-        try:
-            yield session
-        finally:
-            await session.close()
+async def init_db_manager(database_url: str):
+    """初始化数据库管理器"""
+    global db_manager
+    db_manager = DatabaseManager(database_url)
+    await db_manager.initialize()
 
-# 多租户中间件
-class TenantMiddleware:
-    """多租户中间件"""
-    
-    @staticmethod
-    def set_tenant_context(tenant_id: str):
-        """设置租户上下文"""
-        schema_name = get_tenant_schema(tenant_id)
-        # 设置搜索路径到租户Schema
-        return f"SET search_path TO {schema_name}, public"
-    
-    @staticmethod
-    def get_tenant_from_request(request):
-        """从请求中提取租户ID"""
-        # 从请求头或路径中提取租户ID
-        tenant_id = request.headers.get("X-Tenant-ID")
-        if not tenant_id:
-            # 从URL路径中提取
-            path_parts = request.url.path.split("/")
-            if len(path_parts) > 2 and path_parts[1] == "api":
-                tenant_id = path_parts[2]
-        
-        return tenant_id
-
-# 数据库迁移管理
-class MigrationManager:
-    """数据库迁移管理器"""
-    
-    def __init__(self):
-        self.migrations_dir = "database/migrations"
-    
-    def create_migration(self, name: str) -> str:
-        """创建新的迁移文件"""
-        import datetime
-        timestamp = datetime.datetime.now().strftime("%Y%m%d_%H%M%S")
-        filename = f"{timestamp}_{name}.sql"
-        filepath = os.path.join(self.migrations_dir, filename)
-        
-        # 创建迁移文件模板
-        template = f"""-- Migration: {name}
--- Created: {datetime.datetime.now().isoformat()}
-
--- Up migration
-BEGIN;
-
--- Add your migration SQL here
-
-COMMIT;
-
--- Down migration (rollback)
--- BEGIN;
--- 
--- -- Add your rollback SQL here
--- 
--- COMMIT;
-"""
-        
-        with open(filepath, 'w', encoding='utf-8') as f:
-            f.write(template)
-        
-        logger.info(f"创建迁移文件: {filepath}")
-        return filepath
-    
-    def run_migrations(self):
-        """运行所有待执行的迁移"""
-        # 这里将实现迁移执行逻辑
-        logger.info("迁移执行功能待实现")
-        pass
-    
-    def rollback_migration(self, migration_name: str):
-        """回滚指定的迁移"""
-        # 这里将实现迁移回滚逻辑
-        logger.info(f"回滚迁移: {migration_name}")
-        pass
-
-# 全局迁移管理器实例
-migration_manager = MigrationManager()
-
-
+async def close_db_manager():
+    """关闭数据库管理器"""
+    global db_manager
+    if db_manager:
+        await db_manager.close()
+        db_manager = None

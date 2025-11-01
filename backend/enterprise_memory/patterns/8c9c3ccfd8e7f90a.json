@@ -1,0 +1,21 @@
+{
+  "pattern_id": "8c9c3ccfd8e7f90a",
+  "pattern_type": "anomaly",
+  "description": "customer_satisfaction列存在1个异常值",
+  "conditions": {
+    "customer_satisfaction": {
+      "range": [
+        2.5785857707629196,
+        5.310519131309298
+      ]
+    }
+  },
+  "outcomes": {
+    "anomaly_count": 1,
+    "anomaly_rate": 0.005
+  },
+  "confidence": 0.8,
+  "frequency": 1,
+  "last_seen": "2025-10-28 17:51:38.821624",
+  "created_at": "2025-10-28 17:51:38.821625"
+}

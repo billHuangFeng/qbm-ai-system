@@ -1,0 +1,24 @@
+{
+  "insight_id": "e0d09743475c56f6",
+  "category": "risk",
+  "title": "识别到sales相关风险",
+  "description": "发现sales与失败或异常相关，出现频率为4次",
+  "evidence": [
+    {
+      "pattern_id": "24f5f5a7e4c4b643",
+      "frequency": 4
+    },
+    {
+      "pattern_id": "a0e12da58d34b3cc",
+      "frequency": 2
+    }
+  ],
+  "impact_score": 0.4,
+  "confidence": 0.8,
+  "recommendations": [
+    "加强对sales的监控",
+    "制定sales的风险控制措施",
+    "建立早期预警机制"
+  ],
+  "created_at": "2025-10-28 17:51:38.964214"
+}

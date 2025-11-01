@@ -1,0 +1,17 @@
+{
+  "pattern_id": "ceb6db388c2ef1ac",
+  "pattern_type": "success",
+  "description": "高feature2值通常与成功相关",
+  "conditions": {
+    "feature2": {
+      "min": 0.10152371660946079
+    }
+  },
+  "outcomes": {
+    "success_probability": 0.8
+  },
+  "confidence": 0.7,
+  "frequency": 55,
+  "last_seen": "2025-10-28 19:30:14.674298",
+  "created_at": "2025-10-28 19:30:14.674304"
+}

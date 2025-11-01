@@ -221,3 +221,4 @@ INSERT INTO users (tenant_id, user_id, username, email, password_hash, role, cre
 ON CONFLICT (email) DO NOTHING;
 
 
+

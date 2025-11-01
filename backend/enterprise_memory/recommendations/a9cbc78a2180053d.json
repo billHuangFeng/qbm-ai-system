@@ -1,0 +1,16 @@
+{
+  "recommendation_id": "a9cbc78a2180053d",
+  "type": "warning",
+  "priority": "high",
+  "title": "风险预警：识别到feature2相关风险",
+  "description": "风险提示：发现feature2与失败或异常相关，出现频率为253次",
+  "rationale": "识别到潜在风险，置信度：0.80",
+  "expected_impact": 25.3,
+  "confidence": 0.8,
+  "action_items": [
+    "加强对feature2的监控",
+    "制定feature2的风险控制措施",
+    "建立早期预警机制"
+  ],
+  "created_at": "2025-10-28 22:27:48.346966"
+}

@@ -4,625 +4,697 @@
 
 import numpy as np
 import pandas as pd
-from typing import Dict, Any, List, Optional, Tuple, Callable
-from sklearn.linear_model import LinearRegression
-from sklearn.ensemble import RandomForestRegressor
+from typing import Dict, Any, List, Optional, Tuple
+from sklearn.ensemble import RandomForestRegressor, GradientBoostingRegressor
+from sklearn.linear_model import LinearRegression, Ridge, Lasso, ElasticNet
+from sklearn.neural_network import MLPRegressor
 from sklearn.metrics import mean_squared_error, r2_score, mean_absolute_error
-from scipy.optimize import minimize, differential_evolution, dual_annealing
-from scipy.optimize import LinearConstraint, NonlinearConstraint
+from sklearn.model_selection import cross_val_score, GridSearchCV
+from sklearn.preprocessing import StandardScaler
+from scipy.optimize import minimize, differential_evolution, basinhopping
+from scipy import stats
 import logging
 from ..logging_config import get_logger
 
 logger = get_logger("weight_optimization")
 
-class WeightOptimizer:
-    """权重优化器"""
+class WeightOptimization:
+    """权重优化算法"""
     
     def __init__(self):
-        self.optimization_history = {}
-        self.best_weights = {}
-        self.optimization_metrics = {}
+        self.optimization_results = {}
+        self.optimal_weights = {}
+        self.optimization_history = []
+        self.constraints = {}
+        self.objective_functions = {}
     
-    def optimize_weights(self, X: pd.DataFrame, y: pd.Series, 
-                        method: str = 'gradient_descent',
-                        objective: str = 'r2',
-                        constraints: Optional[Dict[str, Any]] = None,
-                        max_iterations: int = 1000) -> Dict[str, Any]:
+    def optimize_weights(self, X: pd.DataFrame, y: pd.Series,
+                       optimization_methods: List[str] = None,
+                       objective_functions: List[str] = None,
+                       constraints: Dict[str, Any] = None) -> Dict[str, Any]:
         """优化权重"""
         try:
-            optimization_results = {}
+            if optimization_methods is None:
+                optimization_methods = ['gradient_descent', 'genetic_algorithm', 'bayesian', 'grid_search']
+            
+            if objective_functions is None:
+                objective_functions = ['mse', 'mae', 'r2', 'custom']
+            
+            if constraints is None:
+                constraints = {
+                    'sum_to_one': True,
+                    'non_negative': True,
+                    'bounds': (0, 1)
+                }
+            
+            self.constraints = constraints
+            
+            results = {}
             
             # 1. 梯度下降优化
-            if method == 'gradient_descent':
-                gd_results = self._gradient_descent_optimization(X, y, objective, max_iterations)
-                optimization_results['gradient_descent'] = gd_results
+            if 'gradient_descent' in optimization_methods:
+                gd_results = self._gradient_descent_optimization(X, y, objective_functions)
+                results['gradient_descent'] = gd_results
             
             # 2. 遗传算法优化
-            elif method == 'genetic_algorithm':
-                ga_results = self._genetic_algorithm_optimization(X, y, objective, max_iterations)
-                optimization_results['genetic_algorithm'] = ga_results
+            if 'genetic_algorithm' in optimization_methods:
+                ga_results = self._genetic_algorithm_optimization(X, y, objective_functions)
+                results['genetic_algorithm'] = ga_results
             
-            # 3. 模拟退火优化
-            elif method == 'simulated_annealing':
-                sa_results = self._simulated_annealing_optimization(X, y, objective, max_iterations)
-                optimization_results['simulated_annealing'] = sa_results
+            # 3. 贝叶斯优化
+            if 'bayesian' in optimization_methods:
+                bayesian_results = self._bayesian_optimization(X, y, objective_functions)
+                results['bayesian'] = bayesian_results
             
-            # 4. 粒子群优化
-            elif method == 'particle_swarm':
-                pso_results = self._particle_swarm_optimization(X, y, objective, max_iterations)
-                optimization_results['particle_swarm'] = pso_results
+            # 4. 网格搜索优化
+            if 'grid_search' in optimization_methods:
+                grid_results = self._grid_search_optimization(X, y, objective_functions)
+                results['grid_search'] = grid_results
             
-            # 5. 贝叶斯优化
-            elif method == 'bayesian':
-                bayesian_results = self._bayesian_optimization(X, y, objective, max_iterations)
-                optimization_results['bayesian'] = bayesian_results
+            # 5. 集成优化结果
+            ensemble_results = self._ensemble_optimization_results(results)
+            results['ensemble'] = ensemble_results
             
-            # 6. 综合优化
-            elif method == 'comprehensive':
-                comprehensive_results = self._comprehensive_optimization(X, y, objective, max_iterations)
-                optimization_results['comprehensive'] = comprehensive_results
+            # 6. 优化历史记录
+            self.optimization_history.append({
+                'timestamp': pd.Timestamp.now(),
+                'methods': optimization_methods,
+                'objectives': objective_functions,
+                'results': results
+            })
             
-            # 7. 约束优化
-            if constraints:
-                constrained_results = self._constrained_optimization(X, y, objective, constraints, max_iterations)
-                optimization_results['constrained'] = constrained_results
+            self.optimization_results = results
+            logger.info(f"权重优化完成，使用了 {len(optimization_methods)} 种方法")
             
-            # 8. 多目标优化
-            multi_objective_results = self._multi_objective_optimization(X, y, max_iterations)
-            optimization_results['multi_objective'] = multi_objective_results
-            
-            # 9. 选择最佳结果
-            best_result = self._select_best_result(optimization_results)
-            optimization_results['best_result'] = best_result
-            
-            self.optimization_history[method] = optimization_results
-            logger.info(f"权重优化完成: {method}, 最佳R² = {best_result.get('r2_score', 0):.4f}")
-            
-            return optimization_results
+            return results
             
         except Exception as e:
             logger.error(f"权重优化失败: {e}")
             raise
     
-    def _gradient_descent_optimization(self, X: pd.DataFrame, y: pd.Series, 
-                                     objective: str, max_iterations: int) -> Dict[str, Any]:
+    def _gradient_descent_optimization(self, X: pd.DataFrame, y: pd.Series,
+                                     objective_functions: List[str]) -> Dict[str, Any]:
         """梯度下降优化"""
         try:
-            def objective_function(weights):
-                weights = np.abs(weights)  # 确保权重为正
-                X_weighted = self._apply_weights(X, weights)
+            gd_results = {}
+            
+            for objective in objective_functions:
+                # 初始化权重
+                n_features = len(X.columns)
+                initial_weights = np.ones(n_features) / n_features
                 
-                model = LinearRegression()
-                model.fit(X_weighted, y)
+                # 定义目标函数
+                def objective_func(weights):
+                    return self._calculate_objective(X, y, weights, objective)
                 
-                if objective == 'r2':
-                    return -model.score(X_weighted, y)
-                elif objective == 'mse':
-                    y_pred = model.predict(X_weighted)
-                    return mean_squared_error(y, y_pred)
+                # 定义约束
+                constraints = []
+                if self.constraints.get('sum_to_one', True):
+                    constraints.append({
+                        'type': 'eq',
+                        'fun': lambda w: np.sum(w) - 1
+                    })
+                
+                if self.constraints.get('non_negative', True):
+                    bounds = [(0, 1) for _ in range(n_features)]
                 else:
-                    return -model.score(X_weighted, y)
+                    bounds = self.constraints.get('bounds', (0, 1))
+                    bounds = [bounds for _ in range(n_features)]
+                
+                # 执行优化
+                result = minimize(
+                    objective_func,
+                    initial_weights,
+                    method='SLSQP',
+                    bounds=bounds,
+                    constraints=constraints,
+                    options={'maxiter': 1000}
+                )
+                
+                gd_results[objective] = {
+                    'optimal_weights': dict(zip(X.columns, result.x)),
+                    'objective_value': result.fun,
+                    'success': result.success,
+                    'iterations': result.nit,
+                    'message': result.message
+                }
             
-            # 初始权重
-            initial_weights = np.ones(len(X.columns))
-            
-            # 梯度下降优化
-            result = minimize(
-                objective_function,
-                initial_weights,
-                method='L-BFGS-B',
-                bounds=[(0.01, 10.0) for _ in range(len(X.columns))],
-                options={'maxiter': max_iterations}
-            )
-            
-            # 归一化权重
-            optimized_weights = result.x
-            optimized_weights = optimized_weights / np.sum(optimized_weights)
-            
-            # 评估结果
-            X_optimized = self._apply_weights(X, optimized_weights)
-            model = LinearRegression()
-            model.fit(X_optimized, y)
-            
-            return {
-                'method': 'gradient_descent',
-                'weights': dict(zip(X.columns, optimized_weights)),
-                'success': result.success,
-                'iterations': result.nit,
-                'r2_score': model.score(X_optimized, y),
-                'mse_score': mean_squared_error(y, model.predict(X_optimized)),
-                'objective_value': result.fun
-            }
+            logger.info("梯度下降优化完成")
+            return gd_results
             
         except Exception as e:
             logger.error(f"梯度下降优化失败: {e}")
             return {}
     
-    def _genetic_algorithm_optimization(self, X: pd.DataFrame, y: pd.Series, 
-                                      objective: str, max_iterations: int) -> Dict[str, Any]:
+    def _genetic_algorithm_optimization(self, X: pd.DataFrame, y: pd.Series,
+                                      objective_functions: List[str]) -> Dict[str, Any]:
         """遗传算法优化"""
         try:
-            def objective_function(weights):
-                weights = np.abs(weights)
-                X_weighted = self._apply_weights(X, weights)
+            ga_results = {}
+            
+            for objective in objective_functions:
+                n_features = len(X.columns)
                 
-                model = LinearRegression()
-                model.fit(X_weighted, y)
+                # 定义目标函数
+                def objective_func(weights):
+                    return self._calculate_objective(X, y, weights, objective)
                 
-                if objective == 'r2':
-                    return -model.score(X_weighted, y)
-                elif objective == 'mse':
-                    y_pred = model.predict(X_weighted)
-                    return mean_squared_error(y, y_pred)
-                else:
-                    return -model.score(X_weighted, y)
+                # 定义边界
+                bounds = []
+                for i in range(n_features):
+                    if self.constraints.get('non_negative', True):
+                        bounds.append((0, 1))
+                    else:
+                        bounds.append(self.constraints.get('bounds', (0, 1)))
+                
+                # 执行遗传算法优化
+                result = differential_evolution(
+                    objective_func,
+                    bounds,
+                    maxiter=1000,
+                    popsize=15,
+                    seed=42
+                )
+                
+                # 归一化权重（如果需要）
+                optimal_weights = result.x
+                if self.constraints.get('sum_to_one', True):
+                    optimal_weights = optimal_weights / np.sum(optimal_weights)
+                
+                ga_results[objective] = {
+                    'optimal_weights': dict(zip(X.columns, optimal_weights)),
+                    'objective_value': result.fun,
+                    'success': result.success,
+                    'iterations': result.nit,
+                    'message': result.message
+                }
             
-            # 遗传算法优化
-            result = differential_evolution(
-                objective_function,
-                bounds=[(0.01, 10.0) for _ in range(len(X.columns))],
-                maxiter=max_iterations // 10,  # 遗传算法迭代次数较少
-                seed=42
-            )
-            
-            # 归一化权重
-            optimized_weights = result.x
-            optimized_weights = optimized_weights / np.sum(optimized_weights)
-            
-            # 评估结果
-            X_optimized = self._apply_weights(X, optimized_weights)
-            model = LinearRegression()
-            model.fit(X_optimized, y)
-            
-            return {
-                'method': 'genetic_algorithm',
-                'weights': dict(zip(X.columns, optimized_weights)),
-                'success': result.success,
-                'iterations': result.nit,
-                'r2_score': model.score(X_optimized, y),
-                'mse_score': mean_squared_error(y, model.predict(X_optimized)),
-                'objective_value': result.fun
-            }
+            logger.info("遗传算法优化完成")
+            return ga_results
             
         except Exception as e:
             logger.error(f"遗传算法优化失败: {e}")
             return {}
     
-    def _simulated_annealing_optimization(self, X: pd.DataFrame, y: pd.Series, 
-                                         objective: str, max_iterations: int) -> Dict[str, Any]:
-        """模拟退火优化"""
-        try:
-            def objective_function(weights):
-                weights = np.abs(weights)
-                X_weighted = self._apply_weights(X, weights)
-                
-                model = LinearRegression()
-                model.fit(X_weighted, y)
-                
-                if objective == 'r2':
-                    return -model.score(X_weighted, y)
-                elif objective == 'mse':
-                    y_pred = model.predict(X_weighted)
-                    return mean_squared_error(y, y_pred)
-                else:
-                    return -model.score(X_weighted, y)
-            
-            # 模拟退火优化
-            result = dual_annealing(
-                objective_function,
-                bounds=[(0.01, 10.0) for _ in range(len(X.columns))],
-                maxiter=max_iterations,
-                seed=42
-            )
-            
-            # 归一化权重
-            optimized_weights = result.x
-            optimized_weights = optimized_weights / np.sum(optimized_weights)
-            
-            # 评估结果
-            X_optimized = self._apply_weights(X, optimized_weights)
-            model = LinearRegression()
-            model.fit(X_optimized, y)
-            
-            return {
-                'method': 'simulated_annealing',
-                'weights': dict(zip(X.columns, optimized_weights)),
-                'success': result.success,
-                'iterations': result.nit,
-                'r2_score': model.score(X_optimized, y),
-                'mse_score': mean_squared_error(y, model.predict(X_optimized)),
-                'objective_value': result.fun
-            }
-            
-        except Exception as e:
-            logger.error(f"模拟退火优化失败: {e}")
-            return {}
-    
-    def _particle_swarm_optimization(self, X: pd.DataFrame, y: pd.Series, 
-                                    objective: str, max_iterations: int) -> Dict[str, Any]:
-        """粒子群优化"""
-        try:
-            # 简化的粒子群优化实现
-            n_particles = 20
-            n_dimensions = len(X.columns)
-            
-            # 初始化粒子
-            particles = np.random.uniform(0.01, 10.0, (n_particles, n_dimensions))
-            velocities = np.random.uniform(-1, 1, (n_particles, n_dimensions))
-            
-            # 个体最佳位置
-            personal_best = particles.copy()
-            personal_best_scores = np.full(n_particles, np.inf)
-            
-            # 全局最佳位置
-            global_best = particles[0].copy()
-            global_best_score = np.inf
-            
-            def evaluate_particle(weights):
-                weights = np.abs(weights)
-                X_weighted = self._apply_weights(X, weights)
-                
-                model = LinearRegression()
-                model.fit(X_weighted, y)
-                
-                if objective == 'r2':
-                    return -model.score(X_weighted, y)
-                elif objective == 'mse':
-                    y_pred = model.predict(X_weighted)
-                    return mean_squared_error(y, y_pred)
-                else:
-                    return -model.score(X_weighted, y)
-            
-            # 粒子群优化主循环
-            for iteration in range(max_iterations):
-                for i in range(n_particles):
-                    # 评估粒子
-                    score = evaluate_particle(particles[i])
-                    
-                    # 更新个体最佳
-                    if score < personal_best_scores[i]:
-                        personal_best_scores[i] = score
-                        personal_best[i] = particles[i].copy()
-                    
-                    # 更新全局最佳
-                    if score < global_best_score:
-                        global_best_score = score
-                        global_best = particles[i].copy()
-                
-                # 更新粒子和速度
-                for i in range(n_particles):
-                    # 更新速度
-                    r1, r2 = np.random.random(2)
-                    velocities[i] = (0.9 * velocities[i] + 
-                                    0.5 * r1 * (personal_best[i] - particles[i]) +
-                                    0.5 * r2 * (global_best - particles[i]))
-                    
-                    # 更新位置
-                    particles[i] += velocities[i]
-                    
-                    # 边界约束
-                    particles[i] = np.clip(particles[i], 0.01, 10.0)
-            
-            # 归一化最佳权重
-            optimized_weights = global_best
-            optimized_weights = optimized_weights / np.sum(optimized_weights)
-            
-            # 评估结果
-            X_optimized = self._apply_weights(X, optimized_weights)
-            model = LinearRegression()
-            model.fit(X_optimized, y)
-            
-            return {
-                'method': 'particle_swarm',
-                'weights': dict(zip(X.columns, optimized_weights)),
-                'success': True,
-                'iterations': max_iterations,
-                'r2_score': model.score(X_optimized, y),
-                'mse_score': mean_squared_error(y, model.predict(X_optimized)),
-                'objective_value': global_best_score
-            }
-            
-        except Exception as e:
-            logger.error(f"粒子群优化失败: {e}")
-            return {}
-    
-    def _bayesian_optimization(self, X: pd.DataFrame, y: pd.Series, 
-                             objective: str, max_iterations: int) -> Dict[str, Any]:
+    def _bayesian_optimization(self, X: pd.DataFrame, y: pd.Series,
+                              objective_functions: List[str]) -> Dict[str, Any]:
         """贝叶斯优化"""
         try:
-            # 简化的贝叶斯优化实现
-            from sklearn.gaussian_process import GaussianProcessRegressor
-            from sklearn.gaussian_process.kernels import RBF
+            bayesian_results = {}
             
-            def objective_function(weights):
-                weights = np.abs(weights)
-                X_weighted = self._apply_weights(X, weights)
+            for objective in objective_functions:
+                n_features = len(X.columns)
                 
-                model = LinearRegression()
-                model.fit(X_weighted, y)
+                # 定义目标函数
+                def objective_func(weights):
+                    return self._calculate_objective(X, y, weights, objective)
                 
-                if objective == 'r2':
-                    return -model.score(X_weighted, y)
-                elif objective == 'mse':
-                    y_pred = model.predict(X_weighted)
-                    return mean_squared_error(y, y_pred)
-                else:
-                    return -model.score(X_weighted, y)
-            
-            # 初始采样
-            n_initial = 10
-            X_samples = np.random.uniform(0.01, 10.0, (n_initial, len(X.columns)))
-            y_samples = np.array([objective_function(x) for x in X_samples])
-            
-            # 贝叶斯优化主循环
-            best_x = X_samples[np.argmin(y_samples)]
-            best_y = np.min(y_samples)
-            
-            for iteration in range(max_iterations - n_initial):
-                # 训练高斯过程
-                gp = GaussianProcessRegressor(
-                    kernel=RBF(length_scale=1.0),
-                    random_state=42
-                )
-                gp.fit(X_samples, y_samples)
+                # 使用basinhopping进行全局优化
+                initial_weights = np.ones(n_features) / n_features
                 
-                # 获取下一个采样点（使用期望改进）
-                def acquisition_function(x):
-                    x = x.reshape(1, -1)
-                    mean, std = gp.predict(x, return_std=True)
-                    return -(mean - 1.96 * std)  # 期望改进
-                
-                # 优化获取函数
-                result = minimize(
-                    acquisition_function,
-                    np.random.uniform(0.01, 10.0, len(X.columns)),
-                    method='L-BFGS-B',
-                    bounds=[(0.01, 10.0) for _ in range(len(X.columns))]
+                result = basinhopping(
+                    objective_func,
+                    initial_weights,
+                    niter=100,
+                    minimizer_kwargs={
+                        'method': 'L-BFGS-B',
+                        'bounds': [(0, 1) for _ in range(n_features)]
+                    }
                 )
                 
-                # 评估新点
-                new_x = result.x
-                new_y = objective_function(new_x)
+                # 归一化权重（如果需要）
+                optimal_weights = result.x
+                if self.constraints.get('sum_to_one', True):
+                    optimal_weights = optimal_weights / np.sum(optimal_weights)
                 
-                # 更新样本
-                X_samples = np.vstack([X_samples, new_x])
-                y_samples = np.append(y_samples, new_y)
-                
-                # 更新最佳点
-                if new_y < best_y:
-                    best_x = new_x
-                    best_y = new_y
+                bayesian_results[objective] = {
+                    'optimal_weights': dict(zip(X.columns, optimal_weights)),
+                    'objective_value': result.fun,
+                    'success': result.success,
+                    'iterations': result.nit,
+                    'message': result.message
+                }
             
-            # 归一化最佳权重
-            optimized_weights = best_x
-            optimized_weights = optimized_weights / np.sum(optimized_weights)
-            
-            # 评估结果
-            X_optimized = self._apply_weights(X, optimized_weights)
-            model = LinearRegression()
-            model.fit(X_optimized, y)
-            
-            return {
-                'method': 'bayesian',
-                'weights': dict(zip(X.columns, optimized_weights)),
-                'success': True,
-                'iterations': max_iterations,
-                'r2_score': model.score(X_optimized, y),
-                'mse_score': mean_squared_error(y, model.predict(X_optimized)),
-                'objective_value': best_y
-            }
+            logger.info("贝叶斯优化完成")
+            return bayesian_results
             
         except Exception as e:
             logger.error(f"贝叶斯优化失败: {e}")
             return {}
     
-    def _comprehensive_optimization(self, X: pd.DataFrame, y: pd.Series, 
-                                  objective: str, max_iterations: int) -> Dict[str, Any]:
-        """综合优化"""
+    def _grid_search_optimization(self, X: pd.DataFrame, y: pd.Series,
+                                 objective_functions: List[str]) -> Dict[str, Any]:
+        """网格搜索优化"""
         try:
-            # 运行多种优化方法
-            methods = ['gradient_descent', 'genetic_algorithm', 'simulated_annealing']
-            results = {}
+            grid_results = {}
             
-            for method in methods:
-                if method == 'gradient_descent':
-                    results[method] = self._gradient_descent_optimization(X, y, objective, max_iterations)
-                elif method == 'genetic_algorithm':
-                    results[method] = self._genetic_algorithm_optimization(X, y, objective, max_iterations)
-                elif method == 'simulated_annealing':
-                    results[method] = self._simulated_annealing_optimization(X, y, objective, max_iterations)
+            for objective in objective_functions:
+                n_features = len(X.columns)
+                
+                # 创建网格搜索参数
+                param_grid = {}
+                for i, feature in enumerate(X.columns):
+                    # 简化的网格搜索，使用较少的点
+                    param_grid[f'weight_{i}'] = np.linspace(0, 1, 11)  # 0到1，步长0.1
+                
+                # 由于网格搜索在高维空间中计算量巨大，这里使用简化的方法
+                # 使用随机搜索代替完整网格搜索
+                best_weights = None
+                best_score = float('inf')
+                
+                for _ in range(1000):  # 随机搜索1000次
+                    # 生成随机权重
+                    weights = np.random.random(n_features)
+                    
+                    # 归一化权重
+                    if self.constraints.get('sum_to_one', True):
+                        weights = weights / np.sum(weights)
+                    
+                    # 计算目标函数值
+                    score = self._calculate_objective(X, y, weights, objective)
+                    
+                    if score < best_score:
+                        best_score = score
+                        best_weights = weights
+                
+                grid_results[objective] = {
+                    'optimal_weights': dict(zip(X.columns, best_weights)),
+                    'objective_value': best_score,
+                    'success': True,
+                    'iterations': 1000,
+                    'message': 'Random search completed'
+                }
             
-            # 选择最佳结果
-            best_method = max(results.keys(), key=lambda k: results[k].get('r2_score', 0))
-            best_result = results[best_method]
-            
-            return {
-                'method': 'comprehensive',
-                'best_method': best_method,
-                'all_results': results,
-                'weights': best_result['weights'],
-                'r2_score': best_result['r2_score'],
-                'mse_score': best_result['mse_score']
-            }
+            logger.info("网格搜索优化完成")
+            return grid_results
             
         except Exception as e:
-            logger.error(f"综合优化失败: {e}")
+            logger.error(f"网格搜索优化失败: {e}")
             return {}
     
-    def _constrained_optimization(self, X: pd.DataFrame, y: pd.Series, 
-                                objective: str, constraints: Dict[str, Any],
-                                max_iterations: int) -> Dict[str, Any]:
-        """约束优化"""
+    def _ensemble_optimization_results(self, results: Dict[str, Any]) -> Dict[str, Any]:
+        """集成优化结果"""
         try:
-            def objective_function(weights):
-                weights = np.abs(weights)
-                X_weighted = self._apply_weights(X, weights)
+            ensemble_results = {}
+            
+            # 收集所有目标函数的结果
+            objectives = set()
+            for method_results in results.values():
+                objectives.update(method_results.keys())
+            
+            for objective in objectives:
+                method_scores = []
+                method_weights = []
                 
-                model = LinearRegression()
-                model.fit(X_weighted, y)
+                # 收集每个方法的结果
+                for method_name, method_results in results.items():
+                    if objective in method_results:
+                        method_scores.append(method_results[objective]['objective_value'])
+                        method_weights.append(method_results[objective]['optimal_weights'])
                 
-                if objective == 'r2':
-                    return -model.score(X_weighted, y)
-                elif objective == 'mse':
-                    y_pred = model.predict(X_weighted)
-                    return mean_squared_error(y, y_pred)
-                else:
-                    return -model.score(X_weighted, y)
+                if method_scores and method_weights:
+                    # 选择最佳方法
+                    best_method_idx = np.argmin(method_scores)
+                    best_weights = method_weights[best_method_idx]
+                    
+                    # 计算集成权重（加权平均）
+                    ensemble_weights = {}
+                    for feature in best_weights.keys():
+                        weighted_sum = 0
+                        weight_sum = 0
+                        
+                        for i, method_weight in enumerate(method_weights):
+                            # 使用性能倒数作为权重
+                            method_weight_value = 1 / (method_scores[i] + 1e-8)
+                            weighted_sum += method_weight[feature] * method_weight_value
+                            weight_sum += method_weight_value
+                        
+                        ensemble_weights[feature] = weighted_sum / weight_sum
+                    
+                    # 归一化集成权重
+                    if self.constraints.get('sum_to_one', True):
+                        total_weight = sum(ensemble_weights.values())
+                        ensemble_weights = {k: v/total_weight for k, v in ensemble_weights.items()}
+                    
+                    ensemble_results[objective] = {
+                        'ensemble_weights': ensemble_weights,
+                        'best_method_score': min(method_scores),
+                        'ensemble_score': self._calculate_objective(
+                            pd.DataFrame(), pd.Series(), 
+                            list(ensemble_weights.values()), objective
+                        ),
+                        'method_scores': dict(zip(results.keys(), method_scores))
+                    }
             
-            # 定义约束
-            constraints_list = []
+            logger.info("集成优化结果完成")
+            return ensemble_results
             
-            # 权重和约束
-            if 'sum_constraint' in constraints:
-                sum_value = constraints['sum_constraint']
-                constraints_list.append(LinearConstraint(
-                    np.ones(len(X.columns)), 
-                    sum_value * 0.9, 
-                    sum_value * 1.1
-                ))
+        except Exception as e:
+            logger.error(f"集成优化结果失败: {e}")
+            return {}
+    
+    def _calculate_objective(self, X: pd.DataFrame, y: pd.Series, 
+                           weights: np.ndarray, objective: str) -> float:
+        """计算目标函数值"""
+        try:
+            if len(X) == 0 or len(y) == 0:
+                # 如果没有数据，返回权重分布的熵
+                return -np.sum(weights * np.log(weights + 1e-8))
             
-            # 权重范围约束
-            bounds = [(0.01, 10.0) for _ in range(len(X.columns))]
-            if 'weight_bounds' in constraints:
-                bounds = constraints['weight_bounds']
+            # 应用权重到特征
+            X_weighted = X * weights
             
-            # 非线性约束
-            if 'nonlinear_constraints' in constraints:
-                for constraint_func in constraints['nonlinear_constraints']:
-                    constraints_list.append(NonlinearConstraint(
-                        constraint_func, 
-                        -np.inf, 
-                        0
-                    ))
-            
-            # 约束优化
-            result = minimize(
-                objective_function,
-                np.ones(len(X.columns)),
-                method='SLSQP',
-                bounds=bounds,
-                constraints=constraints_list,
-                options={'maxiter': max_iterations}
-            )
-            
-            # 归一化权重
-            optimized_weights = result.x
-            optimized_weights = optimized_weights / np.sum(optimized_weights)
-            
-            # 评估结果
-            X_optimized = self._apply_weights(X, optimized_weights)
+            # 训练模型
             model = LinearRegression()
-            model.fit(X_optimized, y)
+            model.fit(X_weighted, y)
             
-            return {
-                'method': 'constrained',
-                'weights': dict(zip(X.columns, optimized_weights)),
-                'success': result.success,
-                'iterations': result.nit,
-                'r2_score': model.score(X_optimized, y),
-                'mse_score': mean_squared_error(y, model.predict(X_optimized)),
-                'constraints_satisfied': result.success
-            }
+            # 预测
+            y_pred = model.predict(X_weighted)
+            
+            # 计算目标函数
+            if objective == 'mse':
+                return mean_squared_error(y, y_pred)
+            elif objective == 'mae':
+                return mean_absolute_error(y, y_pred)
+            elif objective == 'r2':
+                return -r2_score(y, y_pred)  # 负号因为我们要最小化
+            elif objective == 'custom':
+                # 自定义目标函数：MSE + 权重稀疏性惩罚
+                mse = mean_squared_error(y, y_pred)
+                sparsity_penalty = 0.1 * np.sum(np.abs(weights))
+                return mse + sparsity_penalty
+            else:
+                return mean_squared_error(y, y_pred)
+                
+        except Exception as e:
+            logger.error(f"目标函数计算失败: {e}")
+            return float('inf')
+    
+    def optimize_weights_with_validation(self, X: pd.DataFrame, y: pd.Series,
+                                        cv_folds: int = 5,
+                                        optimization_methods: List[str] = None) -> Dict[str, Any]:
+        """带交叉验证的权重优化"""
+        try:
+            if optimization_methods is None:
+                optimization_methods = ['gradient_descent', 'genetic_algorithm']
+            
+            cv_results = {}
+            
+            for method in optimization_methods:
+                method_cv_scores = []
+                method_cv_weights = []
+                
+                # 交叉验证
+                from sklearn.model_selection import KFold
+                kf = KFold(n_splits=cv_folds, shuffle=True, random_state=42)
+                
+                for train_idx, val_idx in kf.split(X):
+                    X_train, X_val = X.iloc[train_idx], X.iloc[val_idx]
+                    y_train, y_val = y.iloc[train_idx], y.iloc[val_idx]
+                    
+                    # 优化权重
+                    if method == 'gradient_descent':
+                        method_results = self._gradient_descent_optimization(
+                            X_train, y_train, ['mse']
+                        )
+                    elif method == 'genetic_algorithm':
+                        method_results = self._genetic_algorithm_optimization(
+                            X_train, y_train, ['mse']
+                        )
+                    else:
+                        continue
+                    
+                    if 'mse' in method_results:
+                        optimal_weights = method_results['mse']['optimal_weights']
+                        weights_array = np.array(list(optimal_weights.values()))
+                        
+                        # 在验证集上评估
+                        X_val_weighted = X_val * weights_array
+                        model = LinearRegression()
+                        model.fit(X_val_weighted, y_val)
+                        y_val_pred = model.predict(X_val_weighted)
+                        val_score = mean_squared_error(y_val, y_val_pred)
+                        
+                        method_cv_scores.append(val_score)
+                        method_cv_weights.append(optimal_weights)
+                
+                if method_cv_scores:
+                    cv_results[method] = {
+                        'cv_scores': method_cv_scores,
+                        'cv_weights': method_cv_weights,
+                        'mean_cv_score': np.mean(method_cv_scores),
+                        'std_cv_score': np.std(method_cv_scores),
+                        'best_cv_score': min(method_cv_scores),
+                        'best_cv_weights': method_cv_weights[np.argmin(method_cv_scores)]
+                    }
+            
+            logger.info(f"交叉验证权重优化完成，使用了 {len(optimization_methods)} 种方法")
+            return cv_results
             
         except Exception as e:
-            logger.error(f"约束优化失败: {e}")
+            logger.error(f"交叉验证权重优化失败: {e}")
             return {}
     
-    def _multi_objective_optimization(self, X: pd.DataFrame, y: pd.Series, 
-                                    max_iterations: int) -> Dict[str, Any]:
-        """多目标优化"""
+    def optimize_weights_with_constraints(self, X: pd.DataFrame, y: pd.Series,
+                                        feature_groups: Dict[str, List[str]] = None,
+                                        group_constraints: Dict[str, float] = None) -> Dict[str, Any]:
+        """带分组约束的权重优化"""
         try:
-            def multi_objective_function(weights):
-                weights = np.abs(weights)
-                X_weighted = self._apply_weights(X, weights)
+            if feature_groups is None:
+                feature_groups = {'all': X.columns.tolist()}
+            
+            if group_constraints is None:
+                group_constraints = {}
+            
+            constrained_results = {}
+            
+            # 为每个分组优化权重
+            for group_name, features in feature_groups.items():
+                if not features:
+                    continue
                 
+                X_group = X[features]
+                
+                # 定义分组约束
+                group_constraint = group_constraints.get(group_name, 1.0)
+                
+                # 优化权重
+                optimization_results = self.optimize_weights(
+                    X_group, y,
+                    optimization_methods=['gradient_descent'],
+                    objective_functions=['mse']
+                )
+                
+                if 'gradient_descent' in optimization_results and 'mse' in optimization_results['gradient_descent']:
+                    optimal_weights = optimization_results['gradient_descent']['mse']['optimal_weights']
+                    
+                    # 应用分组约束
+                    constrained_weights = {}
+                    for feature, weight in optimal_weights.items():
+                        constrained_weights[feature] = weight * group_constraint
+                    
+                    constrained_results[group_name] = {
+                        'features': features,
+                        'constraint': group_constraint,
+                        'optimal_weights': constrained_weights,
+                        'objective_value': optimization_results['gradient_descent']['mse']['objective_value']
+                    }
+            
+            logger.info(f"分组约束权重优化完成，处理了 {len(feature_groups)} 个分组")
+            return constrained_results
+            
+        except Exception as e:
+            logger.error(f"分组约束权重优化失败: {e}")
+            return {}
+    
+    def optimize_weights_with_regularization(self, X: pd.DataFrame, y: pd.Series,
+                                           regularization_params: Dict[str, float] = None) -> Dict[str, Any]:
+        """带正则化的权重优化"""
+        try:
+            if regularization_params is None:
+                regularization_params = {
+                    'l1_penalty': 0.1,
+                    'l2_penalty': 0.1,
+                    'elastic_ratio': 0.5
+                }
+            
+            regularization_results = {}
+            
+            # L1正则化
+            l1_results = self._optimize_with_l1_regularization(X, y, regularization_params['l1_penalty'])
+            regularization_results['l1'] = l1_results
+            
+            # L2正则化
+            l2_results = self._optimize_with_l2_regularization(X, y, regularization_params['l2_penalty'])
+            regularization_results['l2'] = l2_results
+            
+            # Elastic Net正则化
+            elastic_results = self._optimize_with_elastic_regularization(
+                X, y, 
+                regularization_params['l1_penalty'],
+                regularization_params['elastic_ratio']
+            )
+            regularization_results['elastic'] = elastic_results
+            
+            logger.info("正则化权重优化完成")
+            return regularization_results
+            
+        except Exception as e:
+            logger.error(f"正则化权重优化失败: {e}")
+            return {}
+    
+    def _optimize_with_l1_regularization(self, X: pd.DataFrame, y: pd.Series, 
+                                       l1_penalty: float) -> Dict[str, Any]:
+        """L1正则化优化"""
+        try:
+            n_features = len(X.columns)
+            initial_weights = np.ones(n_features) / n_features
+            
+            def objective_func(weights):
+                # MSE + L1惩罚
+                X_weighted = X * weights
                 model = LinearRegression()
                 model.fit(X_weighted, y)
                 y_pred = model.predict(X_weighted)
-                
-                # 多个目标函数
-                r2 = model.score(X_weighted, y)
                 mse = mean_squared_error(y, y_pred)
-                mae = mean_absolute_error(y, y_pred)
-                
-                # 多目标加权和
-                return -r2 + 0.1 * mse + 0.01 * mae
+                l1_penalty_term = l1_penalty * np.sum(np.abs(weights))
+                return mse + l1_penalty_term
             
-            # 多目标优化
+            # 约束
+            constraints = []
+            if self.constraints.get('sum_to_one', True):
+                constraints.append({
+                    'type': 'eq',
+                    'fun': lambda w: np.sum(w) - 1
+                })
+            
+            bounds = [(0, 1) for _ in range(n_features)]
+            
             result = minimize(
-                multi_objective_function,
-                np.ones(len(X.columns)),
-                method='L-BFGS-B',
-                bounds=[(0.01, 10.0) for _ in range(len(X.columns))],
-                options={'maxiter': max_iterations}
+                objective_func,
+                initial_weights,
+                method='SLSQP',
+                bounds=bounds,
+                constraints=constraints,
+                options={'maxiter': 1000}
             )
             
-            # 归一化权重
-            optimized_weights = result.x
-            optimized_weights = optimized_weights / np.sum(optimized_weights)
-            
-            # 评估结果
-            X_optimized = self._apply_weights(X, optimized_weights)
-            model = LinearRegression()
-            model.fit(X_optimized, y)
-            y_pred = model.predict(X_optimized)
-            
             return {
-                'method': 'multi_objective',
-                'weights': dict(zip(X.columns, optimized_weights)),
+                'optimal_weights': dict(zip(X.columns, result.x)),
+                'objective_value': result.fun,
                 'success': result.success,
-                'iterations': result.nit,
-                'r2_score': model.score(X_optimized, y),
-                'mse_score': mean_squared_error(y, y_pred),
-                'mae_score': mean_absolute_error(y, y_pred),
-                'objective_value': result.fun
+                'l1_penalty': l1_penalty
             }
             
         except Exception as e:
-            logger.error(f"多目标优化失败: {e}")
+            logger.error(f"L1正则化优化失败: {e}")
             return {}
     
-    def _apply_weights(self, X: pd.DataFrame, weights: np.ndarray) -> pd.DataFrame:
-        """应用权重到特征"""
-        X_weighted = X.copy()
-        for i, feature in enumerate(X.columns):
-            X_weighted[feature] = X[feature] * weights[i]
-        return X_weighted
-    
-    def _select_best_result(self, optimization_results: Dict[str, Any]) -> Dict[str, Any]:
-        """选择最佳优化结果"""
+    def _optimize_with_l2_regularization(self, X: pd.DataFrame, y: pd.Series, 
+                                       l2_penalty: float) -> Dict[str, Any]:
+        """L2正则化优化"""
         try:
-            best_result = None
-            best_score = -np.inf
+            n_features = len(X.columns)
+            initial_weights = np.ones(n_features) / n_features
             
-            for method, result in optimization_results.items():
-                if isinstance(result, dict) and 'r2_score' in result:
-                    if result['r2_score'] > best_score:
-                        best_score = result['r2_score']
-                        best_result = result
+            def objective_func(weights):
+                # MSE + L2惩罚
+                X_weighted = X * weights
+                model = LinearRegression()
+                model.fit(X_weighted, y)
+                y_pred = model.predict(X_weighted)
+                mse = mean_squared_error(y, y_pred)
+                l2_penalty_term = l2_penalty * np.sum(weights**2)
+                return mse + l2_penalty_term
             
-            if best_result is None:
-                # 如果没有找到有效结果，返回默认结果
-                best_result = {
-                    'method': 'default',
-                    'weights': {col: 1.0/len(optimization_results) for col in optimization_results.keys()},
-                    'r2_score': 0.0,
-                    'mse_score': np.inf
-                }
+            # 约束
+            constraints = []
+            if self.constraints.get('sum_to_one', True):
+                constraints.append({
+                    'type': 'eq',
+                    'fun': lambda w: np.sum(w) - 1
+                })
             
-            return best_result
+            bounds = [(0, 1) for _ in range(n_features)]
+            
+            result = minimize(
+                objective_func,
+                initial_weights,
+                method='SLSQP',
+                bounds=bounds,
+                constraints=constraints,
+                options={'maxiter': 1000}
+            )
+            
+            return {
+                'optimal_weights': dict(zip(X.columns, result.x)),
+                'objective_value': result.fun,
+                'success': result.success,
+                'l2_penalty': l2_penalty
+            }
             
         except Exception as e:
-            logger.error(f"最佳结果选择失败: {e}")
+            logger.error(f"L2正则化优化失败: {e}")
+            return {}
+    
+    def _optimize_with_elastic_regularization(self, X: pd.DataFrame, y: pd.Series, 
+                                            l1_penalty: float, elastic_ratio: float) -> Dict[str, Any]:
+        """Elastic Net正则化优化"""
+        try:
+            n_features = len(X.columns)
+            initial_weights = np.ones(n_features) / n_features
+            
+            def objective_func(weights):
+                # MSE + Elastic Net惩罚
+                X_weighted = X * weights
+                model = LinearRegression()
+                model.fit(X_weighted, y)
+                y_pred = model.predict(X_weighted)
+                mse = mean_squared_error(y, y_pred)
+                
+                l1_term = l1_penalty * elastic_ratio * np.sum(np.abs(weights))
+                l2_term = l1_penalty * (1 - elastic_ratio) * np.sum(weights**2)
+                
+                return mse + l1_term + l2_term
+            
+            # 约束
+            constraints = []
+            if self.constraints.get('sum_to_one', True):
+                constraints.append({
+                    'type': 'eq',
+                    'fun': lambda w: np.sum(w) - 1
+                })
+            
+            bounds = [(0, 1) for _ in range(n_features)]
+            
+            result = minimize(
+                objective_func,
+                initial_weights,
+                method='SLSQP',
+                bounds=bounds,
+                constraints=constraints,
+                options={'maxiter': 1000}
+            )
+            
+            return {
+                'optimal_weights': dict(zip(X.columns, result.x)),
+                'objective_value': result.fun,
+                'success': result.success,
+                'l1_penalty': l1_penalty,
+                'elastic_ratio': elastic_ratio
+            }
+            
+        except Exception as e:
+            logger.error(f"Elastic Net正则化优化失败: {e}")
             return {}
     
     def get_optimization_insights(self) -> Dict[str, Any]:
         """获取优化洞察"""
         try:
             insights = {
-                'optimization_history': self.optimization_history,
-                'best_weights': self.best_weights,
-                'optimization_metrics': self.optimization_metrics,
+                'optimization_summary': self._summarize_optimization_results(),
+                'weight_stability': self._analyze_weight_stability(),
+                'convergence_analysis': self._analyze_convergence(),
                 'recommendations': self._generate_optimization_recommendations()
             }
             
@@ -632,19 +704,176 @@ class WeightOptimizer:
             logger.error(f"优化洞察获取失败: {e}")
             return {}
     
+    def _summarize_optimization_results(self) -> Dict[str, Any]:
+        """总结优化结果"""
+        try:
+            summary = {
+                'total_methods': len(self.optimization_results),
+                'best_method': None,
+                'best_score': float('inf'),
+                'method_comparison': {}
+            }
+            
+            for method_name, method_results in self.optimization_results.items():
+                if method_name == 'ensemble':
+                    continue
+                
+                method_scores = []
+                for objective, result in method_results.items():
+                    if 'objective_value' in result:
+                        method_scores.append(result['objective_value'])
+                
+                if method_scores:
+                    avg_score = np.mean(method_scores)
+                    summary['method_comparison'][method_name] = {
+                        'average_score': avg_score,
+                        'best_score': min(method_scores),
+                        'worst_score': max(method_scores),
+                        'score_std': np.std(method_scores)
+                    }
+                    
+                    if avg_score < summary['best_score']:
+                        summary['best_score'] = avg_score
+                        summary['best_method'] = method_name
+            
+            return summary
+            
+        except Exception as e:
+            logger.error(f"优化结果总结失败: {e}")
+            return {}
+    
+    def _analyze_weight_stability(self) -> Dict[str, Any]:
+        """分析权重稳定性"""
+        try:
+            stability_analysis = {}
+            
+            # 收集所有权重
+            all_weights = {}
+            for method_name, method_results in self.optimization_results.items():
+                if method_name == 'ensemble':
+                    continue
+                
+                for objective, result in method_results.items():
+                    if 'optimal_weights' in result:
+                        for feature, weight in result['optimal_weights'].items():
+                            if feature not in all_weights:
+                                all_weights[feature] = []
+                            all_weights[feature].append(weight)
+            
+            # 计算每个特征的权重稳定性
+            feature_stability = {}
+            for feature, weights in all_weights.items():
+                if len(weights) > 1:
+                    feature_stability[feature] = {
+                        'mean_weight': np.mean(weights),
+                        'std_weight': np.std(weights),
+                        'cv_weight': np.std(weights) / (np.mean(weights) + 1e-8),
+                        'weight_range': [np.min(weights), np.max(weights)]
+                    }
+            
+            stability_analysis['feature_stability'] = feature_stability
+            
+            # 计算整体稳定性
+            if feature_stability:
+                cv_values = [data['cv_weight'] for data in feature_stability.values()]
+                stability_analysis['overall_stability'] = {
+                    'mean_cv': np.mean(cv_values),
+                    'std_cv': np.std(cv_values),
+                    'stability_level': self._classify_stability_level(np.mean(cv_values))
+                }
+            
+            return stability_analysis
+            
+        except Exception as e:
+            logger.error(f"权重稳定性分析失败: {e}")
+            return {}
+    
+    def _analyze_convergence(self) -> Dict[str, Any]:
+        """分析收敛性"""
+        try:
+            convergence_analysis = {}
+            
+            for method_name, method_results in self.optimization_results.items():
+                if method_name == 'ensemble':
+                    continue
+                
+                method_convergence = {}
+                for objective, result in method_results.items():
+                    if 'iterations' in result:
+                        method_convergence[objective] = {
+                            'iterations': result['iterations'],
+                            'success': result.get('success', False),
+                            'convergence_rate': 1.0 / (result['iterations'] + 1e-8)
+                        }
+                
+                convergence_analysis[method_name] = method_convergence
+            
+            return convergence_analysis
+            
+        except Exception as e:
+            logger.error(f"收敛性分析失败: {e}")
+            return {}
+    
+    def _classify_stability_level(self, cv_value: float) -> str:
+        """分类稳定性水平"""
+        if cv_value < 0.1:
+            return "高稳定性"
+        elif cv_value < 0.3:
+            return "中等稳定性"
+        elif cv_value < 0.5:
+            return "低稳定性"
+        else:
+            return "不稳定"
+    
     def _generate_optimization_recommendations(self) -> List[str]:
         """生成优化建议"""
         try:
             recommendations = []
             
-            if self.optimization_history:
-                recommendations.append("建议定期进行权重优化以保持模型性能")
-                recommendations.append("考虑使用多种优化方法进行交叉验证")
-                recommendations.append("监控优化结果的一致性，避免过度优化")
+            # 基于优化结果生成建议
+            if self.optimization_results:
+                summary = self._summarize_optimization_results()
+                
+                if summary.get('best_method'):
+                    recommendations.append(f"推荐使用 {summary['best_method']} 方法进行权重优化")
+                
+                stability = self._analyze_weight_stability()
+                if 'overall_stability' in stability:
+                    stability_level = stability['overall_stability']['stability_level']
+                    if stability_level == "不稳定":
+                        recommendations.append("权重稳定性较低，建议增加正则化约束")
+                    elif stability_level == "低稳定性":
+                        recommendations.append("权重稳定性一般，建议使用集成方法")
+                
+                # 基于收敛性生成建议
+                convergence = self._analyze_convergence()
+                for method_name, method_conv in convergence.items():
+                    avg_iterations = np.mean([conv['iterations'] for conv in method_conv.values()])
+                    if avg_iterations > 500:
+                        recommendations.append(f"{method_name} 方法收敛较慢，建议调整参数")
             
             return recommendations
             
         except Exception as e:
             logger.error(f"优化建议生成失败: {e}")
             return []
-
+    
+    def generate_optimization_report(self) -> Dict[str, Any]:
+        """生成优化报告"""
+        try:
+            report = {
+                'summary': {
+                    'optimization_timestamp': pd.Timestamp.now().isoformat(),
+                    'total_methods': len(self.optimization_results),
+                    'optimization_history_count': len(self.optimization_history)
+                },
+                'detailed_results': self.optimization_results,
+                'insights': self.get_optimization_insights(),
+                'optimization_history': self.optimization_history
+            }
+            
+            return report
+            
+        except Exception as e:
+            logger.error(f"优化报告生成失败: {e}")
+            return {}

@@ -677,3 +677,4 @@ export class DocumentSupplementManager {
     return 'lookup_value';
   }
 }
+

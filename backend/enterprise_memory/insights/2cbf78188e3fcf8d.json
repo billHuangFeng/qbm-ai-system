@@ -1,0 +1,40 @@
+{
+  "insight_id": "2cbf78188e3fcf8d",
+  "category": "risk",
+  "title": "识别到feature3相关风险",
+  "description": "发现feature3与失败或异常相关，出现频率为502次",
+  "evidence": [
+    {
+      "pattern_id": "60371173b00e6241",
+      "frequency": 494
+    },
+    {
+      "pattern_id": "82a3787c160376db",
+      "frequency": 494
+    },
+    {
+      "pattern_id": "45da2227d85af362",
+      "frequency": 494
+    },
+    {
+      "pattern_id": "5d2abcd6e987c2f4",
+      "frequency": 2
+    },
+    {
+      "pattern_id": "2a2c69b65e0582bc",
+      "frequency": 5
+    },
+    {
+      "pattern_id": "a842fa761aa64fd0",
+      "frequency": 8
+    }
+  ],
+  "impact_score": 50.2,
+  "confidence": 0.8,
+  "recommendations": [
+    "加强对feature3的监控",
+    "制定feature3的风险控制措施",
+    "建立早期预警机制"
+  ],
+  "created_at": "2025-10-28 22:27:48.372969"
+}

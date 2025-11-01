@@ -1,0 +1,21 @@
+{
+  "pattern_id": "ffcc5808584557dc",
+  "pattern_type": "anomaly",
+  "description": "sales列存在3个异常值",
+  "conditions": {
+    "sales": {
+      "range": [
+        497.18042063166763,
+        1461.964538992764
+      ]
+    }
+  },
+  "outcomes": {
+    "anomaly_count": 3,
+    "anomaly_rate": 0.015
+  },
+  "confidence": 0.8,
+  "frequency": 3,
+  "last_seen": "2025-10-28 17:51:38.819692",
+  "created_at": "2025-10-28 17:51:38.819694"
+}

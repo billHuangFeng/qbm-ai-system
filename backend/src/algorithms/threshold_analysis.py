@@ -11,6 +11,7 @@ from sklearn.linear_model import LinearRegression
 from sklearn.metrics import mean_squared_error, r2_score
 from sklearn.model_selection import cross_val_score
 import logging
+from datetime import datetime
 from ..logging_config import get_logger
 
 logger = get_logger("threshold_analysis")
@@ -540,5 +541,310 @@ class ThresholdAnalysis:
             
         except Exception as e:
             logger.error(f"阈值效应建议生成失败: {e}")
+            return []
+    
+    # 新增核心方法
+    def detect_multiple_thresholds(self, X: pd.DataFrame, y: pd.Series, 
+                                 max_thresholds: int = 3) -> Dict[str, Any]:
+        """
+        检测多个阈值点
+        
+        Args:
+            X: 特征数据
+            y: 目标变量
+            max_thresholds: 最大阈值数量
+            
+        Returns:
+            多阈值分析结果
+        """
+        try:
+            multi_threshold_results = {}
+            
+            for feature in X.columns:
+                # 使用决策树检测多个阈值
+                tree = DecisionTreeRegressor(
+                    max_depth=max_thresholds + 1,
+                    min_samples_split=20,
+                    random_state=42
+                )
+                tree.fit(X[[feature]], y)
+                
+                # 提取所有阈值
+                thresholds = self._extract_tree_thresholds(tree, feature)
+                
+                if len(thresholds) > 1:
+                    # 评估多阈值模型
+                    multi_threshold_performance = self._evaluate_multi_threshold_model(
+                        X, y, feature, thresholds
+                    )
+                    
+                    multi_threshold_results[feature] = {
+                        'thresholds': thresholds,
+                        'performance': multi_threshold_performance,
+                        'segment_count': len(thresholds) + 1
+                    }
+            
+            return multi_threshold_results
+            
+        except Exception as e:
+            logger.error(f"多阈值检测失败: {e}")
+            return {}
+    
+    def _evaluate_multi_threshold_model(self, X: pd.DataFrame, y: pd.Series, 
+                                      feature: str, thresholds: List[float]) -> Dict[str, float]:
+        """评估多阈值模型性能"""
+        try:
+            # 创建分段特征
+            X_segmented = X.copy()
+            
+            # 为每个阈值创建分段特征
+            for i, threshold in enumerate(thresholds):
+                X_segmented[f"{feature}_segment_{i}"] = (X[feature] > threshold).astype(int)
+            
+            # 创建交互项
+            for i, threshold in enumerate(thresholds):
+                X_segmented[f"{feature}_interaction_{i}"] = X[feature] * X_segmented[f"{feature}_segment_{i}"]
+            
+            # 训练多阈值模型
+            feature_columns = [feature] + [f"{feature}_segment_{i}" for i in range(len(thresholds))]
+            feature_columns += [f"{feature}_interaction_{i}" for i in range(len(thresholds))]
+            
+            model = LinearRegression()
+            model.fit(X_segmented[feature_columns], y)
+            
+            # 训练基线模型
+            baseline_model = LinearRegression()
+            baseline_model.fit(X[[feature]], y)
+            
+            # 计算性能提升
+            r2_multi = model.score(X_segmented[feature_columns], y)
+            r2_baseline = baseline_model.score(X[[feature]], y)
+            
+            return {
+                'r2_multi_threshold': r2_multi,
+                'r2_baseline': r2_baseline,
+                'improvement': r2_multi - r2_baseline,
+                'coefficients': model.coef_.tolist(),
+                'intercept': model.intercept_
+            }
+            
+        except Exception as e:
+            logger.error(f"多阈值模型评估失败: {e}")
+            return {}
+    
+    def analyze_threshold_stability(self, X: pd.DataFrame, y: pd.Series, 
+                                  feature: str, threshold: float, 
+                                  bootstrap_samples: int = 100) -> Dict[str, Any]:
+        """
+        分析阈值稳定性
+        
+        Args:
+            X: 特征数据
+            y: 目标变量
+            feature: 特征名
+            threshold: 阈值
+            bootstrap_samples: 自助采样次数
+            
+        Returns:
+            阈值稳定性分析结果
+        """
+        try:
+            stability_results = {
+                'threshold_stability': [],
+                'performance_stability': [],
+                'coefficient_stability': []
+            }
+            
+            for _ in range(bootstrap_samples):
+                # 自助采样
+                sample_indices = np.random.choice(len(X), size=len(X), replace=True)
+                X_sample = X.iloc[sample_indices]
+                y_sample = y.iloc[sample_indices]
+                
+                # 重新计算最优阈值
+                optimal_threshold = self._find_optimal_threshold(X_sample, y_sample, feature, 20)
+                
+                if optimal_threshold is not None:
+                    stability_results['threshold_stability'].append(optimal_threshold)
+                    
+                    # 计算性能
+                    performance = self._calculate_piecewise_score(X_sample, y_sample, feature, optimal_threshold)
+                    stability_results['performance_stability'].append(performance)
+                    
+                    # 计算系数
+                    model = self._create_piecewise_model(X_sample, y_sample, feature, optimal_threshold)
+                    if model:
+                        stability_results['coefficient_stability'].append(model['below_threshold_coef'])
+            
+            # 计算稳定性指标
+            threshold_std = np.std(stability_results['threshold_stability']) if stability_results['threshold_stability'] else 0
+            performance_std = np.std(stability_results['performance_stability']) if stability_results['performance_stability'] else 0
+            coefficient_std = np.std(stability_results['coefficient_stability']) if stability_results['coefficient_stability'] else 0
+            
+            return {
+                'threshold_stability': {
+                    'mean': np.mean(stability_results['threshold_stability']) if stability_results['threshold_stability'] else threshold,
+                    'std': threshold_std,
+                    'cv': threshold_std / np.mean(stability_results['threshold_stability']) if stability_results['threshold_stability'] else 0
+                },
+                'performance_stability': {
+                    'mean': np.mean(stability_results['performance_stability']) if stability_results['performance_stability'] else 0,
+                    'std': performance_std,
+                    'cv': performance_std / np.mean(stability_results['performance_stability']) if stability_results['performance_stability'] else 0
+                },
+                'coefficient_stability': {
+                    'mean': np.mean(stability_results['coefficient_stability']) if stability_results['coefficient_stability'] else 0,
+                    'std': coefficient_std,
+                    'cv': coefficient_std / np.mean(stability_results['coefficient_stability']) if stability_results['coefficient_stability'] else 0
+                },
+                'stability_score': self._calculate_stability_score(threshold_std, performance_std, coefficient_std)
+            }
+            
+        except Exception as e:
+            logger.error(f"阈值稳定性分析失败: {e}")
+            return {}
+    
+    def _calculate_stability_score(self, threshold_std: float, performance_std: float, 
+                                 coefficient_std: float) -> float:
+        """计算稳定性评分"""
+        try:
+            # 标准化标准差
+            threshold_cv = threshold_std / 100 if threshold_std > 0 else 0  # 假设阈值范围100
+            performance_cv = performance_std / 1 if performance_std > 0 else 0  # R²范围0-1
+            coefficient_cv = coefficient_std / 10 if coefficient_std > 0 else 0  # 假设系数范围10
+            
+            # 稳定性评分 = 1 - 平均变异系数
+            avg_cv = (threshold_cv + performance_cv + coefficient_cv) / 3
+            stability_score = max(0, 1 - avg_cv)
+            
+            return stability_score
+            
+        except Exception as e:
+            logger.error(f"稳定性评分计算失败: {e}")
+            return 0.0
+    
+    def detect_threshold_interactions(self, X: pd.DataFrame, y: pd.Series) -> Dict[str, Any]:
+        """
+        检测阈值间的交互效应
+        
+        Args:
+            X: 特征数据
+            y: 目标变量
+            
+        Returns:
+            阈值交互效应分析结果
+        """
+        try:
+            interaction_results = {}
+            feature_names = X.columns.tolist()
+            
+            # 检测两两特征的阈值交互
+            for i, feature1 in enumerate(feature_names):
+                for j, feature2 in enumerate(feature_names[i+1:], i+1):
+                    # 获取两个特征的最优阈值
+                    threshold1 = self._find_optimal_threshold(X, y, feature1, 20)
+                    threshold2 = self._find_optimal_threshold(X, y, feature2, 20)
+                    
+                    if threshold1 is not None and threshold2 is not None:
+                        # 创建阈值交互特征
+                        X_interaction = X.copy()
+                        X_interaction[f"{feature1}_above_threshold"] = (X[feature1] > threshold1).astype(int)
+                        X_interaction[f"{feature2}_above_threshold"] = (X[feature2] > threshold2).astype(int)
+                        X_interaction[f"threshold_interaction"] = (
+                            X_interaction[f"{feature1}_above_threshold"] * 
+                            X_interaction[f"{feature2}_above_threshold"]
+                        )
+                        
+                        # 训练交互模型
+                        feature_columns = [
+                            feature1, feature2,
+                            f"{feature1}_above_threshold",
+                            f"{feature2}_above_threshold",
+                            "threshold_interaction"
+                        ]
+                        
+                        model = LinearRegression()
+                        model.fit(X_interaction[feature_columns], y)
+                        
+                        # 训练无交互模型
+                        model_no_interaction = LinearRegression()
+                        model_no_interaction.fit(X_interaction[feature_columns[:-1]], y)
+                        
+                        # 计算交互效应
+                        r2_with_interaction = model.score(X_interaction[feature_columns], y)
+                        r2_without_interaction = model_no_interaction.score(X_interaction[feature_columns[:-1]], y)
+                        
+                        interaction_effect = r2_with_interaction - r2_without_interaction
+                        
+                        if abs(interaction_effect) > 0.01:  # 只记录显著的交互效应
+                            interaction_results[f"{feature1}_x_{feature2}"] = {
+                                'threshold1': threshold1,
+                                'threshold2': threshold2,
+                                'interaction_effect': interaction_effect,
+                                'r2_with_interaction': r2_with_interaction,
+                                'r2_without_interaction': r2_without_interaction,
+                                'interaction_coefficient': model.coef_[-1]
+                            }
+            
+            return interaction_results
+            
+        except Exception as e:
+            logger.error(f"阈值交互效应检测失败: {e}")
+            return {}
+    
+    def generate_threshold_report(self) -> Dict[str, Any]:
+        """生成阈值分析报告"""
+        try:
+            report = {
+                'summary': {
+                    'overall_threshold_score': self.thresholds.get('overall_score', 0),
+                    'threshold_level': self._classify_threshold_level(self.thresholds.get('overall_score', 0)),
+                    'analysis_timestamp': datetime.now().isoformat()
+                },
+                'detailed_analysis': self.thresholds,
+                'key_findings': self._extract_key_thresholds(),
+                'recommendations': self._generate_threshold_recommendations(),
+                'insights': self._generate_threshold_insights()
+            }
+            
+            return report
+            
+        except Exception as e:
+            logger.error(f"阈值分析报告生成失败: {e}")
+            return {}
+    
+    def _generate_threshold_insights(self) -> List[str]:
+        """生成阈值效应洞察"""
+        try:
+            insights = []
+            threshold_score = self.thresholds.get('overall_score', 0)
+            
+            # 基于阈值效应水平的洞察
+            if threshold_score >= 0.7:
+                insights.append("系统表现出强烈的阈值效应，特征在不同区间表现出不同的行为模式")
+                insights.append("建议使用分段回归或决策树模型来捕捉这些阈值效应")
+            elif threshold_score >= 0.4:
+                insights.append("系统表现出中等的阈值效应，部分特征存在关键转折点")
+                insights.append("建议重点分析高阈值效应的特征，设置业务阈值")
+            elif threshold_score >= 0.1:
+                insights.append("系统表现出轻微的阈值效应，存在一些特征转折点")
+                insights.append("建议进一步探索特征的非线性关系")
+            else:
+                insights.append("系统阈值效应较弱，特征主要表现为线性关系")
+                insights.append("建议使用线性模型或简单的机器学习方法")
+            
+            # 基于具体分析结果的洞察
+            if 'decision_tree' in self.thresholds and self.thresholds['decision_tree']:
+                tree_count = len(self.thresholds['decision_tree'])
+                insights.append(f"决策树分析发现 {tree_count} 个特征存在阈值效应")
+            
+            if 'piecewise_regression' in self.thresholds and self.thresholds['piecewise_regression']:
+                piecewise_count = len(self.thresholds['piecewise_regression'])
+                insights.append(f"分段回归分析发现 {piecewise_count} 个特征的最优阈值")
+            
+            return insights
+            
+        except Exception as e:
+            logger.error(f"阈值洞察生成失败: {e}")
             return []
 

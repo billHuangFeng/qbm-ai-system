@@ -1,0 +1,94 @@
+{
+  "info": {
+    "name": "QBM Ingestion Mock",
+    "schema": "https://schema.getpostman.com/json/collection/v2.1.0/collection.json",
+    "_postman_id": "b4d8b1c8-9a4f-4f7c-9b0e-000000000001"
+  },
+  "item": [
+    {
+      "name": "Start Batch",
+      "request": {
+        "method": "POST",
+        "header": [{"key": "Content-Type", "value": "application/json"}],
+        "url": {"raw": "http://localhost:8000/ingestion/batches:start", "protocol": "http", "host": ["localhost"], "port": "8000", "path": ["ingestion", "batches:start"]},
+        "body": {"mode": "raw", "raw": "{\n  \"source_system\": \"ERP\",\n  \"files\": [\"sales_2025_01.csv\"]\n}"}
+      }
+    },
+    {
+      "name": "Get Batch Status",
+      "request": {
+        "method": "GET",
+        "url": {"raw": "http://localhost:8000/ingestion/batches/batch_123", "protocol": "http", "host": ["localhost"], "port": "8000", "path": ["ingestion", "batches", "batch_123"]}
+      }
+    },
+    {
+      "name": "Upload File (Mock)",
+      "request": {
+        "method": "POST",
+        "url": {"raw": "http://localhost:8000/ingestion/upload?file_name=sales_2025_01.csv", "protocol": "http", "host": ["localhost"], "port": "8000", "path": ["ingestion", "upload"], "query": [{"key": "file_name", "value": "sales_2025_01.csv"}]}
+      }
+    },
+    {
+      "name": "List Issues",
+      "request": {
+        "method": "GET",
+        "url": {"raw": "http://localhost:8000/ingestion/issues?batch_id=batch_123", "protocol": "http", "host": ["localhost"], "port": "8000", "path": ["ingestion", "issues"], "query": [{"key": "batch_id", "value": "batch_123"}]}
+      }
+    },
+    {
+      "name": "Preview Issue Fix",
+      "request": {
+        "method": "GET",
+        "url": {"raw": "http://localhost:8000/ingestion/issues/iss-1/preview", "protocol": "http", "host": ["localhost"], "port": "8000", "path": ["ingestion", "issues", "iss-1", "preview"]}
+      }
+    },
+    {
+      "name": "Apply Issue Fix",
+      "request": {
+        "method": "POST",
+        "header": [{"key": "Content-Type", "value": "application/json"}],
+        "url": {"raw": "http://localhost:8000/ingestion/issues/iss-1/apply", "protocol": "http", "host": ["localhost"], "port": "8000", "path": ["ingestion", "issues", "iss-1", "apply"]},
+        "body": {"mode": "raw", "raw": "{\n  \"action\": \"apply\",\n  \"patch\": {\n    \"product_name\": \"iPhone 15 Pro\"\n  }\n}"}
+      }
+    },
+    {
+      "name": "Get Rules",
+      "request": {
+        "method": "GET",
+        "url": {"raw": "http://localhost:8000/ingestion/rules", "protocol": "http", "host": ["localhost"], "port": "8000", "path": ["ingestion", "rules"]}
+      }
+    },
+    {
+      "name": "Upsert Rule",
+      "request": {
+        "method": "POST",
+        "header": [{"key": "Content-Type", "value": "application/json"}],
+        "url": {"raw": "http://localhost:8000/ingestion/rules", "protocol": "http", "host": ["localhost"], "port": "8000", "path": ["ingestion", "rules"]},
+        "body": {"mode": "raw", "raw": "{\n  \"name\": \"currency_normalize\",\n  \"params\": {\n    \"to\": \"CNY\"\n  }\n}"}
+      }
+    },
+    {
+      "name": "Alias Dictionary",
+      "request": {
+        "method": "GET",
+        "url": {"raw": "http://localhost:8000/ingestion/alias-dictionary?dict_type=customer", "protocol": "http", "host": ["localhost"], "port": "8000", "path": ["ingestion", "alias-dictionary"], "query": [{"key": "dict_type", "value": "customer"}]}
+      }
+    },
+    {
+      "name": "Reconcile Report",
+      "request": {
+        "method": "GET",
+        "url": {"raw": "http://localhost:8000/ingestion/reconcile/report?batch_id=batch_123", "protocol": "http", "host": ["localhost"], "port": "8000", "path": ["ingestion", "reconcile", "report"], "query": [{"key": "batch_id", "value": "batch_123"}]}
+      }
+    },
+    {
+      "name": "Actions Log",
+      "request": {
+        "method": "GET",
+        "url": {"raw": "http://localhost:8000/ingestion/actions?batch_id=batch_123", "protocol": "http", "host": ["localhost"], "port": "8000", "path": ["ingestion", "actions"], "query": [{"key": "batch_id", "value": "batch_123"}]}
+      }
+    }
+  ]
+}
+
+

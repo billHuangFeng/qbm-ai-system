@@ -1,42 +1,19 @@
 """
-QBM历史数据拟合优化系统 - 主应用
+BMOS系统 - 主应用（已废弃）
+请使用 main_optimized.py 作为主应用入口
 """
 
-from fastapi import FastAPI, HTTPException
-from fastapi.middleware.cors import CORSMiddleware
-from fastapi.middleware.trustedhost import TrustedHostMiddleware
-import logging
-import os
-from contextlib import asynccontextmanager
-from .database import db_manager
-from .api import api_router, setup_middleware
+import warnings
+warnings.warn(
+    "src/main.py 已废弃，请使用 main_optimized.py 作为主应用入口",
+    DeprecationWarning,
+    stacklevel=2
+)
 
-# 配置日志
-logging.basicConfig(level=logging.INFO)
-logger = logging.getLogger(__name__)
+# 重定向到优化后的主应用
+from main_optimized import app
 
-@asynccontextmanager
-async def lifespan(app: FastAPI):
-    """应用生命周期管理"""
-    # 启动时执行
-    logger.info("启动QBM历史数据拟合优化系统...")
-    
-    # 初始化数据库连接
-    if not db_manager.health_check():
-        logger.error("数据库连接失败")
-        raise Exception("数据库连接失败")
-    
-    # 初始化Redis连接
-    # 加载预训练模型等
-    
-    yield
-    
-    # 关闭时执行
-    logger.info("关闭QBM历史数据拟合优化系统...")
-
-# 创建FastAPI应用
-app = FastAPI(
-    title="QBM历史数据拟合优化系统",
+__all__ = ['app'],
     description="基于机器学习的边际影响分析系统",
     version="0.1.0",
     lifespan=lifespan

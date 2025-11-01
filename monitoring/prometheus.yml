@@ -1,94 +1,58 @@
+# Prometheus Configuration
 global:
   scrape_interval: 15s
   evaluation_interval: 15s
 
 rule_files:
-  - "alert_rules.yml"
-
-alerting:
-  alertmanagers:
-    - static_configs:
-        - targets:
-          - alertmanager:9093
+  - "rules/*.yml"
 
 scrape_configs:
-  # Prometheus自身监控
+  # Prometheus itself
   - job_name: 'prometheus'
     static_configs:
       - targets: ['localhost:9090']
 
-  # 后端服务监控
+  # Backend API
   - job_name: 'qbm-backend'
     static_configs:
       - targets: ['backend:8000']
     metrics_path: '/metrics'
     scrape_interval: 30s
 
-  # 前端服务监控
+  # Frontend
   - job_name: 'qbm-frontend'
     static_configs:
       - targets: ['frontend:3000']
-    metrics_path: '/metrics'
+    metrics_path: '/api/metrics'
     scrape_interval: 30s
 
-  # 数据预处理服务监控
-  - job_name: 'qbm-data-preprocessing'
-    static_configs:
-      - targets: ['data-preprocessing:8000']
-    metrics_path: '/metrics'
-    scrape_interval: 30s
-
-  # 模型训练服务监控
-  - job_name: 'qbm-model-training'
-    static_configs:
-      - targets: ['model-training:8000']
-    metrics_path: '/metrics'
-    scrape_interval: 30s
-
-  # 预测服务监控
-  - job_name: 'qbm-prediction-service'
-    static_configs:
-      - targets: ['prediction-service:8000']
-    metrics_path: '/metrics'
-    scrape_interval: 30s
-
-  # 优化服务监控
-  - job_name: 'qbm-optimization-service'
-    static_configs:
-      - targets: ['optimization-service:8000']
-    metrics_path: '/metrics'
-    scrape_interval: 30s
-
-  # PostgreSQL监控
-  - job_name: 'qbm-postgres'
+  # PostgreSQL
+  - job_name: 'postgres'
     static_configs:
       - targets: ['postgres:5432']
-    metrics_path: '/metrics'
     scrape_interval: 30s
 
-  # Redis监控
-  - job_name: 'qbm-redis'
+  # Redis
+  - job_name: 'redis'
     static_configs:
       - targets: ['redis:6379']
-    metrics_path: '/metrics'
     scrape_interval: 30s
 
-  # Nginx监控
-  - job_name: 'qbm-nginx'
+  # Nginx
+  - job_name: 'nginx'
     static_configs:
-      - targets: ['nginx:80']
+      - targets: ['nginx:8080']
     metrics_path: '/nginx_status'
     scrape_interval: 30s
 
-  # Node Exporter监控
+  # Node Exporter (if available)
   - job_name: 'node-exporter'
     static_configs:
       - targets: ['node-exporter:9100']
     scrape_interval: 30s
 
-  # cAdvisor容器监控
-  - job_name: 'cadvisor'
-    static_configs:
-      - targets: ['cadvisor:8080']
-    scrape_interval: 30s
-
+alerting:
+  alertmanagers:
+    - static_configs:
+        - targets:
+          - alertmanager:9093

@@ -8,18 +8,17 @@
 ### ✅ 已完成 (3/6)
 
 #### 1. 环境配置 ✅
-- **ClickHouse**: 运行在 `localhost:8123` (HTTP) 和 `localhost:9000` (TCP)
-- **Redis**: 运行在 `localhost:6380`
+- **PostgreSQL**: 运行在 `localhost:5432`
+- **Redis**: 运行在 `localhost:6379`
 - **Docker容器**: 正常运行，网络连接正常
 
 #### 2. 数据库连接测试 ✅
-- **ClickHouse TCP连接**: ✅ 正常
-- **ClickHouse HTTP连接**: ✅ 正常  
+- **PostgreSQL连接**: ✅ 正常
 - **Redis连接**: ✅ 正常
-- **HTTP查询**: ⚠️ 有编码问题，但TCP连接可用
+- **数据库查询**: ✅ 正常
 
 #### 3. BMOS核心表结构 ✅
-- **数据库**: `bmos` 数据库创建成功
+- **数据库**: `qbm_ai_system` 数据库创建成功
 - **维度表**: 9张表全部创建成功
   - `dim_vpt` (价值主张维度表)
   - `dim_pft` (产品特性维度表)
@@ -64,12 +63,12 @@
 
 #### 6. 前端管理界面 ⏳
 - **状态**: 待开发
-- **需要**: Vue.js界面，数据管理，仪表盘
+- **需要**: React界面，数据管理，仪表盘
 
 ## 技术架构
 
 ### 数据层
-- **数据库**: ClickHouse (高性能列式数据库)
+- **数据库**: PostgreSQL (关系型数据库)
 - **缓存**: Redis (任务队列和缓存)
 - **表结构**: 19张核心表 (9维度 + 5桥接 + 5事实)
 
@@ -86,7 +85,7 @@
 1. 创建FastAPI应用结构
 2. 实现维度表CRUD API
 3. 实现分析查询API
-4. 集成ClickHouse客户端
+4. 集成PostgreSQL客户端
 
 ### 优先级2: 归因引擎
 1. 实现Shapley值计算算法
@@ -94,14 +93,14 @@
 3. 集成Celery任务队列
 
 ### 优先级3: 前端界面
-1. 创建Vue.js项目结构
+1. 创建React项目结构
 2. 实现数据管理界面
 3. 创建分析仪表盘
 
 ## 系统优势
 
 ### 性能优势
-- **ClickHouse**: 列式存储，查询性能优异
+- **PostgreSQL**: 成熟稳定，支持复杂查询
 - **分区设计**: 按时间分区，支持大数据量
 - **物化视图**: 预计算分析结果，提升查询速度
 
@@ -119,11 +118,11 @@
 
 ### 连接测试
 ```bash
-# ClickHouse连接测试
-docker exec bmos_clickhouse clickhouse-client --query "SELECT 1"
+# PostgreSQL连接测试
+docker exec qbm-postgres psql -U postgres -d qbm_ai_system -c "SELECT 1"
 
 # 数据验证
-docker exec bmos_clickhouse clickhouse-client --query "SELECT * FROM bmos.dim_vpt"
+docker exec qbm-postgres psql -U postgres -d qbm_ai_system -c "SELECT * FROM dim_vpt"
 ```
 
 ### 数据完整性

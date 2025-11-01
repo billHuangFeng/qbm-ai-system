@@ -1,0 +1,24 @@
+{
+  "insight_id": "9448aa5195ba509d",
+  "category": "opportunity",
+  "title": "发现业务增长机会",
+  "description": "基于成功模式分析，发现2个增长机会点",
+  "evidence": [
+    {
+      "pattern_id": "ceb6db388c2ef1ac",
+      "confidence": 0.7
+    },
+    {
+      "pattern_id": "6d2585793e59b199",
+      "confidence": 0.7
+    }
+  ],
+  "impact_score": 0.77,
+  "confidence": 0.7,
+  "recommendations": [
+    "扩大成功模式的适用范围",
+    "复制成功案例的最佳实践",
+    "建立成功模式的标准化流程"
+  ],
+  "created_at": "2025-10-28 19:30:14.777979"
+}

@@ -383,3 +383,4 @@ class TestWeightValidator:
         assert len(scores) == len(weights_list)
         assert all(0 <= score <= 1 for score in scores)
 
+

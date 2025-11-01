@@ -205,3 +205,4 @@ CREATE TABLE asset_accumulation_p0 PARTITION OF asset_accumulation
 
 
 
+

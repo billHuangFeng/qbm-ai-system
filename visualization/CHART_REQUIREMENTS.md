@@ -635,3 +635,4 @@ describe('Chart Performance', () => {
   });
 });
 ```
+

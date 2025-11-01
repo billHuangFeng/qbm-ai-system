@@ -372,3 +372,4 @@ class TestAdvancedRelationshipAnalysis:
         assert isinstance(result, dict)
         assert 'overall_score' in result
 
+

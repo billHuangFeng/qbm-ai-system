@@ -1,0 +1,20 @@
+{
+  "insight_id": "ffa3b81f4ef3b701",
+  "category": "performance",
+  "title": "feature2是成功的关键因素",
+  "description": "分析发现feature2与成功高度相关，置信度为0.70",
+  "evidence": [
+    {
+      "pattern_id": "8a214c428d82fe48",
+      "confidence": 0.7
+    }
+  ],
+  "impact_score": 0.7,
+  "confidence": 0.7,
+  "recommendations": [
+    "重点关注feature2的优化",
+    "建立feature2的监控机制",
+    "制定feature2的改进计划"
+  ],
+  "created_at": "2025-10-28 22:27:48.344203"
+}

@@ -1,0 +1,21 @@
+{
+  "pattern_id": "a0e12da58d34b3cc",
+  "pattern_type": "anomaly",
+  "description": "marketing_spend列存在2个异常值",
+  "conditions": {
+    "marketing_spend": {
+      "range": [
+        -0.8649982938921497,
+        102.58258243419533
+      ]
+    }
+  },
+  "outcomes": {
+    "anomaly_count": 2,
+    "anomaly_rate": 0.02
+  },
+  "confidence": 0.8,
+  "frequency": 2,
+  "last_seen": "2025-10-28 17:51:38.961421",
+  "created_at": "2025-10-28 17:51:38.961422"
+}

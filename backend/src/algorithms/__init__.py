@@ -9,11 +9,11 @@ from .time_series import ARIMAModel, VARModel
 from .synergy_analysis import SynergyAnalysis
 from .threshold_analysis import ThresholdAnalysis
 from .lag_analysis import LagAnalysis
-from .advanced_relationships import AdvancedRelationshipAnalysis
+from .advanced_relationships import AdvancedRelationships
 from .dynamic_weights import DynamicWeightCalculator
-from .weight_optimization import WeightOptimizer
-from .weight_validation import WeightValidator
-from .weight_monitoring import WeightMonitor
+from .weight_optimization import WeightOptimization
+from .weight_validation import WeightValidation
+from .weight_monitoring import WeightMonitoring
 
 __all__ = [
     # 线性模型
@@ -37,11 +37,10 @@ __all__ = [
     "SynergyAnalysis",
     "ThresholdAnalysis", 
     "LagAnalysis",
-    "AdvancedRelationshipAnalysis",
+    "AdvancedRelationships",
     # 动态权重
     "DynamicWeightCalculator",
-    "WeightOptimizer",
-    "WeightValidator",
-    "WeightMonitor"
+    "WeightOptimization",
+    "WeightValidation",
+    "WeightMonitoring"
 ]
-
