@@ -225,7 +225,7 @@ class DecisionExecutionEngine:
 class ValueChainDecisionMapping:
     def __init__(self):
         self.chain_decision_mapping = {
-            "核心资源+能力": {
+            "核心资产+能力": {
                 "strategic": ["资源战略规划", "能力建设方向"],
                 "tactical": ["供应商管理策略", "人才培养计划"],
                 "operational": ["具体采购决策", "培训执行计划"]
