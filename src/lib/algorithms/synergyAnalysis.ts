@@ -456,7 +456,7 @@ export class SynergyOptimizer {
   /**
    * 优化资源-能力配置
    */
-  static optimizeResourceCapabilityConfiguration(
+  static async optimizeResourceCapabilityConfiguration(
     resources: CoreResource[],
     capabilities: CoreCapability[],
     constraints: {
@@ -464,19 +464,19 @@ export class SynergyOptimizer {
       maxResources?: number;
       minCapabilityLevel?: number;
     } = {}
-  ): {
+  ): Promise<{
     optimizedResources: CoreResource[];
     optimizedCapabilities: CoreCapability[];
     totalSynergyScore: number;
     optimizationRecommendations: string[];
-  } {
+  }> {
     // 基于约束条件优化配置
     const optimizedResources = this.optimizeResources(resources, constraints);
     const optimizedCapabilities = this.optimizeCapabilities(capabilities, constraints);
     
     // 计算优化后的协同分数
     const analyzer = new SynergyAnalyzer();
-    const synergyResult = analyzer.calculateSynergyEffects(optimizedResources, optimizedCapabilities);
+    const synergyResult = await analyzer.calculateSynergyEffects(optimizedResources, optimizedCapabilities);
     
     // 生成优化建议
     const optimizationRecommendations = this.generateOptimizationRecommendations(
