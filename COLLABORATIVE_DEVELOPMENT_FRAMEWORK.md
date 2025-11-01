@@ -4,8 +4,8 @@
 
 建立Cursor与Lovable的协同开发环境，实现高效分工合作：
 
-- **Lovable负责**: 前端开发、数据库设计、UI/UX实现
-- **Cursor负责**: 需求梳理、后端逻辑、业务分析、系统架构设计
+- **Lovable负责**: 前端开发、数据库设计、UI/UX实现、Supabase Edge Functions（轻量级逻辑）
+- **Cursor负责**: 需求梳理、Python后端（复杂算法）、业务分析、系统架构设计
 
 ## 📋 分工职责
 
@@ -14,14 +14,11 @@
 - ✅ **UI/UX实现**: 用户界面、交互设计、响应式布局
 - ✅ **前端组件**: 图表组件、表单组件、导航组件
 - ✅ **前端路由**: 页面路由、状态管理
-- ✅ **后端开发**: **仅Supabase Edge Functions (Deno Runtime)**
-  - ⚠️ **重要**: Lovable**不能**使用FastAPI Python后端
-  - ⚠️ **约束**: 所有后端API必须使用Supabase Edge Functions实现
+- ✅ **后端开发**: **Supabase Edge Functions (Deno Runtime)** - 轻量级业务逻辑
   - ✅ **技术栈**: Deno Runtime + TypeScript + Supabase SDK
-- ✅ **API实现**: 业务逻辑、数据处理、算法实现（全部用TypeScript）
-  - 执行时间限制: ≤10秒
-  - 计算复杂度: O(n)或更低
-  - 依赖库: 仅Supabase SDK和Deno标准库
+  - ✅ **适用范围**: 简单CRUD、简单查询、O(n)算法、数据验证
+  - ✅ **限制**: 执行时间≤10秒，计算复杂度O(n)或更低
+  - ⚠️ **复杂算法**: 通过API调用Cursor的FastAPI后端
 - ✅ **前端测试**: 组件测试、集成测试
 - ✅ **后端测试**: Edge Function单元测试
 - ✅ **数据库设计**: Supabase PostgreSQL + Row Level Security + Real-time
@@ -32,14 +29,16 @@
 - 🎯 **需求梳理**: 业务需求分析、功能规格定义
 - 🎯 **系统架构**: 整体架构设计、模块划分
 - 🎯 **业务分析**: 商业模式分析、算法设计
-- 🎯 **API设计**: **Supabase Edge Functions API设计**（非FastAPI）
-  - 提供Edge Function代码模板
-  - TypeScript类型定义
+- 🎯 **API设计**: **FastAPI后端API设计** + Edge Functions API设计
+  - FastAPI端点设计（复杂算法）
+  - Edge Function代码模板（简单逻辑）
+  - TypeScript和Python类型定义
   - 输入输出契约
-- 🎯 **算法设计**: 提供**TypeScript可执行代码**（非Python伪代码）
-  - 算法必须是TypeScript实现
-  - 可直接用于Edge Functions
-  - 考虑Edge Functions的限制（执行时间、依赖库等）
+- 🎯 **算法实现**: **Python复杂算法实现**
+  - 机器学习算法（XGBoost, ARIMA, MLP等）
+  - 复杂数据处理（Shapley归因等）
+  - 文档处理和OCR
+  - FastAPI服务维护
 - 🎯 **技术指导**: 提供算法实现指导和技术支持
 - 🎯 **文档编写**: 技术文档、**Edge Functions API文档**、算法文档（TypeScript）
 - 🎯 **质量保证**: 代码审查、架构审查、性能优化建议
