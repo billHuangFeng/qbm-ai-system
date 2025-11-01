@@ -1,17 +1,37 @@
 # FastAPI 与 Edge Functions 分工决策指南
 
 **创建时间**: 2025-10-31  
-**版本**: 1.0
+**版本**: 2.0  
+**重要更新**: 2025-01-23
+
+---
+
+## ⚠️ 重要技术栈约束
+
+**Lovable只能使用Supabase Edge Functions，不能使用FastAPI Python后端。**
+
+这意味着：
+- ✅ **所有新功能**必须使用Edge Functions实现
+- ✅ **所有算法**必须转换为TypeScript
+- ✅ **所有API端点**必须设计为Edge Functions格式
+- ❌ **不能使用**FastAPI Python后端（即使复杂算法也必须简化）
+
+**注意**: 本文档保留FastAPI相关描述仅作为参考（历史文档或Cursor内部使用），但Lovable实施时**必须**使用Edge Functions。
 
 ---
 
 ## 📋 目的
 
-本指南帮助开发团队明确判断新功能应该部署在 **FastAPI 后端** 还是 **Supabase Edge Functions**，确保架构合理性和性能优化。
+本指南帮助开发团队明确判断新功能应该部署在 **Supabase Edge Functions**（Lovable实施），确保架构合理性和性能优化。
+
+**注意**: 如果功能不符合Edge Functions标准，Cursor需要：
+1. 简化算法使其符合Edge Functions限制
+2. 或使用外部服务
+3. 或移除该功能
 
 ---
 
-## 🎯 决策流程
+## 🎯 决策流程（Lovable实施）
 
 ```
 新功能需求
@@ -23,10 +43,17 @@
 │     适用标准？          │
 └───────────────────────┘
     ↓ Yes          ↓ No
-Edge Functions    FastAPI
+Edge Functions   简化算法/外部服务/移除
     ↓              ↓
-实施             实施
+实施             重新评估
 ```
+
+**关键**: 如果功能不符合Edge Functions标准，Cursor必须：
+1. **简化算法**: 将复杂算法简化为Edge Functions可实现的版本
+2. **使用外部服务**: 如果必须使用Python库（如OCR），使用外部API
+3. **移除功能**: 如果无法简化且无替代方案，则移除该功能
+
+**不能选择**: 保持在FastAPI（Lovable无法使用）
 
 ---
 
