@@ -387,7 +387,7 @@ class ThresholdAnalysis:
                     feature_data['performance']['r2_improvement']
                     for feature_data in threshold_results['piecewise_regression'].values()
                 ])
-                score += weights['piecewise_regression'] * piecewise_count * piecewise_improvement
+                score += weights['piecewise_regression'] * piecewise_count * piecewise_avg_improvement
             
             # 随机森林阈值评分
             if 'random_forest' in threshold_results and threshold_results['random_forest']:
