@@ -14,21 +14,34 @@
 - ✅ **UI/UX实现**: 用户界面、交互设计、响应式布局
 - ✅ **前端组件**: 图表组件、表单组件、导航组件
 - ✅ **前端路由**: 页面路由、状态管理
-- ✅ **后端开发**: Supabase Edge Functions (Deno Runtime, 非Next.js)
-- ✅ **API实现**: 轻量级业务逻辑、简单CRUD、快速响应（执行时间≤10秒，O(n)复杂度）
+- ✅ **后端开发**: **仅Supabase Edge Functions (Deno Runtime)**
+  - ⚠️ **重要**: Lovable**不能**使用FastAPI Python后端
+  - ⚠️ **约束**: 所有后端API必须使用Supabase Edge Functions实现
+  - ✅ **技术栈**: Deno Runtime + TypeScript + Supabase SDK
+- ✅ **API实现**: 业务逻辑、数据处理、算法实现（全部用TypeScript）
+  - 执行时间限制: ≤10秒
+  - 计算复杂度: O(n)或更低
+  - 依赖库: 仅Supabase SDK和Deno标准库
 - ✅ **前端测试**: 组件测试、集成测试
 - ✅ **后端测试**: Edge Function单元测试
 - ✅ **数据库设计**: Supabase PostgreSQL + Row Level Security + Real-time
 - ✅ **Supabase集成**: 数据库配置、实时订阅、认证、Edge Functions部署
+- ✅ **数据库迁移**: 使用Supabase CLI（非Alembic）
 
 ### Cursor职责范围
 - 🎯 **需求梳理**: 业务需求分析、功能规格定义
 - 🎯 **系统架构**: 整体架构设计、模块划分
 - 🎯 **业务分析**: 商业模式分析、算法设计
-- 🎯 **API设计**: RESTful API、数据模型设计
-- 🎯 **算法设计**: 归因算法、机器学习模型设计
+- 🎯 **API设计**: **Supabase Edge Functions API设计**（非FastAPI）
+  - 提供Edge Function代码模板
+  - TypeScript类型定义
+  - 输入输出契约
+- 🎯 **算法设计**: 提供**TypeScript可执行代码**（非Python伪代码）
+  - 算法必须是TypeScript实现
+  - 可直接用于Edge Functions
+  - 考虑Edge Functions的限制（执行时间、依赖库等）
 - 🎯 **技术指导**: 提供算法实现指导和技术支持
-- 🎯 **文档编写**: 技术文档、API文档、算法文档
+- 🎯 **文档编写**: 技术文档、**Edge Functions API文档**、算法文档（TypeScript）
 - 🎯 **质量保证**: 代码审查、架构审查、性能优化建议
 
 ## 🔄 协同工作流
@@ -53,17 +66,19 @@ Cursor工作:
 ```
 Lovable工作:
 ├── 前端界面实现 (React + Vite)
-├── 后端API实现 (Supabase Edge Functions - 轻量级逻辑)
+├── 后端API实现 (Supabase Edge Functions - 全部后端逻辑)
 ├── 数据库表创建 (Supabase PostgreSQL)
+├── 数据库迁移 (Supabase CLI)
 ├── UI组件开发
-├── 业务逻辑开发 (Edge Functions + FastAPI混合架构)
+├── 业务逻辑开发 (全部在Edge Functions实现)
 └── 前后端功能集成
 
 Cursor协助:
-├── 复杂算法实现 (FastAPI端点)
+├── 提供TypeScript算法实现代码
+├── 提供Edge Functions代码模板
 ├── 技术架构审查
 ├── 代码质量审查
-└── 性能优化建议
+└── 性能优化建议（确保符合Edge Functions限制）
 ```
 
 ### 3. 集成测试阶段 (共同协作)
@@ -146,10 +161,14 @@ docker-compose.yml          # Docker编排
 - **效果评估需求**: 如何量化决策效果
 
 ### 2. 技术架构需求设计
-- **API接口设计**: RESTful API规范、数据格式
-- **数据模型设计**: 数据库表结构、关系设计
-- **业务逻辑设计**: 核心算法、计算逻辑
-- **集成需求设计**: 前后端集成、第三方集成
+- **API接口设计**: **Supabase Edge Functions API设计**（非FastAPI）
+  - Edge Function路径和HTTP方法
+  - TypeScript类型定义
+  - 输入输出契约
+  - 错误处理规范
+- **数据模型设计**: Supabase PostgreSQL表结构、关系设计、RLS策略
+- **业务逻辑设计**: **TypeScript算法实现**（可直接用于Edge Functions）
+- **集成需求设计**: 前后端集成（Edge Functions调用方式）、第三方集成
 
 ### 3. 功能模块需求定义
 - **模块1: 全链条价值传递**
@@ -209,24 +228,40 @@ docker-compose.yml          # Docker编排
 - 质量验收
 ```
 
-### API接口文档模板
+### Supabase Edge Functions API文档模板
 ```markdown
-# [模块名称] API接口文档
+# [模块名称] Edge Functions API文档
 
-## 接口列表
-- GET /api/v1/[module]/[resource]
-- POST /api/v1/[module]/[resource]
-- PUT /api/v1/[module]/[resource]
-- DELETE /api/v1/[module]/[resource]
+## 函数路径
+`supabase/functions/[function-name]/index.ts`
 
-## 数据模型
-- 请求参数
-- 响应格式
-- 错误码
+## 调用方式
+```typescript
+// 前端调用
+const { data, error } = await supabase.functions.invoke('[function-name]', {
+  body: { param1, param2 }
+});
+```
 
-## 示例
-- 请求示例
-- 响应示例
+## 输入参数 (JSON Body)
+- `param1`: string - 参数说明
+- `param2`: number - 参数说明
+
+## 输出格式 (JSON Response)
+```json
+{
+  "success": true,
+  "data": { ... },
+  "error": null
+}
+```
+
+## 错误处理
+- HTTP 400: 输入参数错误
+- HTTP 500: 内部服务器错误
+
+## Edge Function代码模板
+参见下面的Edge Function示例模板
 ```
 
 ## 🔧 开发环境配置
@@ -249,8 +284,16 @@ mkdocs serve
 npm install
 npm run dev
 
-# 数据库开发环境
-docker-compose -f docker-compose-dev.yml up -d
+# Supabase本地开发环境
+supabase start
+supabase functions serve
+
+# Edge Functions部署
+supabase functions deploy [function-name]
+
+# 数据库迁移
+supabase migration new [migration-name]
+supabase db push
 ```
 
 ## 📊 协同开发检查清单
@@ -285,4 +328,399 @@ docker-compose -f docker-compose-dev.yml up -d
 
 ---
 
-**这个协同开发框架确保Cursor专注于需求梳理和后端逻辑，Lovable专注于前端和数据库开发，实现高效分工合作！** 🎉
+## 📘 Supabase Edge Functions API设计范式
+
+### ⚠️ 重要技术栈约束
+
+**Lovable只能使用Supabase Edge Functions，不能使用FastAPI Python后端。**
+
+所有Cursor提供的API设计必须：
+- ✅ 使用TypeScript编写
+- ✅ 符合Deno Runtime规范
+- ✅ 仅使用Supabase SDK和Deno标准库
+- ✅ 执行时间≤10秒
+- ✅ 计算复杂度O(n)或更低
+
+---
+
+## 🔧 Edge Function示例模板
+
+### 模板1: 基础CRUD操作
+
+```typescript
+// supabase/functions/basic-crud/index.ts
+
+import { serve } from "https://deno.land/std@0.168.0/http/server.ts";
+import { createClient } from 'https://esm.sh/@supabase/supabase-js@2';
+
+// 类型定义
+interface RequestBody {
+  action: 'create' | 'read' | 'update' | 'delete';
+  table: string;
+  data?: Record<string, any>;
+  id?: string;
+  filters?: Record<string, any>;
+}
+
+serve(async (req) => {
+  try {
+    // 创建Supabase客户端
+    const supabaseClient = createClient(
+      Deno.env.get('SUPABASE_URL') ?? '',
+      Deno.env.get('SUPABASE_SERVICE_ROLE_KEY') ?? '',
+      {
+        auth: {
+          autoRefreshToken: false,
+          persistSession: false
+        }
+      }
+    );
+
+    // 解析请求体
+    const body: RequestBody = await req.json();
+
+    // 验证输入参数
+    if (!body.action || !body.table) {
+      return new Response(
+        JSON.stringify({ success: false, error: 'Missing required fields: action, table' }),
+        { 
+          status: 400,
+          headers: { 'Content-Type': 'application/json' }
+        }
+      );
+    }
+
+    let result;
+
+    // 执行CRUD操作
+    switch (body.action) {
+      case 'create':
+        if (!body.data) {
+          return new Response(
+            JSON.stringify({ success: false, error: 'Missing data for create operation' }),
+            { status: 400, headers: { 'Content-Type': 'application/json' } }
+          );
+        }
+        const { data: createData, error: createError } = await supabaseClient
+          .from(body.table)
+          .insert(body.data)
+          .select();
+        
+        if (createError) throw createError;
+        result = createData;
+        break;
+
+      case 'read':
+        let query = supabaseClient.from(body.table).select('*');
+        
+        if (body.id) {
+          query = query.eq('id', body.id);
+        } else if (body.filters) {
+          Object.entries(body.filters).forEach(([key, value]) => {
+            query = query.eq(key, value);
+          });
+        }
+        
+        const { data: readData, error: readError } = await query;
+        if (readError) throw readError;
+        result = readData;
+        break;
+
+      case 'update':
+        if (!body.id || !body.data) {
+          return new Response(
+            JSON.stringify({ success: false, error: 'Missing id or data for update operation' }),
+            { status: 400, headers: { 'Content-Type': 'application/json' } }
+          );
+        }
+        const { data: updateData, error: updateError } = await supabaseClient
+          .from(body.table)
+          .update(body.data)
+          .eq('id', body.id)
+          .select();
+        
+        if (updateError) throw updateError;
+        result = updateData;
+        break;
+
+      case 'delete':
+        if (!body.id) {
+          return new Response(
+            JSON.stringify({ success: false, error: 'Missing id for delete operation' }),
+            { status: 400, headers: { 'Content-Type': 'application/json' } }
+          );
+        }
+        const { error: deleteError } = await supabaseClient
+          .from(body.table)
+          .delete()
+          .eq('id', body.id);
+        
+        if (deleteError) throw deleteError;
+        result = { message: 'Deleted successfully' };
+        break;
+
+      default:
+        return new Response(
+          JSON.stringify({ success: false, error: 'Invalid action' }),
+          { status: 400, headers: { 'Content-Type': 'application/json' } }
+        );
+    }
+
+    // 返回成功响应
+    return new Response(
+      JSON.stringify({ success: true, data: result }),
+      { 
+        status: 200,
+        headers: { 'Content-Type': 'application/json' }
+      }
+    );
+
+  } catch (error) {
+    // 错误处理
+    console.error('Error:', error);
+    return new Response(
+      JSON.stringify({ 
+        success: false, 
+        error: error.message || 'Internal server error' 
+      }),
+      { 
+        status: 500,
+        headers: { 'Content-Type': 'application/json' }
+      }
+    );
+  }
+});
+```
+
+### 模板2: 简单算法计算（O(n)复杂度）
+
+```typescript
+// supabase/functions/simple-calculation/index.ts
+
+import { serve } from "https://deno.land/std@0.168.0/http/server.ts";
+
+interface RequestBody {
+  values: number[];
+  operation: 'sum' | 'average' | 'max' | 'min';
+}
+
+serve(async (req) => {
+  try {
+    const body: RequestBody = await req.json();
+
+    // 验证输入
+    if (!body.values || !Array.isArray(body.values) || body.values.length === 0) {
+      return new Response(
+        JSON.stringify({ success: false, error: 'Invalid values array' }),
+        { status: 400, headers: { 'Content-Type': 'application/json' } }
+      );
+    }
+
+    let result: number;
+
+    // 执行计算（O(n)复杂度）
+    switch (body.operation) {
+      case 'sum':
+        result = body.values.reduce((acc, val) => acc + val, 0);
+        break;
+
+      case 'average':
+        result = body.values.reduce((acc, val) => acc + val, 0) / body.values.length;
+        break;
+
+      case 'max':
+        result = Math.max(...body.values);
+        break;
+
+      case 'min':
+        result = Math.min(...body.values);
+        break;
+
+      default:
+        return new Response(
+          JSON.stringify({ success: false, error: 'Invalid operation' }),
+          { status: 400, headers: { 'Content-Type': 'application/json' } }
+        );
+    }
+
+    return new Response(
+      JSON.stringify({ success: true, result }),
+      { status: 200, headers: { 'Content-Type': 'application/json' } }
+    );
+
+  } catch (error) {
+    return new Response(
+      JSON.stringify({ success: false, error: error.message }),
+      { status: 500, headers: { 'Content-Type': 'application/json' } }
+    );
+  }
+});
+```
+
+### 模板3: 数据库查询 + 简单处理
+
+```typescript
+// supabase/functions/data-query/index.ts
+
+import { serve } from "https://deno.land/std@0.168.0/http/server.ts";
+import { createClient } from 'https://esm.sh/@supabase/supabase-js@2';
+
+interface RequestBody {
+  table: string;
+  filters?: Record<string, any>;
+  limit?: number;
+  offset?: number;
+}
+
+serve(async (req) => {
+  try {
+    const supabaseClient = createClient(
+      Deno.env.get('SUPABASE_URL') ?? '',
+      Deno.env.get('SUPABASE_SERVICE_ROLE_KEY') ?? '',
+      {
+        auth: {
+          autoRefreshToken: false,
+          persistSession: false
+        }
+      }
+    );
+
+    const body: RequestBody = await req.json();
+
+    // 构建查询
+    let query = supabaseClient.from(body.table).select('*');
+
+    // 应用过滤器
+    if (body.filters) {
+      Object.entries(body.filters).forEach(([key, value]) => {
+        query = query.eq(key, value);
+      });
+    }
+
+    // 应用分页
+    if (body.limit) {
+      query = query.limit(body.limit);
+    }
+    if (body.offset) {
+      query = query.range(body.offset, body.offset + (body.limit || 10) - 1);
+    }
+
+    // 执行查询
+    const { data, error } = await query;
+
+    if (error) throw error;
+
+    // 简单数据处理（O(n)复杂度）
+    const processedData = data.map((item: any) => ({
+      ...item,
+      processedAt: new Date().toISOString()
+    }));
+
+    return new Response(
+      JSON.stringify({ 
+        success: true, 
+        data: processedData,
+        count: processedData.length
+      }),
+      { status: 200, headers: { 'Content-Type': 'application/json' } }
+    );
+
+  } catch (error) {
+    return new Response(
+      JSON.stringify({ success: false, error: error.message }),
+      { status: 500, headers: { 'Content-Type': 'application/json' } }
+    );
+  }
+});
+```
+
+### 模板4: 前端调用示例
+
+```typescript
+// 前端调用Edge Function
+
+import { createClient } from '@supabase/supabase-js';
+
+const supabase = createClient(
+  import.meta.env.VITE_SUPABASE_URL,
+  import.meta.env.VITE_SUPABASE_ANON_KEY
+);
+
+// 调用CRUD操作
+async function createRecord(table: string, data: Record<string, any>) {
+  const { data: result, error } = await supabase.functions.invoke('basic-crud', {
+    body: {
+      action: 'create',
+      table,
+      data
+    }
+  });
+
+  if (error) {
+    console.error('Error:', error);
+    return null;
+  }
+
+  return result.data;
+}
+
+// 调用算法计算
+async function calculateSum(values: number[]) {
+  const { data: result, error } = await supabase.functions.invoke('simple-calculation', {
+    body: {
+      values,
+      operation: 'sum'
+    }
+  });
+
+  if (error) {
+    console.error('Error:', error);
+    return null;
+  }
+
+  return result.result;
+}
+```
+
+---
+
+## 📋 Edge Functions设计规范
+
+### 必须遵守的规范
+
+1. **执行时间限制**: ≤10秒
+   - 如果计算可能超过10秒，必须简化算法或分批处理
+
+2. **计算复杂度**: O(n)或更低
+   - 不允许O(n²)、O(n!)等复杂算法
+   - 如果需要复杂算法，必须提供简化版本
+
+3. **依赖库限制**:
+   - ✅ 允许: Supabase SDK (`@supabase/supabase-js`)
+   - ✅ 允许: Deno标准库 (`https://deno.land/std@...`)
+   - ❌ 禁止: npm包（除非有Deno兼容版本）
+   - ❌ 禁止: Python库、系统级库
+
+4. **数据量限制**: 单次处理 < 1MB
+   - 大文件处理必须分批或使用Supabase Storage
+
+5. **错误处理**: 统一的错误响应格式
+   ```typescript
+   {
+     success: false,
+     error: "错误描述"
+   }
+   ```
+
+6. **成功响应**: 统一的成功响应格式
+   ```typescript
+   {
+     success: true,
+     data: { ... }
+   }
+   ```
+
+---
+
+**这个协同开发框架确保Cursor专注于需求梳理和TypeScript算法设计，Lovable专注于Edge Functions实现和前端开发，实现高效分工合作！** 🎉
+
