@@ -37,12 +37,12 @@ export interface ValueNetworkGraphProps {
 
 // 层级配置：自下而上（颜色参考用户提供图片）
 const LEVEL_CONFIG = {
-  1: { y: 560, label: '基础支撑层', icon: '🏗️', color: '#8B6914' }, // 底部 - 棕褐色
-  2: { y: 450, label: '能力支撑层', icon: '⚙️', color: '#4CAF50' }, // 绿色
-  3: { y: 340, label: '流程转化层', icon: '🔄', color: '#2196F3' }, // 蓝色
-  4: { y: 230, label: '价值产出层', icon: '💎', color: '#9C27B0' }, // 紫色 - 产品特性+内在价值
-  5: { y: 120, label: '价值传递层', icon: '🎁', color: '#E91E63' }, // 粉红 - 客户感知+体验价值
-  6: { y: 50, label: '目标收益层', icon: '🎯', color: '#FFB300' }, // 顶部 - 橙黄色
+  1: { y: 850, label: '基础支撑层', icon: '🏗️', color: '#8B6914' }, // 底部 - 棕褐色
+  2: { y: 720, label: '能力支撑层', icon: '⚙️', color: '#4CAF50' }, // 绿色
+  3: { y: 590, label: '流程转化层', icon: '🔄', color: '#2196F3' }, // 蓝色
+  4: { y: 460, label: '价值产出层', icon: '💎', color: '#9C27B0' }, // 紫色 - 产品特性+内在价值
+  5: { y: 330, label: '价值传递层', icon: '🎁', color: '#E91E63' }, // 粉红 - 客户感知+体验价值
+  6: { y: 200, label: '目标收益层', icon: '🎯', color: '#FFB300' }, // 顶部 - 橙黄色
 } as const;
 
 // 根据效率动态计算箭头样式
@@ -94,7 +94,7 @@ export function ValueNetworkGraph(props: ValueNetworkGraphProps) {
 
   // 计算节点位置（第6层分为收益组和毛利组，第1层成本放左侧）
   const svgWidth = 1400; // 增加宽度
-  const svgHeight = 900; // 增加高度以容纳更多层级和U型回流路径
+  const svgHeight = 1100; // 增加高度以容纳更多层级和U型回流路径
   const nodePositions = new Map<string, { x: number; y: number }>();
   
   Object.entries(nodesByLevel).forEach(([level, levelNodes]) => {
@@ -179,7 +179,7 @@ export function ValueNetworkGraph(props: ValueNetworkGraphProps) {
     const cornerRadius = 12;
     const topY = 40; // 顶部水平线高度
     const rightEdge = svgWidth - 30; // 右侧边缘
-    const bottomY = svgHeight - 40; // 底部水平线高度
+    const bottomY = svgHeight - 50; // 底部水平线高度
     const nodeRadius = 30; // 节点半径
     
     // U型路径：毛利顶部 → 向上到顶部 → 向右到右边缘 → 向下到底部 → 向左到投资下方 → 向上接入投资底部
@@ -225,7 +225,7 @@ export function ValueNetworkGraph(props: ValueNetworkGraphProps) {
     const cornerRadius = 12;
     const topY = 40; // 顶部水平线高度
     const leftEdge = 30; // 左侧边缘
-    const bottomY = svgHeight - 40; // 底部水平线高度
+    const bottomY = svgHeight - 50; // 底部水平线高度
     const nodeRadius = 30; // 节点半径
     
     // U型路径：收入顶部 → 向上到顶部 → 向左到左边缘 → 向下到底部 → 向右到成本下方 → 向上接入成本底部
