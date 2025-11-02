@@ -62,7 +62,7 @@ body {
 /* 渐变虚线流动动画 */
 @keyframes dash-flow {
   0% {
-    stroke-dashoffset: 28;
+    stroke-dashoffset: 20;
   }
   100% {
     stroke-dashoffset: 0;
