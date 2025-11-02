@@ -191,7 +191,8 @@ export function ValueNetworkGraph(props: ValueNetworkGraphProps) {
           <p className="text-sm text-muted-foreground mt-1">底层基础支撑上层目标，箭头方向表示支撑流向。毛利回流形成闭环支撑投资。</p>
         </div>
         
-        <svg width={svgWidth} height={svgHeight} className="w-full h-auto" style={{ maxHeight: '70vh' }}>
+        <div className="overflow-x-auto overflow-y-hidden" style={{ maxHeight: '70vh' }}>
+          <svg width={svgWidth} height={svgHeight} className="min-w-full" style={{ minWidth: `${svgWidth}px` }}>
         <defs>
           <marker
             id="arrowhead"
@@ -371,7 +372,8 @@ export function ValueNetworkGraph(props: ValueNetworkGraphProps) {
             </g>
           );
         })}
-        </svg>
+          </svg>
+        </div>
 
         {/* 紧凑图例 */}
         <div className="mt-4 flex items-center justify-center gap-6 text-xs text-muted-foreground">
