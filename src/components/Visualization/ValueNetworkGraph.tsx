@@ -62,17 +62,27 @@ const getArrowStyle = (efficiency: number) => {
   return { color, width, opacity };
 };
 
-// 节点颜色映射
+// 节点颜色映射（优化版：增强对比度）
 const NODE_COLORS: Record<NodeType, string> = {
-  investment: '#FFD700',
-  cost: '#FF6B6B',
-  resource: '#795548', // 棕色，代表原材料/资源
-  asset: '#4CAF50',
-  capability: '#66BB6A',
-  process: '#2196F3',
-  value: '#9C27B0',
-  revenue: '#FF6F00', // 深橙色，在橙黄色背景上更清晰
-  margin: '#FF8F00', // 毛利节点（深橙色）
+  investment: '#F59E0B',  // 琥珀色（从金黄调整）
+  cost: '#EF4444',        // 鲜红色（更鲜明）
+  resource: '#78350F',    // 深棕色（更深）
+  asset: '#10B981',       // 翠绿色（更鲜明）
+  capability: '#059669',  // 深绿色（增强对比）
+  process: '#3B82F6',     // 亮蓝色（保持）
+  value: '#A855F7',       // 亮紫色（更鲜明）
+  revenue: '#F97316',     // 亮橙色（更鲜明）
+  margin: '#EA580C',      // 深橙色（增强对比）
+};
+
+// 根据背景色亮度智能选择文字颜色
+const getTextColor = (bgColor: string): string => {
+  const hex = bgColor.replace('#', '');
+  const r = parseInt(hex.substr(0, 2), 16);
+  const g = parseInt(hex.substr(2, 2), 16);
+  const b = parseInt(hex.substr(4, 2), 16);
+  const brightness = (r * 299 + g * 587 + b * 114) / 1000;
+  return brightness > 155 ? '#1e293b' : '#ffffff';
 };
 
 export function ValueNetworkGraph(props: ValueNetworkGraphProps) {
@@ -215,18 +225,29 @@ export function ValueNetworkGraph(props: ValueNetworkGraphProps) {
       <>
         <path
           d={pathData}
-          stroke="#FFD700"
+          stroke="#F59E0B"
           strokeWidth={2.5}
           strokeDasharray="8,4"
           fill="none"
           markerEnd="url(#arrowhead-feedback)"
-          opacity={0.85}
+          opacity={0.7}
+        />
+        {/* 毛利回流标签（深色背景+白色文字）*/}
+        <rect
+          x={rightEdge - 28}
+          y={(topY + bottomY) / 2 - 40}
+          width={24}
+          height={80}
+          fill="rgba(0,0,0,0.75)"
+          rx={6}
+          stroke="rgba(245, 158, 11, 0.5)"
+          strokeWidth={1}
         />
         <text
-          x={rightEdge - 15}
+          x={rightEdge - 16}
           y={(topY + bottomY) / 2}
-          textAnchor="start"
-          className="text-xs fill-yellow-600 font-medium pointer-events-none"
+          textAnchor="middle"
+          className="text-xs fill-white font-semibold pointer-events-none"
           style={{ writingMode: 'vertical-rl' }}
         >
           💰 毛利回流
@@ -261,18 +282,29 @@ export function ValueNetworkGraph(props: ValueNetworkGraphProps) {
       <>
         <path
           d={pathData}
-          stroke="#FF6B6B"
+          stroke="#EF4444"
           strokeWidth={2.5}
           strokeDasharray="8,4"
           fill="none"
           markerEnd="url(#arrowhead-cost)"
-          opacity={0.85}
+          opacity={0.7}
+        />
+        {/* 成本投入标签（深色背景+白色文字）*/}
+        <rect
+          x={leftEdge + 4}
+          y={(topY + bottomY) / 2 - 40}
+          width={24}
+          height={80}
+          fill="rgba(0,0,0,0.75)"
+          rx={6}
+          stroke="rgba(239, 68, 68, 0.5)"
+          strokeWidth={1}
         />
         <text
-          x={leftEdge + 15}
+          x={leftEdge + 16}
           y={(topY + bottomY) / 2}
-          textAnchor="start"
-          className="text-xs fill-red-600 font-medium pointer-events-none"
+          textAnchor="middle"
+          className="text-xs fill-white font-semibold pointer-events-none"
           style={{ writingMode: 'vertical-rl' }}
         >
           💸 成本投入
@@ -395,6 +427,7 @@ export function ValueNetworkGraph(props: ValueNetworkGraphProps) {
         <div className="w-full flex items-center justify-center">
           <svg ref={svgRef} viewBox="0 0 1200 800" className="w-full h-auto max-h-[calc(100vh-180px)]" preserveAspectRatio="xMidYMid meet">
         <defs>
+          {/* 动态箭头标记 - 普通箭头（继承线条颜色）*/}
           <marker
             id="arrowhead"
             markerWidth="10"
@@ -404,8 +437,9 @@ export function ValueNetworkGraph(props: ValueNetworkGraphProps) {
             orient="auto"
             markerUnits="strokeWidth"
           >
-            <path d="M0,0 L0,6 L9,3 z" fill="currentColor" />
+            <path d="M0,0 L0,6 L9,3 z" fill="context-stroke" />
           </marker>
+          {/* 毛利回流箭头标记 */}
           <marker
             id="arrowhead-feedback"
             markerWidth="12"
@@ -415,8 +449,9 @@ export function ValueNetworkGraph(props: ValueNetworkGraphProps) {
             orient="auto"
             markerUnits="strokeWidth"
           >
-            <path d="M0,0 L0,6 L10,3 z" fill="#FFD700" />
+            <path d="M0,0 L0,6 L10,3 z" fill="#F59E0B" />
           </marker>
+          {/* 成本投入箭头标记 */}
           <marker
             id="arrowhead-cost"
             markerWidth="12"
@@ -426,22 +461,26 @@ export function ValueNetworkGraph(props: ValueNetworkGraphProps) {
             orient="auto"
             markerUnits="strokeWidth"
           >
-            <path d="M0,0 L0,6 L10,3 z" fill="#FF6B6B" />
+            <path d="M0,0 L0,6 L10,3 z" fill="#EF4444" />
           </marker>
         </defs>
 
-        {/* 全幅色带背景（无文字标签）*/}
+        {/* 全幅色带背景（优化版：降低透明度+添加边框）*/}
         {Object.entries(LEVEL_CONFIG).map(([level, config]) => (
-          <rect
-            key={`level-bg-${level}`}
-            x={0}
-            y={config.y - 55}
-            width={svgWidth}
-            height={110}
-            fill={config.color}
-            opacity={0.15}
-            rx={0}
-          />
+          <g key={`level-bg-${level}`}>
+            <rect
+              x={0}
+              y={config.y - 55}
+              width={svgWidth}
+              height={110}
+              fill={config.color}
+              opacity={0.08}
+              rx={0}
+            />
+            {/* 上下边框 */}
+            <line x1={0} y1={config.y - 55} x2={svgWidth} y2={config.y - 55} stroke={config.color} strokeOpacity={0.2} strokeWidth={1} />
+            <line x1={0} y1={config.y + 55} x2={svgWidth} y2={config.y + 55} stroke={config.color} strokeOpacity={0.2} strokeWidth={1} />
+          </g>
         ))}
 
         {/* 支撑关系连接线 */}
@@ -490,23 +529,24 @@ export function ValueNetworkGraph(props: ValueNetworkGraphProps) {
                 drawArrow(source.x, source.y, target.x, target.y, style.color, style.width)
               )}
               
-              {/* 效率标签（普通箭头和L型箭头显示）*/}
+              {/* 效率标签（深色背景+白色文字，提升可见度）*/}
               {!isFeedback && !isRevenueToCost && !isHorizontal && (
                 <>
                   <rect
-                    x={(source.x + target.x) / 2 - 18}
-                    y={(source.y + target.y) / 2 - 9}
-                    width={36}
-                    height={18}
-                    fill="white"
-                    opacity={0.95}
-                    rx={4}
+                    x={(source.x + target.x) / 2 - 20}
+                    y={(source.y + target.y) / 2 - 10}
+                    width={40}
+                    height={20}
+                    fill="rgba(0,0,0,0.75)"
+                    rx={6}
+                    stroke="rgba(255,255,255,0.2)"
+                    strokeWidth={1}
                   />
                   <text
                     x={(source.x + target.x) / 2}
-                    y={(source.y + target.y) / 2 + 4}
+                    y={(source.y + target.y) / 2 + 5}
                     fontSize={11}
-                    fill={style.color}
+                    fill="white"
                     textAnchor="middle"
                     fontWeight="700"
                   >
@@ -548,42 +588,45 @@ export function ValueNetworkGraph(props: ValueNetworkGraphProps) {
                 opacity: isDragging ? 0.7 : 1
               }}
             >
-              {/* 节点圆圈 */}
+              {/* 节点圆圈（优化版：深色半透明边框）*/}
               <circle
                 cx={pos.x}
                 cy={pos.y}
                 r={radius}
                 fill={color}
-                opacity={isSelected || isHovered ? 1 : (hoveredNodeId ? 0.3 : 0.9)}
-                stroke="#fff"
-                strokeWidth={isSelected ? 4 : 3}
+                opacity={isSelected || isHovered ? 1 : (hoveredNodeId ? 0.3 : 0.95)}
+                stroke={isSelected || isHovered ? "#fff" : "rgba(0,0,0,0.2)"}
+                strokeWidth={isSelected ? 5 : (isHovered ? 4 : 3)}
                 style={{ 
                   transition: isDragging ? 'none' : 'all 0.2s ease',
-                  filter: isDragging ? 'drop-shadow(0 8px 16px rgba(0,0,0,0.3))' : 
-                          isHovered ? 'drop-shadow(0 4px 8px rgba(0,0,0,0.2))' : 'none'
+                  filter: isDragging ? 'drop-shadow(0 8px 16px rgba(0,0,0,0.4))' : 
+                          isSelected || isHovered ? 'drop-shadow(0 6px 12px rgba(0,0,0,0.3))' : 
+                          'drop-shadow(0 2px 4px rgba(0,0,0,0.1))'
                 }}
               />
               
-              {/* 节点名称 */}
+              {/* 节点名称（深色文字+白色描边，确保可见）*/}
               <text
                 x={pos.x}
                 y={pos.y - radius - 8}
                 textAnchor="middle"
                 fontSize={11}
                 fontWeight="600"
-                fill="currentColor"
+                fill="#1e293b"
+                stroke="white"
+                strokeWidth={0.5}
               >
                 {node.name}
               </text>
               
-              {/* 节点值 */}
+              {/* 节点值（智能颜色选择，根据背景亮度）*/}
               <text
                 x={pos.x}
                 y={pos.y + 4}
                 textAnchor="middle"
                 fontSize={10}
-                fontWeight="500"
-                fill="#fff"
+                fontWeight="600"
+                fill={getTextColor(color)}
               >
                 {node.value}{node.unit}
               </text>
@@ -607,23 +650,23 @@ export function ValueNetworkGraph(props: ValueNetworkGraphProps) {
           </svg>
         </div>
 
-        {/* 紧凑图例 */}
-        <div className="mt-4 flex items-center justify-center gap-6 text-xs text-muted-foreground">
+        {/* 紧凑图例（优化版：增强对比度和边框）*/}
+        <div className="mt-4 flex items-center justify-center gap-6 text-xs text-gray-700">
           <div className="flex items-center gap-1.5">
-            <div className="w-6 h-1 bg-[#00E676]"></div>
-            <span>强 ≥80%</span>
+            <div className="w-6 h-1 bg-[#00E676] border border-gray-300 rounded-sm"></div>
+            <span className="font-medium">强 ≥80%</span>
           </div>
           <div className="flex items-center gap-1.5">
-            <div className="w-6 h-0.5 bg-[#FFD700]"></div>
-            <span>中 50-80%</span>
+            <div className="w-6 h-0.5 bg-[#FFD700] border border-gray-300 rounded-sm"></div>
+            <span className="font-medium">中 50-80%</span>
           </div>
           <div className="flex items-center gap-1.5">
-            <div className="w-6 h-px bg-[#FF5252]"></div>
-            <span>弱 &lt;50%</span>
+            <div className="w-6 h-px bg-[#FF5252] border border-gray-300 rounded-sm"></div>
+            <span className="font-medium">弱 &lt;50%</span>
           </div>
           <div className="flex items-center gap-1.5">
-            <div className="w-6 h-px bg-[#FFD700] opacity-80" style={{ borderTop: '2px dashed #FFD700' }}></div>
-            <span>毛利回流</span>
+            <div className="w-6 h-px border-t-2 border-dashed border-[#F59E0B] opacity-80"></div>
+            <span className="font-medium">毛利回流</span>
           </div>
         </div>
       </Card>
