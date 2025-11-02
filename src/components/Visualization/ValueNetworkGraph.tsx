@@ -93,7 +93,7 @@ export function ValueNetworkGraph(props: ValueNetworkGraphProps) {
 
   // 计算节点位置（第5层分为收益组和毛利组）
   const svgWidth = 1400; // 增加宽度
-  const svgHeight = 580; // 增加高度
+  const svgHeight = 650; // 增加高度以容纳L型回流路径
   const nodePositions = new Map<string, { x: number; y: number }>();
   
   Object.entries(nodesByLevel).forEach(([level, levelNodes]) => {
@@ -159,19 +159,49 @@ export function ValueNetworkGraph(props: ValueNetworkGraphProps) {
     );
   };
 
-  // 绘制毛利回流箭头（向下虚线闭环）
+  // 绘制毛利回流箭头（L型路径：先垂直下降，再横向，最后上升到投资）
   const drawFeedbackArrow = (x1: number, y1: number, x2: number, y2: number) => {
-    const controlY = y1 + (y2 - y1) * 0.7;
+    const verticalOffset = 150; // 向下延伸150px，避开所有层级
+    const midY = y1 + verticalOffset;
+    const cornerRadius = 12; // 圆角半径
+    
+    // 判断横向方向
+    const isRightward = x2 > x1;
+    const direction = isRightward ? 1 : -1;
+    
+    // L型路径：垂直下降 → 横向移动 → 垂直上升，使用Q命令添加圆角
+    const pathData = `
+      M ${x1} ${y1}
+      L ${x1} ${midY - cornerRadius}
+      Q ${x1} ${midY}, ${x1 + direction * cornerRadius} ${midY}
+      L ${x2 - direction * cornerRadius} ${midY}
+      Q ${x2} ${midY}, ${x2} ${midY - cornerRadius}
+      L ${x2} ${y2}
+    `;
+    
     return (
-      <path
-        d={`M ${x1} ${y1} C ${x1} ${controlY}, ${x2} ${controlY}, ${x2} ${y2}`}
-        stroke="#FFD700"
-        strokeWidth={2.5}
-        strokeDasharray="8,4"
-        fill="none"
-        markerEnd="url(#arrowhead-feedback)"
-        opacity={0.85}
-      />
+      <>
+        {/* 回流路径 */}
+        <path
+          d={pathData}
+          stroke="#FFD700"
+          strokeWidth={2.5}
+          strokeDasharray="8,4"
+          fill="none"
+          markerEnd="url(#arrowhead-feedback)"
+          opacity={0.85}
+        />
+        
+        {/* 中间标注 */}
+        <text
+          x={(x1 + x2) / 2}
+          y={midY - 8}
+          textAnchor="middle"
+          className="text-xs fill-yellow-600 font-medium pointer-events-none"
+        >
+          💰 毛利回流
+        </text>
+      </>
     );
   };
 
