@@ -565,26 +565,55 @@ export function ValueNetworkGraph(props: ValueNetworkGraphProps) {
               {/* 效率标签（深色背景+白色文字，提升可见度）*/}
               {!isFeedback && !isRevenueToCost && !isHorizontal && (
                 <>
-                  <rect
-                    x={(source.x + target.x) / 2 - 20}
-                    y={(source.y + target.y) / 2 - 10}
-                    width={40}
-                    height={20}
-                    fill="rgba(0,0,0,0.75)"
-                    rx={6}
-                    stroke="rgba(255,255,255,0.2)"
-                    strokeWidth={1}
-                  />
-                  <text
-                    x={(source.x + target.x) / 2}
-                    y={(source.y + target.y) / 2 + 5}
-                    fontSize={11}
-                    fill="white"
-                    textAnchor="middle"
-                    fontWeight="700"
-                  >
-                    {(link.efficiency * 100).toFixed(0)}%
-                  </text>
+                  {isLShape ? (
+                    // L型线条标签：放在垂直段的中点
+                    <>
+                      <rect
+                        x={target.x - 20}
+                        y={(source.y + target.y) / 2 - 10}
+                        width={40}
+                        height={20}
+                        fill="rgba(0,0,0,0.75)"
+                        rx={6}
+                        stroke="rgba(255,255,255,0.2)"
+                        strokeWidth={1}
+                      />
+                      <text
+                        x={target.x}
+                        y={(source.y + target.y) / 2 + 5}
+                        fontSize={11}
+                        fill="white"
+                        textAnchor="middle"
+                        fontWeight="700"
+                      >
+                        {(link.efficiency * 100).toFixed(0)}%
+                      </text>
+                    </>
+                  ) : (
+                    // 普通线条标签：放在中点
+                    <>
+                      <rect
+                        x={(source.x + target.x) / 2 - 20}
+                        y={(source.y + target.y) / 2 - 10}
+                        width={40}
+                        height={20}
+                        fill="rgba(0,0,0,0.75)"
+                        rx={6}
+                        stroke="rgba(255,255,255,0.2)"
+                        strokeWidth={1}
+                      />
+                      <text
+                        x={(source.x + target.x) / 2}
+                        y={(source.y + target.y) / 2 + 5}
+                        fontSize={11}
+                        fill="white"
+                        textAnchor="middle"
+                        fontWeight="700"
+                      >
+                        {(link.efficiency * 100).toFixed(0)}%
+                      </text>
+                    </>
+                  )}
                 </>
               )}
             </g>
