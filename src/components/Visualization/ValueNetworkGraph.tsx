@@ -730,6 +730,10 @@ export function ValueNetworkGraph(props: ValueNetworkGraphProps) {
             <div className="w-8 h-0.5 border-t-2 border-dashed border-[#F59E0B]"></div>
             <span className="font-semibold text-white">毛利回流</span>
           </div>
+          <div className="flex items-center gap-2 bg-gray-900/80 px-3 py-2 rounded-lg">
+            <div className="w-8 h-0.5 border-t-2 border-dashed border-[#EF4444]"></div>
+            <span className="font-semibold text-white">成本投入</span>
+          </div>
         </div>
       </Card>
 
