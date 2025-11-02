@@ -187,20 +187,19 @@ export function ValueNetworkGraph(props: ValueNetworkGraphProps) {
     );
   };
 
-  // 绘制水平连接线（同层收益到毛利）- 增强可见性
+  // 绘制水平连接线（同层收益到毛利）- 使用专用高亮渐变
   const drawHorizontalLine = (x1: number, y1: number, x2: number, y2: number, color: string, width: number, efficiency: number) => {
-    // 水平线使用更粗的线条和更高的不透明度
-    const enhancedWidth = Math.max(width + 1, 3); // 至少3px宽
+    // 水平线使用专用的高亮渐变和更粗的线条
+    const enhancedWidth = Math.max(width + 2, 4); // 至少4px宽
     return (
       <path
         d={`M ${x1} ${y1} L ${x2} ${y2}`}
-        stroke={getGradientUrl(efficiency)}
+        stroke="url(#gradient-horizontal)"
         strokeWidth={enhancedWidth}
         fill="none"
         strokeDasharray="12 8"
         strokeLinecap="round"
-        className={getAnimationClass(efficiency)}
-        opacity={0.95}
+        className="flow-arrow"
       />
     );
   };
@@ -487,6 +486,13 @@ export function ValueNetworkGraph(props: ValueNetworkGraphProps) {
                 <stop offset="50%" stopColor="#EF4444" stopOpacity="0.75" />
                 <stop offset="100%" stopColor="#EF4444" stopOpacity="1" />
               </linearGradient>
+              
+              {/* 水平连接线专用渐变（橙黄色高亮）*/}
+              <linearGradient id="gradient-horizontal" x1="0%" y1="0%" x2="100%" y2="0%">
+                <stop offset="0%" stopColor="#FFA500" stopOpacity="0.8" />
+                <stop offset="50%" stopColor="#FFD700" stopOpacity="0.95" />
+                <stop offset="100%" stopColor="#FFA500" stopOpacity="1" />
+              </linearGradient>
             </defs>
 
         {/* 全幅色带背景（优化版：降低透明度+添加边框）*/}
@@ -528,7 +534,7 @@ export function ValueNetworkGraph(props: ValueNetworkGraphProps) {
           return (
             <g
               key={`link-${idx}`}
-              opacity={isSelected ? 1 : (isRelated ? style.opacity : 0.15)}
+              opacity={isSelected ? 1 : (isRelated ? (isHorizontal ? 1 : style.opacity) : 0.15)}
               className="cursor-pointer"
               onClick={(e) => {
                 e.stopPropagation();
