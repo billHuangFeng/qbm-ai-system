@@ -27,7 +27,7 @@ export interface NetworkLink {
   value: number;
   strength: SupportStrength; // 支撑强度
   efficiency: number; // 支撑效率 0-1
-  linkType?: 'normal' | 'horizontal' | 'feedback' | 'revenue-to-cost'; // 连接类型
+  linkType?: 'normal' | 'horizontal' | 'feedback' | 'revenue-to-cost' | 'l-shape'; // 连接类型
 }
 
 export interface ValueNetworkGraphProps {
@@ -166,6 +166,23 @@ export function ValueNetworkGraph(props: ValueNetworkGraphProps) {
     return (
       <path
         d={`M ${x1} ${y1} L ${x2} ${y2}`}
+        stroke={color}
+        strokeWidth={width}
+        fill="none"
+        markerEnd="url(#arrowhead)"
+      />
+    );
+  };
+
+  // 绘制L型箭头（投资到能力/资产，避免视觉重叠）
+  const drawLShapeArrow = (x1: number, y1: number, x2: number, y2: number, color: string, width: number) => {
+    // 计算中间转折点：先向上走70%的距离，然后水平移动，最后向上到目标
+    const verticalDistance = y1 - y2;
+    const midY = y1 - verticalDistance * 0.7;
+    
+    return (
+      <path
+        d={`M ${x1} ${y1} L ${x1} ${midY} L ${x2} ${midY} L ${x2} ${y2}`}
         stroke={color}
         strokeWidth={width}
         fill="none"
@@ -445,6 +462,7 @@ export function ValueNetworkGraph(props: ValueNetworkGraphProps) {
           const isFeedback = link.linkType === 'feedback';
           const isRevenueToCost = link.linkType === 'revenue-to-cost';
           const isHorizontal = link.linkType === 'horizontal';
+          const isLShape = link.linkType === 'l-shape';
 
           return (
             <g
@@ -466,13 +484,16 @@ export function ValueNetworkGraph(props: ValueNetworkGraphProps) {
               ) : isHorizontal ? (
                 // 同层水平连接（收益到毛利）
                 drawHorizontalLine(source.x, source.y, target.x, target.y, style.color, style.width)
+              ) : isLShape ? (
+                // L型箭头（投资到能力/资产，避免视觉重叠）
+                drawLShapeArrow(source.x, source.y, target.x, target.y, style.color, style.width)
               ) : (
                 // 普通向上箭头
                 drawArrow(source.x, source.y, target.x, target.y, style.color, style.width)
               )}
               
-              {/* 效率标签（仅普通箭头显示）*/}
-              {!isFeedback && !isRevenueToCost && (
+              {/* 效率标签（普通箭头和L型箭头显示）*/}
+              {!isFeedback && !isRevenueToCost && !isHorizontal && (
                 <>
                   <rect
                     x={(source.x + target.x) / 2 - 18}
@@ -751,19 +772,19 @@ export function mockValueNetworkData() {
   ];
 
   const links: NetworkLink[] = [
-    // 第1层 → 第2层：投资支撑所有资产+能力（12条），成本转化为生产资源（1条）
-    { source: 'inv1', target: 'asset1', value: 200, strength: 'strong', efficiency: 0.85, linkType: 'normal' },
-    { source: 'inv1', target: 'cap1', value: 180, strength: 'strong', efficiency: 0.82, linkType: 'normal' },
-    { source: 'inv1', target: 'asset2', value: 150, strength: 'strong', efficiency: 0.78, linkType: 'normal' },
-    { source: 'inv1', target: 'cap2', value: 140, strength: 'medium', efficiency: 0.75, linkType: 'normal' },
-    { source: 'inv1', target: 'asset3', value: 120, strength: 'medium', efficiency: 0.70, linkType: 'normal' },
-    { source: 'inv1', target: 'cap3', value: 110, strength: 'medium', efficiency: 0.68, linkType: 'normal' },
-    { source: 'inv1', target: 'asset4', value: 100, strength: 'medium', efficiency: 0.65, linkType: 'normal' },
-    { source: 'inv1', target: 'cap4', value: 90, strength: 'medium', efficiency: 0.62, linkType: 'normal' },
-    { source: 'inv1', target: 'asset5', value: 80, strength: 'medium', efficiency: 0.60, linkType: 'normal' },
-    { source: 'inv1', target: 'cap5', value: 75, strength: 'medium', efficiency: 0.58, linkType: 'normal' },
-    { source: 'inv1', target: 'asset6', value: 90, strength: 'strong', efficiency: 0.72, linkType: 'normal' },
-    { source: 'inv1', target: 'cap6', value: 85, strength: 'medium', efficiency: 0.70, linkType: 'normal' },
+    // 第1层 → 第2层：投资支撑所有资产+能力（12条L型箭头，避免视觉重叠），成本转化为生产资源（1条）
+    { source: 'inv1', target: 'asset1', value: 200, strength: 'strong', efficiency: 0.85, linkType: 'l-shape' },
+    { source: 'inv1', target: 'cap1', value: 180, strength: 'strong', efficiency: 0.82, linkType: 'l-shape' },
+    { source: 'inv1', target: 'asset2', value: 150, strength: 'strong', efficiency: 0.78, linkType: 'l-shape' },
+    { source: 'inv1', target: 'cap2', value: 140, strength: 'medium', efficiency: 0.75, linkType: 'l-shape' },
+    { source: 'inv1', target: 'asset3', value: 120, strength: 'medium', efficiency: 0.70, linkType: 'l-shape' },
+    { source: 'inv1', target: 'cap3', value: 110, strength: 'medium', efficiency: 0.68, linkType: 'l-shape' },
+    { source: 'inv1', target: 'asset4', value: 100, strength: 'medium', efficiency: 0.65, linkType: 'l-shape' },
+    { source: 'inv1', target: 'cap4', value: 90, strength: 'medium', efficiency: 0.62, linkType: 'l-shape' },
+    { source: 'inv1', target: 'asset5', value: 80, strength: 'medium', efficiency: 0.60, linkType: 'l-shape' },
+    { source: 'inv1', target: 'cap5', value: 75, strength: 'medium', efficiency: 0.58, linkType: 'l-shape' },
+    { source: 'inv1', target: 'asset6', value: 90, strength: 'strong', efficiency: 0.72, linkType: 'l-shape' },
+    { source: 'inv1', target: 'cap6', value: 85, strength: 'medium', efficiency: 0.70, linkType: 'l-shape' },
     
     // 成本转化为生产资源
     { source: 'cost1', target: 'resource1', value: 450, strength: 'strong', efficiency: 0.90, linkType: 'normal' },
