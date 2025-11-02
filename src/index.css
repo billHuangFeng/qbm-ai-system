@@ -58,3 +58,25 @@ body {
   background-color: var(--color-background);
   color: var(--color-foreground);
 }
+
+/* 渐变虚线流动动画 */
+@keyframes dash-flow {
+  0% {
+    stroke-dashoffset: 28;
+  }
+  100% {
+    stroke-dashoffset: 0;
+  }
+}
+
+.flow-arrow {
+  animation: dash-flow 1.5s linear infinite;
+}
+
+.flow-arrow-fast {
+  animation: dash-flow 1s linear infinite;
+}
+
+.flow-arrow-slow {
+  animation: dash-flow 2s linear infinite;
+}

@@ -150,6 +150,19 @@ export function ValueNetworkGraph(props: ValueNetworkGraphProps) {
     }
   });
 
+  // 根据效率选择渐变URL
+  const getGradientUrl = (efficiency: number) => {
+    if (efficiency >= 0.8) return 'url(#gradient-high)';
+    if (efficiency >= 0.6) return 'url(#gradient-medium)';
+    return 'url(#gradient-low)';
+  };
+
+  // 根据效率选择动画类
+  const getAnimationClass = (efficiency: number) => {
+    if (efficiency >= 0.8) return 'flow-arrow-fast';
+    if (efficiency >= 0.6) return 'flow-arrow';
+    return 'flow-arrow-slow';
+  };
 
   // 计算节点半径
   const getRadius = (node: NetworkNode) => {
@@ -164,11 +177,12 @@ export function ValueNetworkGraph(props: ValueNetworkGraphProps) {
     return (
       <path
         d={`M ${x1} ${y1} C ${x1} ${midY}, ${x2} ${midY}, ${x2} ${y2}`}
-        stroke={color}
+        stroke={getGradientUrl(efficiency)}
         strokeWidth={width}
         fill="none"
-        strokeDasharray="6 8"
+        strokeDasharray="14 14"
         strokeLinecap="round"
+        className={getAnimationClass(efficiency)}
       />
     );
   };
@@ -178,11 +192,12 @@ export function ValueNetworkGraph(props: ValueNetworkGraphProps) {
     return (
       <path
         d={`M ${x1} ${y1} L ${x2} ${y2}`}
-        stroke={color}
+        stroke={getGradientUrl(efficiency)}
         strokeWidth={width}
         fill="none"
-        strokeDasharray="6 8"
+        strokeDasharray="14 14"
         strokeLinecap="round"
+        className={getAnimationClass(efficiency)}
       />
     );
   };
@@ -194,12 +209,13 @@ export function ValueNetworkGraph(props: ValueNetworkGraphProps) {
     return (
       <path
         d={`M ${x1} ${y1} L ${x2} ${y1} L ${x2} ${y2}`}
-        stroke={color}
+        stroke={getGradientUrl(efficiency)}
         strokeWidth={width}
         fill="none"
-        strokeDasharray="6 8"
+        strokeDasharray="14 14"
         strokeLinecap="round"
         strokeLinejoin="round"
+        className={getAnimationClass(efficiency)}
       />
     );
   };
@@ -230,12 +246,13 @@ export function ValueNetworkGraph(props: ValueNetworkGraphProps) {
       <>
         <path
           d={pathData}
-          stroke="#F59E0B"
+          stroke="url(#gradient-feedback)"
           strokeWidth={2.5}
-          strokeDasharray="10 6"
+          strokeDasharray="14 14"
           fill="none"
           strokeLinecap="round"
-          opacity={0.7}
+          className="flow-arrow"
+          opacity={0.85}
         />
         {/* 毛利回流标签（深色背景+白色文字）*/}
         <rect
@@ -287,12 +304,13 @@ export function ValueNetworkGraph(props: ValueNetworkGraphProps) {
       <>
         <path
           d={pathData}
-          stroke="#EF4444"
+          stroke="url(#gradient-cost)"
           strokeWidth={2.5}
-          strokeDasharray="10 6"
+          strokeDasharray="14 14"
           fill="none"
           strokeLinecap="round"
-          opacity={0.7}
+          className="flow-arrow"
+          opacity={0.85}
         />
         {/* 成本投入标签（深色背景+白色文字）*/}
         <rect
@@ -431,6 +449,42 @@ export function ValueNetworkGraph(props: ValueNetworkGraphProps) {
         
         <div className="w-full flex items-center justify-center">
           <svg ref={svgRef} viewBox="0 0 1200 800" className="w-full h-auto max-h-[calc(100vh-180px)]" preserveAspectRatio="xMidYMid meet">
+            <defs>
+              {/* 高效率渐变（绿色：从淡到浓）*/}
+              <linearGradient id="gradient-high" x1="0%" y1="0%" x2="100%" y2="0%">
+                <stop offset="0%" stopColor="#00E676" stopOpacity="0.2" />
+                <stop offset="50%" stopColor="#00E676" stopOpacity="0.6" />
+                <stop offset="100%" stopColor="#00E676" stopOpacity="1" />
+              </linearGradient>
+              
+              {/* 中等效率渐变（黄色）*/}
+              <linearGradient id="gradient-medium" x1="0%" y1="0%" x2="100%" y2="0%">
+                <stop offset="0%" stopColor="#FFD700" stopOpacity="0.2" />
+                <stop offset="50%" stopColor="#FFD700" stopOpacity="0.6" />
+                <stop offset="100%" stopColor="#FFD700" stopOpacity="1" />
+              </linearGradient>
+              
+              {/* 低效率渐变（红色）*/}
+              <linearGradient id="gradient-low" x1="0%" y1="0%" x2="100%" y2="0%">
+                <stop offset="0%" stopColor="#FF5252" stopOpacity="0.2" />
+                <stop offset="50%" stopColor="#FF5252" stopOpacity="0.6" />
+                <stop offset="100%" stopColor="#FF5252" stopOpacity="1" />
+              </linearGradient>
+              
+              {/* 毛利回流渐变（琥珀色）*/}
+              <linearGradient id="gradient-feedback" x1="0%" y1="0%" x2="100%" y2="0%">
+                <stop offset="0%" stopColor="#F59E0B" stopOpacity="0.2" />
+                <stop offset="50%" stopColor="#F59E0B" stopOpacity="0.6" />
+                <stop offset="100%" stopColor="#F59E0B" stopOpacity="1" />
+              </linearGradient>
+              
+              {/* 成本投入渐变（红色）*/}
+              <linearGradient id="gradient-cost" x1="0%" y1="0%" x2="100%" y2="0%">
+                <stop offset="0%" stopColor="#EF4444" stopOpacity="0.2" />
+                <stop offset="50%" stopColor="#EF4444" stopOpacity="0.6" />
+                <stop offset="100%" stopColor="#EF4444" stopOpacity="1" />
+              </linearGradient>
+            </defs>
 
         {/* 全幅色带背景（优化版：降低透明度+添加边框）*/}
         {Object.entries(LEVEL_CONFIG).map(([level, config]) => (
