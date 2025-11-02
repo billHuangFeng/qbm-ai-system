@@ -150,6 +150,13 @@ export function ValueNetworkGraph(props: ValueNetworkGraphProps) {
     }
   });
 
+  // 根据效率值动态选择箭头标记
+  const getArrowMarker = (efficiency: number) => {
+    if (efficiency >= 0.8) return 'url(#arrowhead-high)';
+    if (efficiency >= 0.6) return 'url(#arrowhead-medium)';
+    return 'url(#arrowhead-low)';
+  };
+
   // 计算节点半径
   const getRadius = (node: NetworkNode) => {
     const baseRadius = 24;
@@ -158,7 +165,7 @@ export function ValueNetworkGraph(props: ValueNetworkGraphProps) {
   };
 
   // 绘制向上箭头
-  const drawArrow = (x1: number, y1: number, x2: number, y2: number, color: string, width: number) => {
+  const drawArrow = (x1: number, y1: number, x2: number, y2: number, color: string, width: number, efficiency: number) => {
     const midY = (y1 + y2) / 2;
     return (
       <path
@@ -166,26 +173,26 @@ export function ValueNetworkGraph(props: ValueNetworkGraphProps) {
         stroke={color}
         strokeWidth={width}
         fill="none"
-        markerEnd="url(#arrowhead)"
+        markerEnd={getArrowMarker(efficiency)}
       />
     );
   };
 
   // 绘制水平连接线（同层收益到毛利）
-  const drawHorizontalLine = (x1: number, y1: number, x2: number, y2: number, color: string, width: number) => {
+  const drawHorizontalLine = (x1: number, y1: number, x2: number, y2: number, color: string, width: number, efficiency: number) => {
     return (
       <path
         d={`M ${x1} ${y1} L ${x2} ${y2}`}
         stroke={color}
         strokeWidth={width}
         fill="none"
-        markerEnd="url(#arrowhead)"
+        markerEnd={getArrowMarker(efficiency)}
       />
     );
   };
 
   // 绘制L型箭头（投资到能力/资产，避免视觉重叠）
-  const drawLShapeArrow = (x1: number, y1: number, x2: number, y2: number, color: string, width: number) => {
+  const drawLShapeArrow = (x1: number, y1: number, x2: number, y2: number, color: string, width: number, efficiency: number) => {
     // 从投资出发先横向延伸到目标X，然后向上到目标Y
     // 路径：投资(x1, y1) → 水平到(x2, y1) → 向上到(x2, y2)
     return (
@@ -194,7 +201,7 @@ export function ValueNetworkGraph(props: ValueNetworkGraphProps) {
         stroke={color}
         strokeWidth={width}
         fill="none"
-        markerEnd="url(#arrowhead)"
+        markerEnd={getArrowMarker(efficiency)}
       />
     );
   };
@@ -427,41 +434,65 @@ export function ValueNetworkGraph(props: ValueNetworkGraphProps) {
         <div className="w-full flex items-center justify-center">
           <svg ref={svgRef} viewBox="0 0 1200 800" className="w-full h-auto max-h-[calc(100vh-180px)]" preserveAspectRatio="xMidYMid meet">
         <defs>
-          {/* 动态箭头标记 - 普通箭头（继承线条颜色）*/}
+          {/* 高效率箭头标记（绿色）*/}
           <marker
-            id="arrowhead"
-            markerWidth="10"
-            markerHeight="10"
-            refX="9"
-            refY="3"
+            id="arrowhead-high"
+            markerWidth="8"
+            markerHeight="8"
+            refX="8"
+            refY="4"
             orient="auto"
-            markerUnits="strokeWidth"
+            markerUnits="userSpaceOnUse"
           >
-            <path d="M0,0 L0,6 L9,3 z" fill="context-stroke" />
+            <path d="M0,0 L0,8 L8,4 z" fill="#00E676" />
           </marker>
-          {/* 毛利回流箭头标记 */}
+          {/* 中等效率箭头标记（黄色）*/}
+          <marker
+            id="arrowhead-medium"
+            markerWidth="8"
+            markerHeight="8"
+            refX="8"
+            refY="4"
+            orient="auto"
+            markerUnits="userSpaceOnUse"
+          >
+            <path d="M0,0 L0,8 L8,4 z" fill="#FFD700" />
+          </marker>
+          {/* 低效率箭头标记（红色）*/}
+          <marker
+            id="arrowhead-low"
+            markerWidth="8"
+            markerHeight="8"
+            refX="8"
+            refY="4"
+            orient="auto"
+            markerUnits="userSpaceOnUse"
+          >
+            <path d="M0,0 L0,8 L8,4 z" fill="#FF5252" />
+          </marker>
+          {/* 毛利回流箭头标记（琥珀色）*/}
           <marker
             id="arrowhead-feedback"
-            markerWidth="12"
-            markerHeight="12"
-            refX="10"
-            refY="3"
+            markerWidth="8"
+            markerHeight="8"
+            refX="8"
+            refY="4"
             orient="auto"
-            markerUnits="strokeWidth"
+            markerUnits="userSpaceOnUse"
           >
-            <path d="M0,0 L0,6 L10,3 z" fill="#F59E0B" />
+            <path d="M0,0 L0,8 L8,4 z" fill="#F59E0B" />
           </marker>
-          {/* 成本投入箭头标记 */}
+          {/* 成本投入箭头标记（红色）*/}
           <marker
             id="arrowhead-cost"
-            markerWidth="12"
-            markerHeight="12"
-            refX="10"
-            refY="3"
+            markerWidth="8"
+            markerHeight="8"
+            refX="8"
+            refY="4"
             orient="auto"
-            markerUnits="strokeWidth"
+            markerUnits="userSpaceOnUse"
           >
-            <path d="M0,0 L0,6 L10,3 z" fill="#EF4444" />
+            <path d="M0,0 L0,8 L8,4 z" fill="#EF4444" />
           </marker>
         </defs>
 
@@ -520,13 +551,13 @@ export function ValueNetworkGraph(props: ValueNetworkGraphProps) {
                 drawRevenueToCostArrow(source.x, source.y, target.x, target.y)
               ) : isHorizontal ? (
                 // 同层水平连接（收益到毛利）
-                drawHorizontalLine(source.x, source.y, target.x, target.y, style.color, style.width)
+                drawHorizontalLine(source.x, source.y, target.x, target.y, style.color, style.width, efficiency)
               ) : isLShape ? (
                 // L型箭头（投资到能力/资产，避免视觉重叠）
-                drawLShapeArrow(source.x, source.y, target.x, target.y, style.color, style.width)
+                drawLShapeArrow(source.x, source.y, target.x, target.y, style.color, style.width, efficiency)
               ) : (
                 // 普通向上箭头
-                drawArrow(source.x, source.y, target.x, target.y, style.color, style.width)
+                drawArrow(source.x, source.y, target.x, target.y, style.color, style.width, efficiency)
               )}
               
               {/* 效率标签（深色背景+白色文字，提升可见度）*/}
