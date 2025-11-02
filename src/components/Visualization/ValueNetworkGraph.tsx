@@ -173,24 +173,26 @@ export function ValueNetworkGraph(props: ValueNetworkGraphProps) {
     );
   };
 
-  // 绘制毛利回流箭头（门字形路径：下→右→下→左到投资）
+  // 绘制毛利回流箭头（U型路径：毛利顶部→上→右→下→左→投资底部）
   const drawFeedbackArrow = (x1: number, y1: number, x2: number, y2: number) => {
     const cornerRadius = 12;
-    const bottomY = svgHeight - 60; // 底部水平线的Y坐标
-    const rightEdge = svgWidth - 50; // 右侧边缘
+    const topY = 40; // 顶部水平线高度
+    const rightEdge = svgWidth - 30; // 右侧边缘
+    const bottomY = svgHeight - 40; // 底部水平线高度
+    const nodeRadius = 30; // 节点半径
     
-    // 门字形路径：垂直下降 → 水平向右到右边缘 → 垂直下降到底部 → 水平向左到投资上方 → 垂直下降到投资
+    // U型路径：毛利顶部 → 向上到顶部 → 向右到右边缘 → 向下到底部 → 向左到投资下方 → 向上接入投资底部
     const pathData = `
-      M ${x1} ${y1}
-      L ${x1} ${y1 + 80}
-      Q ${x1} ${y1 + 80 + cornerRadius}, ${x1 + cornerRadius} ${y1 + 80 + cornerRadius}
-      L ${rightEdge - cornerRadius} ${y1 + 80 + cornerRadius}
-      Q ${rightEdge} ${y1 + 80 + cornerRadius}, ${rightEdge} ${y1 + 80 + cornerRadius + cornerRadius}
+      M ${x1} ${y1 - nodeRadius}
+      L ${x1} ${topY + cornerRadius}
+      Q ${x1} ${topY}, ${x1 + cornerRadius} ${topY}
+      L ${rightEdge - cornerRadius} ${topY}
+      Q ${rightEdge} ${topY}, ${rightEdge} ${topY + cornerRadius}
       L ${rightEdge} ${bottomY - cornerRadius}
       Q ${rightEdge} ${bottomY}, ${rightEdge - cornerRadius} ${bottomY}
       L ${x2 + cornerRadius} ${bottomY}
       Q ${x2} ${bottomY}, ${x2} ${bottomY - cornerRadius}
-      L ${x2} ${y2}
+      L ${x2} ${y2 + nodeRadius}
     `;
     
     return (
@@ -205,10 +207,11 @@ export function ValueNetworkGraph(props: ValueNetworkGraphProps) {
           opacity={0.85}
         />
         <text
-          x={rightEdge - 60}
-          y={bottomY - 8}
-          textAnchor="middle"
+          x={rightEdge - 15}
+          y={(topY + bottomY) / 2}
+          textAnchor="start"
           className="text-xs fill-yellow-600 font-medium pointer-events-none"
+          style={{ writingMode: 'vertical-rl' }}
         >
           💰 毛利回流
         </text>
@@ -216,25 +219,26 @@ export function ValueNetworkGraph(props: ValueNetworkGraphProps) {
     );
   };
 
-  // 绘制收入到成本的反馈箭头（左侧门字形路径）
+  // 绘制收入到成本的反馈箭头（U型路径：收入顶部→上→左→下→右→成本底部）
   const drawRevenueToCostArrow = (x1: number, y1: number, x2: number, y2: number) => {
     const cornerRadius = 12;
-    const topOffset = 80; // 从收入节点向下的偏移
-    const bottomY = svgHeight - 60; // 底部水平线的Y坐标
-    const leftEdge = 50; // 左侧边缘
+    const topY = 40; // 顶部水平线高度
+    const leftEdge = 30; // 左侧边缘
+    const bottomY = svgHeight - 40; // 底部水平线高度
+    const nodeRadius = 30; // 节点半径
     
-    // 左侧门字形路径：垂直下降 → 水平向左到左边缘 → 垂直下降到底部 → 水平向右到成本上方 → 垂直上升到成本
+    // U型路径：收入顶部 → 向上到顶部 → 向左到左边缘 → 向下到底部 → 向右到成本下方 → 向上接入成本底部
     const pathData = `
-      M ${x1} ${y1}
-      L ${x1} ${y1 + topOffset - cornerRadius}
-      Q ${x1} ${y1 + topOffset}, ${x1 - cornerRadius} ${y1 + topOffset}
-      L ${leftEdge + cornerRadius} ${y1 + topOffset}
-      Q ${leftEdge} ${y1 + topOffset}, ${leftEdge} ${y1 + topOffset + cornerRadius}
+      M ${x1} ${y1 - nodeRadius}
+      L ${x1} ${topY + cornerRadius}
+      Q ${x1} ${topY}, ${x1 - cornerRadius} ${topY}
+      L ${leftEdge + cornerRadius} ${topY}
+      Q ${leftEdge} ${topY}, ${leftEdge} ${topY + cornerRadius}
       L ${leftEdge} ${bottomY - cornerRadius}
       Q ${leftEdge} ${bottomY}, ${leftEdge + cornerRadius} ${bottomY}
       L ${x2 - cornerRadius} ${bottomY}
       Q ${x2} ${bottomY}, ${x2} ${bottomY - cornerRadius}
-      L ${x2} ${y2}
+      L ${x2} ${y2 + nodeRadius}
     `;
     
     return (
@@ -249,10 +253,11 @@ export function ValueNetworkGraph(props: ValueNetworkGraphProps) {
           opacity={0.85}
         />
         <text
-          x={leftEdge + 60}
-          y={bottomY - 8}
-          textAnchor="middle"
+          x={leftEdge + 15}
+          y={(topY + bottomY) / 2}
+          textAnchor="start"
           className="text-xs fill-red-600 font-medium pointer-events-none"
+          style={{ writingMode: 'vertical-rl' }}
         >
           💸 成本投入
         </text>
