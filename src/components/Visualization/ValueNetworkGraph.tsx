@@ -1,7 +1,8 @@
 "use client";
 
-import React from 'react';
+import React, { useState } from 'react';
 import { Card } from "@/components/ui/card";
+import { X } from "lucide-react";
 
 // 节点类型：五层自下而上
 export type NodeType = 'investment' | 'cost' | 'asset' | 'capability' | 'process' | 'value' | 'revenue';
@@ -61,6 +62,8 @@ const NODE_COLORS: Record<NodeType, string> = {
 
 export function ValueNetworkGraph(props: ValueNetworkGraphProps) {
   const { nodes, links } = props;
+  const [selectedNode, setSelectedNode] = useState<NetworkNode | null>(null);
+  const [selectedLink, setSelectedLink] = useState<NetworkLink | null>(null);
   
   // 按层级分组节点
   const nodesByLevel = nodes.reduce((acc, node) => {
@@ -119,13 +122,14 @@ export function ValueNetworkGraph(props: ValueNetworkGraphProps) {
   };
 
   return (
-    <Card className="p-6">
-      <div className="mb-4">
-        <h3 className="text-lg font-semibold text-foreground">价值链网络图（自下而上支撑关系）</h3>
-        <p className="text-sm text-muted-foreground mt-1">底层基础支撑上层目标，箭头方向表示支撑流向</p>
-      </div>
-      
-      <svg width={svgWidth} height={svgHeight} className="w-full h-auto" style={{ maxHeight: '70vh' }}>
+    <div className="flex gap-4">
+      <Card className="flex-1 p-6">
+        <div className="mb-4">
+          <h3 className="text-lg font-semibold text-foreground">价值链网络图（自下而上支撑关系）</h3>
+          <p className="text-sm text-muted-foreground mt-1">底层基础支撑上层目标，箭头方向表示支撑流向。点击节点或连接线查看详情。</p>
+        </div>
+        
+        <svg width={svgWidth} height={svgHeight} className="w-full h-auto" style={{ maxHeight: '70vh' }}>
         <defs>
           <marker
             id="arrowhead"
@@ -171,8 +175,19 @@ export function ValueNetworkGraph(props: ValueNetworkGraphProps) {
           
           const style = STRENGTH_STYLE[link.strength];
           
+          const isSelected = selectedLink?.source === link.source && selectedLink?.target === link.target;
+          
           return (
-            <g key={`link-${idx}`} opacity={style.opacity}>
+            <g 
+              key={`link-${idx}`} 
+              opacity={isSelected ? 1 : style.opacity}
+              className="cursor-pointer"
+              onClick={(e) => {
+                e.stopPropagation();
+                setSelectedLink(link);
+                setSelectedNode(null);
+              }}
+            >
               {drawArrow(source.x, source.y, target.x, target.y, style.color, style.width)}
               {/* 效率标签 */}
               <text
@@ -185,6 +200,17 @@ export function ValueNetworkGraph(props: ValueNetworkGraphProps) {
               >
                 {(link.efficiency * 100).toFixed(0)}%
               </text>
+              {isSelected && (
+                <circle
+                  cx={(source.x + target.x) / 2}
+                  cy={(source.y + target.y) / 2}
+                  r={15}
+                  fill="none"
+                  stroke={style.color}
+                  strokeWidth={2}
+                  opacity={0.5}
+                />
+              )}
             </g>
           );
         })}
@@ -196,18 +222,27 @@ export function ValueNetworkGraph(props: ValueNetworkGraphProps) {
           
           const radius = getRadius(node);
           const color = NODE_COLORS[node.type];
+          const isSelected = selectedNode?.id === node.id;
           
           return (
-            <g key={node.id}>
+            <g 
+              key={node.id}
+              className="cursor-pointer"
+              onClick={(e) => {
+                e.stopPropagation();
+                setSelectedNode(node);
+                setSelectedLink(null);
+              }}
+            >
               {/* 节点圆圈 */}
               <circle
                 cx={pos.x}
                 cy={pos.y}
                 r={radius}
                 fill={color}
-                opacity={0.85}
-                stroke="#fff"
-                strokeWidth={2}
+                opacity={isSelected ? 1 : 0.85}
+                stroke={isSelected ? "#fff" : "#fff"}
+                strokeWidth={isSelected ? 3 : 2}
               />
               
               {/* 节点名称 */}
@@ -250,41 +285,145 @@ export function ValueNetworkGraph(props: ValueNetworkGraphProps) {
             </g>
           );
         })}
-      </svg>
+        </svg>
 
-      {/* 图例 */}
-      <div className="mt-4 flex items-center gap-6 text-xs text-muted-foreground">
-        <div className="flex items-center gap-2">
-          <div className="w-8 h-1 bg-[#4CAF50]"></div>
-          <span>强支撑</span>
+        {/* 紧凑图例 */}
+        <div className="mt-4 flex items-center justify-center gap-6 text-xs text-muted-foreground">
+          <div className="flex items-center gap-1.5">
+            <div className="w-6 h-1 bg-[#4CAF50]"></div>
+            <span>强</span>
+          </div>
+          <div className="flex items-center gap-1.5">
+            <div className="w-6 h-0.5 bg-[#FFC107]"></div>
+            <span>中</span>
+          </div>
+          <div className="flex items-center gap-1.5">
+            <div className="w-6 h-px bg-[#F44336]"></div>
+            <span>弱</span>
+          </div>
         </div>
-        <div className="flex items-center gap-2">
-          <div className="w-8 h-0.5 bg-[#FFC107]"></div>
-          <span>中支撑</span>
-        </div>
-        <div className="flex items-center gap-2">
-          <div className="w-8 h-px bg-[#F44336]"></div>
-          <span>弱支撑</span>
-        </div>
-      </div>
-    </Card>
+      </Card>
+
+      {/* 详情面板 */}
+      {(selectedNode || selectedLink) && (
+        <Card className="w-80 p-4">
+          <div className="flex items-center justify-between mb-4">
+            <h4 className="font-semibold text-foreground">详细信息</h4>
+            <button
+              onClick={() => {
+                setSelectedNode(null);
+                setSelectedLink(null);
+              }}
+              className="p-1 hover:bg-accent rounded"
+            >
+              <X className="w-4 h-4" />
+            </button>
+          </div>
+
+          {selectedNode && (
+            <div className="space-y-3">
+              <div>
+                <div className="text-xs text-muted-foreground mb-1">节点名称</div>
+                <div className="font-medium">{selectedNode.name}</div>
+              </div>
+              <div>
+                <div className="text-xs text-muted-foreground mb-1">节点类型</div>
+                <div className="inline-flex items-center gap-2">
+                  <div 
+                    className="w-3 h-3 rounded-full" 
+                    style={{ backgroundColor: NODE_COLORS[selectedNode.type] }}
+                  />
+                  <span className="capitalize">{selectedNode.type}</span>
+                </div>
+              </div>
+              <div>
+                <div className="text-xs text-muted-foreground mb-1">层级</div>
+                <div>{LEVEL_CONFIG[selectedNode.level as keyof typeof LEVEL_CONFIG].icon} {LEVEL_CONFIG[selectedNode.level as keyof typeof LEVEL_CONFIG].label}</div>
+              </div>
+              <div>
+                <div className="text-xs text-muted-foreground mb-1">数值</div>
+                <div className="text-lg font-semibold">{selectedNode.value}{selectedNode.unit}</div>
+              </div>
+              {selectedNode.changeRate !== undefined && (
+                <div>
+                  <div className="text-xs text-muted-foreground mb-1">变化率</div>
+                  <div className={selectedNode.changeRate >= 0 ? 'text-green-600' : 'text-red-600'}>
+                    {selectedNode.changeRate > 0 ? '↑' : '↓'}{Math.abs(selectedNode.changeRate)}%
+                  </div>
+                </div>
+              )}
+              <div>
+                <div className="text-xs text-muted-foreground mb-1">支撑关系</div>
+                <div className="text-sm space-y-1">
+                  <div>输入: {links.filter(l => l.target === selectedNode.id).length} 个</div>
+                  <div>输出: {links.filter(l => l.source === selectedNode.id).length} 个</div>
+                </div>
+              </div>
+            </div>
+          )}
+
+          {selectedLink && (
+            <div className="space-y-3">
+              <div>
+                <div className="text-xs text-muted-foreground mb-1">支撑关系</div>
+                <div className="font-medium">
+                  {nodes.find(n => n.id === selectedLink.source)?.name} → {nodes.find(n => n.id === selectedLink.target)?.name}
+                </div>
+              </div>
+              <div>
+                <div className="text-xs text-muted-foreground mb-1">支撑强度</div>
+                <div className="inline-flex items-center gap-2">
+                  <div 
+                    className="w-8 h-1 rounded" 
+                    style={{ backgroundColor: STRENGTH_STYLE[selectedLink.strength].color }}
+                  />
+                  <span className="capitalize">
+                    {selectedLink.strength === 'strong' ? '强支撑' : selectedLink.strength === 'medium' ? '中支撑' : '弱支撑'}
+                  </span>
+                </div>
+              </div>
+              <div>
+                <div className="text-xs text-muted-foreground mb-1">支撑效率</div>
+                <div className="text-lg font-semibold">{(selectedLink.efficiency * 100).toFixed(1)}%</div>
+              </div>
+              <div>
+                <div className="text-xs text-muted-foreground mb-1">传递价值</div>
+                <div className="text-lg font-semibold">{selectedLink.value}</div>
+              </div>
+              <div className="pt-2 border-t">
+                <div className="text-xs text-muted-foreground mb-2">效率分析</div>
+                <div className="text-sm">
+                  {selectedLink.efficiency >= 0.8 ? '✅ 高效支撑，保持优势' : 
+                   selectedLink.efficiency >= 0.6 ? '⚠️ 中等效率，有优化空间' : 
+                   '🔴 效率较低，需要改进'}
+                </div>
+              </div>
+            </div>
+          )}
+        </Card>
+      )}
+    </div>
   );
 }
 
-// Mock 数据生成器
+// Mock 数据生成器（完整版）
 export function mockValueNetworkData() {
   const nodes: NetworkNode[] = [
     // 第1层：投资+成本（底部）
     { id: 'inv1', type: 'investment', name: '投资', value: 1000, unit: '万', changeRate: -10, level: 1 },
     { id: 'cost1', type: 'cost', name: '成本', value: 500, unit: '万', changeRate: -5, level: 1 },
     
-    // 第2层：资产+能力
+    // 第2层：资产+能力（每个流程对应的资产和能力）
     { id: 'asset1', type: 'asset', name: '生产资产', value: 200, unit: '万', level: 2 },
-    { id: 'cap1', type: 'capability', name: '播传能力', value: 150, unit: '万', level: 2 },
-    { id: 'asset2', type: 'asset', name: '首单资产', value: 120, unit: '万', level: 2 },
-    { id: 'cap2', type: 'capability', name: '交付能力', value: 100, unit: '万', level: 2 },
+    { id: 'cap1', type: 'capability', name: '生产能力', value: 180, unit: '万', level: 2 },
+    { id: 'asset2', type: 'asset', name: '播传资产', value: 150, unit: '万', level: 2 },
+    { id: 'cap2', type: 'capability', name: '播传能力', value: 140, unit: '万', level: 2 },
+    { id: 'asset3', type: 'asset', name: '首单资产', value: 120, unit: '万', level: 2 },
+    { id: 'cap3', type: 'capability', name: '首单能力', value: 110, unit: '万', level: 2 },
+    { id: 'asset4', type: 'asset', name: '交付资产', value: 100, unit: '万', level: 2 },
+    { id: 'cap4', type: 'capability', name: '交付能力', value: 90, unit: '万', level: 2 },
     
-    // 第3层：流程
+    // 第3层：流程（4个核心流程）
     { id: 'proc1', type: 'process', name: '生产流程', value: 0.08, unit: '', level: 3 },
     { id: 'proc2', type: 'process', name: '播传流程', value: 0.06, unit: '', level: 3 },
     { id: 'proc3', type: 'process', name: '首单流程', value: 0.25, unit: '', changeRate: 5, level: 3 },
@@ -303,17 +442,25 @@ export function mockValueNetworkData() {
   ];
 
   const links: NetworkLink[] = [
-    // 第1层 → 第2层（投资支撑资产+能力）
+    // 第1层 → 第2层（投资成本支撑资产+能力）
     { source: 'inv1', target: 'asset1', value: 200, strength: 'strong', efficiency: 0.85 },
-    { source: 'inv1', target: 'cap1', value: 150, strength: 'medium', efficiency: 0.60 },
-    { source: 'inv1', target: 'asset2', value: 120, strength: 'strong', efficiency: 0.80 },
-    { source: 'cost1', target: 'cap2', value: 100, strength: 'strong', efficiency: 0.90 },
+    { source: 'inv1', target: 'cap1', value: 180, strength: 'strong', efficiency: 0.82 },
+    { source: 'inv1', target: 'asset2', value: 150, strength: 'medium', efficiency: 0.75 },
+    { source: 'inv1', target: 'cap2', value: 140, strength: 'medium', efficiency: 0.70 },
+    { source: 'cost1', target: 'asset3', value: 120, strength: 'strong', efficiency: 0.80 },
+    { source: 'cost1', target: 'cap3', value: 110, strength: 'strong', efficiency: 0.78 },
+    { source: 'cost1', target: 'asset4', value: 100, strength: 'strong', efficiency: 0.90 },
+    { source: 'cost1', target: 'cap4', value: 90, strength: 'strong', efficiency: 0.88 },
     
-    // 第2层 → 第3层（资产+能力支撑流程）
+    // 第2层 → 第3层（资产+能力支撑流程，确保每个流程都有对应的资产和能力）
     { source: 'asset1', target: 'proc1', value: 80, strength: 'strong', efficiency: 0.85 },
-    { source: 'cap1', target: 'proc2', value: 70, strength: 'weak', efficiency: 0.40 },
-    { source: 'asset2', target: 'proc3', value: 60, strength: 'medium', efficiency: 0.65 },
-    { source: 'cap2', target: 'proc4', value: 50, strength: 'strong', efficiency: 0.88 },
+    { source: 'cap1', target: 'proc1', value: 75, strength: 'strong', efficiency: 0.80 },
+    { source: 'asset2', target: 'proc2', value: 70, strength: 'medium', efficiency: 0.65 },
+    { source: 'cap2', target: 'proc2', value: 65, strength: 'weak', efficiency: 0.40 },
+    { source: 'asset3', target: 'proc3', value: 60, strength: 'medium', efficiency: 0.68 },
+    { source: 'cap3', target: 'proc3', value: 55, strength: 'medium', efficiency: 0.65 },
+    { source: 'asset4', target: 'proc4', value: 50, strength: 'strong', efficiency: 0.90 },
+    { source: 'cap4', target: 'proc4', value: 45, strength: 'strong', efficiency: 0.88 },
     
     // 第3层 → 第4层（流程支撑价值要素）
     { source: 'proc1', target: 'val1', value: 600, strength: 'strong', efficiency: 0.82 },
