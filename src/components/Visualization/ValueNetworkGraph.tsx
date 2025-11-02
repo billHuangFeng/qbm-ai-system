@@ -93,7 +93,7 @@ export function ValueNetworkGraph(props: ValueNetworkGraphProps) {
 
   // 计算节点位置（第5层分为收益组和毛利组，第1层成本放左侧）
   const svgWidth = 1400; // 增加宽度
-  const svgHeight = 700; // 增加高度以容纳门字形回流路径
+  const svgHeight = 800; // 增加高度以容纳U型回流路径
   const nodePositions = new Map<string, { x: number; y: number }>();
   
   Object.entries(nodesByLevel).forEach(([level, levelNodes]) => {
@@ -733,7 +733,7 @@ export function mockValueNetworkData() {
     { id: 'proc6', type: 'process', name: '复购流程', value: 0.20, unit: '', level: 3 },
     
     // 第4层：价值要素
-    { id: 'val1', type: 'value', name: '产品特性', value: 600, unit: '元', level: 4 },
+    { id: 'val1', type: 'value', name: '产品内在价值', value: 600, unit: '元', level: 4 },
     { id: 'val2', type: 'value', name: '产品内在', value: 741, unit: '分', level: 4 },
     { id: 'val3', type: 'value', name: '客户感知', value: 1000, unit: '元', changeRate: -5, level: 4 },
     { id: 'val4', type: 'value', name: '客户体验', value: 746, unit: '分', level: 4 },
