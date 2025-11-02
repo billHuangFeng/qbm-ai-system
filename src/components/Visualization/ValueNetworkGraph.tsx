@@ -37,11 +37,12 @@ export interface ValueNetworkGraphProps {
 
 // 层级配置：自下而上（颜色参考用户提供图片）
 const LEVEL_CONFIG = {
-  1: { y: 480, label: '基础支撑层', icon: '🏗️', color: '#8B6914' }, // 底部 - 棕褐色（下移留出回流箭头空间）
-  2: { y: 370, label: '能力支撑层', icon: '⚙️', color: '#4CAF50' }, // 绿色
-  3: { y: 260, label: '流程转化层', icon: '🔄', color: '#2196F3' }, // 蓝色
-  4: { y: 150, label: '价值汇聚层', icon: '💎', color: '#9C27B0' }, // 紫色
-  5: { y: 50, label: '目标收益层', icon: '🎯', color: '#FFB300' }, // 顶部 - 橙黄色
+  1: { y: 560, label: '基础支撑层', icon: '🏗️', color: '#8B6914' }, // 底部 - 棕褐色
+  2: { y: 450, label: '能力支撑层', icon: '⚙️', color: '#4CAF50' }, // 绿色
+  3: { y: 340, label: '流程转化层', icon: '🔄', color: '#2196F3' }, // 蓝色
+  4: { y: 230, label: '价值产出层', icon: '💎', color: '#9C27B0' }, // 紫色 - 产品特性+内在价值
+  5: { y: 120, label: '价值传递层', icon: '🎁', color: '#E91E63' }, // 粉红 - 客户感知+体验价值
+  6: { y: 50, label: '目标收益层', icon: '🎯', color: '#FFB300' }, // 顶部 - 橙黄色
 } as const;
 
 // 根据效率动态计算箭头样式
@@ -91,17 +92,17 @@ export function ValueNetworkGraph(props: ValueNetworkGraphProps) {
     return acc;
   }, {} as Record<number, NetworkNode[]>);
 
-  // 计算节点位置（第5层分为收益组和毛利组，第1层成本放左侧）
+  // 计算节点位置（第6层分为收益组和毛利组，第1层成本放左侧）
   const svgWidth = 1400; // 增加宽度
-  const svgHeight = 800; // 增加高度以容纳U型回流路径
+  const svgHeight = 900; // 增加高度以容纳更多层级和U型回流路径
   const nodePositions = new Map<string, { x: number; y: number }>();
   
   Object.entries(nodesByLevel).forEach(([level, levelNodes]) => {
     const levelNum = parseInt(level);
     const y = LEVEL_CONFIG[levelNum as keyof typeof LEVEL_CONFIG].y;
     
-    if (levelNum === 5) {
-      // 第5层特殊处理：收益在左，毛利在右
+    if (levelNum === 6) {
+      // 第6层特殊处理：收益在左，毛利在右
       const revenueNodes = levelNodes.filter(n => n.type === 'revenue');
       const marginNodes = levelNodes.filter(n => n.type === 'margin');
       
@@ -732,19 +733,21 @@ export function mockValueNetworkData() {
     { id: 'proc5', type: 'process', name: '追销流程', value: 0.15, unit: '', level: 3 },
     { id: 'proc6', type: 'process', name: '复购流程', value: 0.20, unit: '', level: 3 },
     
-    // 第4层：价值要素
-    { id: 'val1', type: 'value', name: '产品内在价值', value: 600, unit: '元', level: 4 },
-    { id: 'val2', type: 'value', name: '产品内在', value: 741, unit: '分', level: 4 },
-    { id: 'val3', type: 'value', name: '客户感知', value: 1000, unit: '元', changeRate: -5, level: 4 },
-    { id: 'val4', type: 'value', name: '客户体验', value: 746, unit: '分', level: 4 },
+    // 第4层：价值产出层（产品特性+内在价值）
+    { id: 'val1', type: 'value', name: '产品特性', value: 600, unit: '元', level: 4 },
+    { id: 'val2', type: 'value', name: '产品内在价值', value: 741, unit: '分', level: 4 },
     
-    // 第5层：收益 + 毛利（顶部）
-    { id: 'rev1', type: 'revenue', name: '首单收入', value: 100, unit: '万', changeRate: 15, level: 5 },
-    { id: 'rev2', type: 'revenue', name: '追销收入', value: 80, unit: '万', changeRate: 20, level: 5 },
-    { id: 'rev3', type: 'revenue', name: '复购收入', value: 120, unit: '万', changeRate: 10, level: 5 },
-    { id: 'margin1', type: 'margin', name: '首单毛利', value: 60, unit: '万', changeRate: 12, level: 5 },
-    { id: 'margin2', type: 'margin', name: '追销毛利', value: 50, unit: '万', changeRate: 18, level: 5 },
-    { id: 'margin3', type: 'margin', name: '复购毛利', value: 70, unit: '万', changeRate: 8, level: 5 },
+    // 第5层：价值传递层（客户感知+体验价值）
+    { id: 'val3', type: 'value', name: '客户感知价值', value: 1000, unit: '元', changeRate: -5, level: 5 },
+    { id: 'val4', type: 'value', name: '客户体验价值', value: 746, unit: '分', level: 5 },
+    
+    // 第6层：收益 + 毛利（顶部）
+    { id: 'rev1', type: 'revenue', name: '首单收入', value: 100, unit: '万', changeRate: 15, level: 6 },
+    { id: 'rev2', type: 'revenue', name: '追销收入', value: 80, unit: '万', changeRate: 20, level: 6 },
+    { id: 'rev3', type: 'revenue', name: '复购收入', value: 120, unit: '万', changeRate: 10, level: 6 },
+    { id: 'margin1', type: 'margin', name: '首单毛利', value: 60, unit: '万', changeRate: 12, level: 6 },
+    { id: 'margin2', type: 'margin', name: '追销毛利', value: 50, unit: '万', changeRate: 18, level: 6 },
+    { id: 'margin3', type: 'margin', name: '复购毛利', value: 70, unit: '万', changeRate: 8, level: 6 },
   ];
 
   const links: NetworkLink[] = [
@@ -780,24 +783,29 @@ export function mockValueNetworkData() {
     { source: 'asset6', target: 'proc6', value: 0.20, strength: 'strong', efficiency: 0.82, linkType: 'normal' },
     { source: 'cap6', target: 'proc6', value: 0.20, strength: 'strong', efficiency: 0.78, linkType: 'normal' },
     
-    // 第3层 → 第4层：流程转化为价值要素
+    // 第3层 → 第4层：流程转化为价值产出（产品特性+内在价值）
     { source: 'proc1', target: 'val1', value: 600, strength: 'strong', efficiency: 0.90, linkType: 'normal' },
     { source: 'proc1', target: 'val2', value: 741, strength: 'strong', efficiency: 0.88, linkType: 'normal' },
+    
+    // 第4层 → 第5层：价值产出转化为价值传递（客户感知+体验）
+    { source: 'val1', target: 'val3', value: 1000, strength: 'strong', efficiency: 0.85, linkType: 'normal' },
+    { source: 'val2', target: 'val3', value: 1000, strength: 'strong', efficiency: 0.88, linkType: 'normal' },
+    { source: 'val2', target: 'val4', value: 746, strength: 'medium', efficiency: 0.75, linkType: 'normal' },
+    
+    // 第3层 → 第5层：部分流程直接影响客户感知/体验
     { source: 'proc2', target: 'val3', value: 1000, strength: 'strong', efficiency: 0.85, linkType: 'normal' },
     { source: 'proc3', target: 'val3', value: 1000, strength: 'strong', efficiency: 0.92, linkType: 'normal' },
     { source: 'proc4', target: 'val4', value: 746, strength: 'medium', efficiency: 0.75, linkType: 'normal' },
     { source: 'proc5', target: 'val3', value: 1000, strength: 'strong', efficiency: 0.82, linkType: 'normal' },
     { source: 'proc6', target: 'val4', value: 746, strength: 'strong', efficiency: 0.80, linkType: 'normal' },
     
-    // 第4层 → 第5层：价值要素转化为收益
-    { source: 'val1', target: 'rev1', value: 100, strength: 'strong', efficiency: 0.88, linkType: 'normal' },
-    { source: 'val2', target: 'rev1', value: 100, strength: 'strong', efficiency: 0.85, linkType: 'normal' },
+    // 第5层 → 第6层：价值传递转化为收益
     { source: 'val3', target: 'rev1', value: 100, strength: 'strong', efficiency: 0.90, linkType: 'normal' },
     { source: 'val3', target: 'rev2', value: 80, strength: 'strong', efficiency: 0.85, linkType: 'normal' },
     { source: 'val4', target: 'rev2', value: 80, strength: 'medium', efficiency: 0.78, linkType: 'normal' },
     { source: 'val4', target: 'rev3', value: 120, strength: 'strong', efficiency: 0.82, linkType: 'normal' },
     
-    // 第5层同层：收益 → 毛利（水平连接）
+    // 第6层同层：收益 → 毛利（水平连接）
     { source: 'rev1', target: 'margin1', value: 60, strength: 'strong', efficiency: 0.60, linkType: 'horizontal' },
     { source: 'rev2', target: 'margin2', value: 50, strength: 'strong', efficiency: 0.625, linkType: 'horizontal' },
     { source: 'rev3', target: 'margin3', value: 70, strength: 'strong', efficiency: 0.583, linkType: 'horizontal' },
