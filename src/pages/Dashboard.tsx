@@ -1,12 +1,12 @@
 import React from 'react';
 import { Card } from "@/components/ui/card";
-import { ValueNetworkGraph, mockValueNetwork } from "@/components/Visualization/ValueNetworkGraph";
+import { ValueNetworkGraph, mockValueNetworkData } from "@/components/Visualization/ValueNetworkGraph";
 import { ValueChainFlow, mockChainFlow } from "@/components/Visualization/ValueChainFlow";
 import { ValueChainSankey } from "@/components/Visualization/ValueChainSankey";
 import { mockSankeyData } from "@/components/Visualization/ValueChainSankey";
 
 export default function Dashboard() {
-  const network = mockValueNetwork();
+  const network = mockValueNetworkData();
   const chain = mockChainFlow();
   const sankey = mockSankeyData();
 
