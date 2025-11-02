@@ -11,7 +11,7 @@
 ### 当前仓库状态
 
 - **qbm-ai-system** (origin/main): ✅ 已同步
-- **bmos-insight** (lovable/main): ⚠️ 需要同步
+- **bmos-insight** (lovable/main): ✅ **已同步** (2025-01-23)
 
 ---
 
@@ -38,14 +38,15 @@
 
 ### bmos-insight 仓库 (lovable/main)
 
-**最新提交**: `69a00e3` - Fix RLS policy migration
+**最新提交**: `0f17787` - merge: 合并lovable/main的更改（RLS policy相关）
 
-**缺失的最新文档**:
-- ❌ 价值链可视化设计文档（8个新文档）
-- ❌ Lovable前端实现指南
-- ❌ 同步指南文档
+**已包含的最新文档**:
+- ✅ 价值链可视化设计文档（8个新文档）
+- ✅ Lovable前端实现指南
+- ✅ 同步指南文档
+- ✅ 合并了RLS policy相关更改
 
-**状态**: ⚠️ **需要同步**
+**状态**: ✅ **已同步** (2025-01-23)
 
 ---
 
