@@ -187,31 +187,22 @@ export function ValueNetworkGraph(props: ValueNetworkGraphProps) {
     );
   };
 
-  // 绘制水平连接线（同层收益到毛利）- 测试版：使用纯色确保可见
+  // 绘制水平连接线（同层收益到毛利）
   const drawHorizontalLine = (x1: number, y1: number, x2: number, y2: number, color: string, width: number, efficiency: number) => {
-    // 计算节点半径（平均30px）
     const nodeRadius = 30;
-    // 调整起点和终点，从节点边缘开始
     const adjustedX1 = x1 + nodeRadius;
     const adjustedX2 = x2 - nodeRadius;
     
-    // 测试：使用鲜艳的纯色和粗线条
     return (
-      <g>
-        {/* 测试线条：亮橙色实线 */}
-        <path
-          d={`M ${adjustedX1} ${y1} L ${adjustedX2} ${y2}`}
-          stroke="#FF6B00"
-          strokeWidth={6}
-          fill="none"
-          strokeDasharray="12 8"
-          strokeLinecap="round"
-          opacity={1}
-        />
-        {/* 调试标记：在两端画小圆点 */}
-        <circle cx={adjustedX1} cy={y1} r={5} fill="red" />
-        <circle cx={adjustedX2} cy={y2} r={5} fill="blue" />
-      </g>
+      <path
+        d={`M ${adjustedX1} ${y1} L ${adjustedX2} ${y2}`}
+        stroke="url(#gradient-horizontal)"
+        strokeWidth={6}
+        fill="none"
+        strokeDasharray="12 8"
+        strokeLinecap="round"
+        className="flow-arrow"
+      />
     );
   };
 
@@ -498,11 +489,11 @@ export function ValueNetworkGraph(props: ValueNetworkGraphProps) {
                 <stop offset="100%" stopColor="#EF4444" stopOpacity="1" />
               </linearGradient>
               
-              {/* 水平连接线专用渐变（橙黄色高亮）*/}
+              {/* 水平连接线专用渐变（鲜艳橙色高亮）*/}
               <linearGradient id="gradient-horizontal" x1="0%" y1="0%" x2="100%" y2="0%">
-                <stop offset="0%" stopColor="#FFA500" stopOpacity="0.8" />
-                <stop offset="50%" stopColor="#FFD700" stopOpacity="0.95" />
-                <stop offset="100%" stopColor="#FFA500" stopOpacity="1" />
+                <stop offset="0%" stopColor="#FF6B00" stopOpacity="0.9" />
+                <stop offset="50%" stopColor="#FF8C00" stopOpacity="1" />
+                <stop offset="100%" stopColor="#FF6B00" stopOpacity="0.9" />
               </linearGradient>
             </defs>
 
@@ -541,19 +532,6 @@ export function ValueNetworkGraph(props: ValueNetworkGraphProps) {
           const isRevenueToCost = link.linkType === 'revenue-to-cost';
           const isHorizontal = link.linkType === 'horizontal';
           const isLShape = link.linkType === 'l-shape';
-          
-          // 调试水平连接线
-          if (isHorizontal) {
-            console.log('Rendering horizontal link:', {
-              source: link.source,
-              target: link.target,
-              sourcePos: source,
-              targetPos: target,
-              efficiency,
-              isRelated,
-              opacity: isSelected ? 1 : (isRelated ? 1 : 0.15)
-            });
-          }
 
           return (
             <g
