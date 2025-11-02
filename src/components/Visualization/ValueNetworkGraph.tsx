@@ -187,13 +187,19 @@ export function ValueNetworkGraph(props: ValueNetworkGraphProps) {
     );
   };
 
-  // 绘制水平连接线（同层收益到毛利）- 使用专用高亮渐变
+  // 绘制水平连接线（同层收益到毛利）- 从节点边缘开始避免被遮挡
   const drawHorizontalLine = (x1: number, y1: number, x2: number, y2: number, color: string, width: number, efficiency: number) => {
+    // 计算节点半径（平均30px）
+    const nodeRadius = 30;
+    // 调整起点和终点，从节点边缘开始
+    const adjustedX1 = x1 + nodeRadius;
+    const adjustedX2 = x2 - nodeRadius;
+    
     // 水平线使用专用的高亮渐变和更粗的线条
-    const enhancedWidth = Math.max(width + 2, 4); // 至少4px宽
+    const enhancedWidth = Math.max(width + 2, 5); // 至少5px宽
     return (
       <path
-        d={`M ${x1} ${y1} L ${x2} ${y2}`}
+        d={`M ${adjustedX1} ${y1} L ${adjustedX2} ${y2}`}
         stroke="url(#gradient-horizontal)"
         strokeWidth={enhancedWidth}
         fill="none"
