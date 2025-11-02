@@ -195,6 +195,14 @@ export function ValueNetworkGraph(props: ValueNetworkGraphProps) {
     const adjustedX1 = x1 + nodeRadius;
     const adjustedX2 = x2 - nodeRadius;
     
+    // 调试信息
+    console.log('Horizontal line:', { 
+      from: { x: x1, y: y1 }, 
+      to: { x: x2, y: y2 },
+      adjusted: { x1: adjustedX1, x2: adjustedX2 },
+      efficiency 
+    });
+    
     // 水平线使用专用的高亮渐变和更粗的线条
     const enhancedWidth = Math.max(width + 2, 5); // 至少5px宽
     return (
@@ -536,6 +544,19 @@ export function ValueNetworkGraph(props: ValueNetworkGraphProps) {
           const isRevenueToCost = link.linkType === 'revenue-to-cost';
           const isHorizontal = link.linkType === 'horizontal';
           const isLShape = link.linkType === 'l-shape';
+          
+          // 调试水平连接线
+          if (isHorizontal) {
+            console.log('Rendering horizontal link:', {
+              source: link.source,
+              target: link.target,
+              sourcePos: source,
+              targetPos: target,
+              efficiency,
+              isRelated,
+              opacity: isSelected ? 1 : (isRelated ? 1 : 0.15)
+            });
+          }
 
           return (
             <g
