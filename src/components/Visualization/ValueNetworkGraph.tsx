@@ -176,13 +176,11 @@ export function ValueNetworkGraph(props: ValueNetworkGraphProps) {
 
   // 绘制L型箭头（投资到能力/资产，避免视觉重叠）
   const drawLShapeArrow = (x1: number, y1: number, x2: number, y2: number, color: string, width: number) => {
-    // 计算中间转折点：先向上走70%的距离，然后水平移动，最后向上到目标
-    const verticalDistance = y1 - y2;
-    const midY = y1 - verticalDistance * 0.7;
-    
+    // 从投资出发先横向延伸到目标X，然后向上到目标Y
+    // 路径：投资(x1, y1) → 水平到(x2, y1) → 向上到(x2, y2)
     return (
       <path
-        d={`M ${x1} ${y1} L ${x1} ${midY} L ${x2} ${midY} L ${x2} ${y2}`}
+        d={`M ${x1} ${y1} L ${x2} ${y1} L ${x2} ${y2}`}
         stroke={color}
         strokeWidth={width}
         fill="none"
