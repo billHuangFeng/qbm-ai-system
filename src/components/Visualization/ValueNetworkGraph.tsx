@@ -187,7 +187,7 @@ export function ValueNetworkGraph(props: ValueNetworkGraphProps) {
     );
   };
 
-  // 绘制水平连接线（同层收益到毛利）
+  // 绘制水平连接线（同层收益到毛利）- 使用纯色不用渐变
   const drawHorizontalLine = (x1: number, y1: number, x2: number, y2: number, color: string, width: number, efficiency: number) => {
     const nodeRadius = 30;
     const adjustedX1 = x1 + nodeRadius;
@@ -196,12 +196,13 @@ export function ValueNetworkGraph(props: ValueNetworkGraphProps) {
     return (
       <path
         d={`M ${adjustedX1} ${y1} L ${adjustedX2} ${y2}`}
-        stroke="url(#gradient-horizontal)"
+        stroke="#FF8C00"
         strokeWidth={6}
         fill="none"
         strokeDasharray="12 8"
         strokeLinecap="round"
         className="flow-arrow"
+        opacity={1}
       />
     );
   };
