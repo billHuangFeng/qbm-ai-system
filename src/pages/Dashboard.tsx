@@ -1,22 +1,14 @@
-import React, { useEffect, useState } from 'react';
+import React from 'react';
 import { Card } from "@/components/ui/card";
 import { ValueNetworkGraph, mockValueNetwork } from "@/components/Visualization/ValueNetworkGraph";
 import { ValueChainFlow, mockChainFlow } from "@/components/Visualization/ValueChainFlow";
 import { ValueChainSankey } from "@/components/Visualization/ValueChainSankey";
 import { mockSankeyData } from "@/components/Visualization/ValueChainSankey";
-import { fetchSankeyDataFallback } from "@/lib/valueChain";
 
 export default function Dashboard() {
   const network = mockValueNetwork();
   const chain = mockChainFlow();
-  const [sankey, setSankey] = useState(mockSankeyData());
-
-  useEffect(() => {
-    (async () => {
-      const data = await fetchSankeyDataFallback(mockSankeyData());
-      setSankey(data);
-    })();
-  }, []);
+  const sankey = mockSankeyData();
 
   return (
     <div className="min-h-screen bg-gray-50 p-6 space-y-8">
