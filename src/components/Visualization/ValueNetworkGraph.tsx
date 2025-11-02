@@ -62,17 +62,29 @@ const getArrowStyle = (efficiency: number) => {
   return { color, width, opacity };
 };
 
-// 节点颜色映射（优化版：增强对比度）
+// 节点颜色映射（优化版：增强对比度和区分度）
 const NODE_COLORS: Record<NodeType, string> = {
   investment: '#F59E0B',  // 琥珀色（从金黄调整）
   cost: '#EF4444',        // 鲜红色（更鲜明）
   resource: '#78350F',    // 深棕色（更深）
-  asset: '#10B981',       // 翠绿色（更鲜明）
-  capability: '#059669',  // 深绿色（增强对比）
-  process: '#3B82F6',     // 亮蓝色（保持）
-  value: '#A855F7',       // 亮紫色（更鲜明）
+  asset: '#10B981',       // 翠绿色（资产）
+  capability: '#3B82F6',  // 亮蓝色（能力 - 改为蓝色以区分资产）
+  process: '#8B5CF6',     // 紫色（流程）
+  value: '#A855F7',       // 亮紫色（默认价值颜色）
   revenue: '#F97316',     // 亮橙色（更鲜明）
   margin: '#EA580C',      // 深橙色（增强对比）
+};
+
+// 根据节点名称获取特定颜色（用于区分不同的价值节点）
+const getNodeColor = (node: NetworkNode): string => {
+  // 根据节点名称特殊处理价值节点
+  if (node.type === 'value') {
+    if (node.name.includes('产品特性')) return '#E879F9';      // 亮粉紫色
+    if (node.name.includes('内在价值')) return '#A855F7';      // 紫色
+    if (node.name.includes('感知价值')) return '#8B5CF6';      // 深紫色
+    if (node.name.includes('体验价值')) return '#7C3AED';      // 更深紫色
+  }
+  return NODE_COLORS[node.type];
 };
 
 // 根据背景色亮度智能选择文字颜色
@@ -626,7 +638,7 @@ export function ValueNetworkGraph(props: ValueNetworkGraphProps) {
           if (!pos) return null;
           
           const radius = getRadius(node);
-          const color = NODE_COLORS[node.type];
+          const color = getNodeColor(node);
           const isSelected = selectedNode?.id === node.id;
           const isHovered = hoveredNodeId === node.id;
           const isDragging = draggingNodeId === node.id;
@@ -764,7 +776,7 @@ export function ValueNetworkGraph(props: ValueNetworkGraphProps) {
                 <div className="inline-flex items-center gap-2">
                   <div 
                     className="w-3 h-3 rounded-full" 
-                    style={{ backgroundColor: NODE_COLORS[selectedNode.type] }}
+                    style={{ backgroundColor: getNodeColor(selectedNode) }}
                   />
                   <span className="capitalize">
                     {selectedNode.type === 'margin' ? '毛利' : 
