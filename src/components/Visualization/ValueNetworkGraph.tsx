@@ -712,23 +712,23 @@ export function ValueNetworkGraph(props: ValueNetworkGraphProps) {
           </svg>
         </div>
 
-        {/* 紧凑图例（优化版：增强对比度和边框）*/}
-        <div className="mt-4 flex items-center justify-center gap-6 text-xs text-gray-700">
-          <div className="flex items-center gap-1.5">
-            <div className="w-6 h-1 bg-[#00E676] border border-gray-300 rounded-sm"></div>
-            <span className="font-medium">强 ≥80%</span>
+        {/* 紧凑图例（优化版：增强文字对比度）*/}
+        <div className="mt-4 flex items-center justify-center gap-6 text-sm">
+          <div className="flex items-center gap-2 bg-gray-900/80 px-3 py-2 rounded-lg">
+            <div className="w-8 h-1.5 bg-[#00E676] rounded-sm"></div>
+            <span className="font-semibold text-white">强 ≥80%</span>
           </div>
-          <div className="flex items-center gap-1.5">
-            <div className="w-6 h-0.5 bg-[#FFD700] border border-gray-300 rounded-sm"></div>
-            <span className="font-medium">中 50-80%</span>
+          <div className="flex items-center gap-2 bg-gray-900/80 px-3 py-2 rounded-lg">
+            <div className="w-8 h-1.5 bg-[#FFD700] rounded-sm"></div>
+            <span className="font-semibold text-white">中 50-80%</span>
           </div>
-          <div className="flex items-center gap-1.5">
-            <div className="w-6 h-px bg-[#FF5252] border border-gray-300 rounded-sm"></div>
-            <span className="font-medium">弱 &lt;50%</span>
+          <div className="flex items-center gap-2 bg-gray-900/80 px-3 py-2 rounded-lg">
+            <div className="w-8 h-1.5 bg-[#FF5252] rounded-sm"></div>
+            <span className="font-semibold text-white">弱 &lt;50%</span>
           </div>
-          <div className="flex items-center gap-1.5">
-            <div className="w-6 h-px border-t-2 border-dashed border-[#F59E0B] opacity-80"></div>
-            <span className="font-medium">毛利回流</span>
+          <div className="flex items-center gap-2 bg-gray-900/80 px-3 py-2 rounded-lg">
+            <div className="w-8 h-0.5 border-t-2 border-dashed border-[#F59E0B]"></div>
+            <span className="font-semibold text-white">毛利回流</span>
           </div>
         </div>
       </Card>
