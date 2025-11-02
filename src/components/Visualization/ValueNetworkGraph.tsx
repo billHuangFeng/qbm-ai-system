@@ -159,7 +159,7 @@ export function ValueNetworkGraph(props: ValueNetworkGraphProps) {
     );
   };
 
-  // 绘制毛利回流箭头（L型路径：先垂直下降，再横向，最后上升到投资）
+  // 绘制毛利回流箭头（L型路径：先垂直下降，再横向，最后继续下降到投资）
   const drawFeedbackArrow = (x1: number, y1: number, x2: number, y2: number) => {
     const verticalOffset = 150; // 向下延伸150px，避开所有层级
     const midY = y1 + verticalOffset;
@@ -169,13 +169,13 @@ export function ValueNetworkGraph(props: ValueNetworkGraphProps) {
     const isRightward = x2 > x1;
     const direction = isRightward ? 1 : -1;
     
-    // L型路径：垂直下降 → 横向移动 → 垂直上升，使用Q命令添加圆角
+    // L型路径：垂直下降 → 横向移动 → 继续垂直下降，使用Q命令添加圆角
     const pathData = `
       M ${x1} ${y1}
       L ${x1} ${midY - cornerRadius}
       Q ${x1} ${midY}, ${x1 + direction * cornerRadius} ${midY}
       L ${x2 - direction * cornerRadius} ${midY}
-      Q ${x2} ${midY}, ${x2} ${midY - cornerRadius}
+      Q ${x2} ${midY}, ${x2} ${midY + cornerRadius}
       L ${x2} ${y2}
     `;
     
