@@ -187,17 +187,20 @@ export function ValueNetworkGraph(props: ValueNetworkGraphProps) {
     );
   };
 
-  // 绘制水平连接线（同层收益到毛利）
+  // 绘制水平连接线（同层收益到毛利）- 增强可见性
   const drawHorizontalLine = (x1: number, y1: number, x2: number, y2: number, color: string, width: number, efficiency: number) => {
+    // 水平线使用更粗的线条和更高的不透明度
+    const enhancedWidth = Math.max(width + 1, 3); // 至少3px宽
     return (
       <path
         d={`M ${x1} ${y1} L ${x2} ${y2}`}
         stroke={getGradientUrl(efficiency)}
-        strokeWidth={width}
+        strokeWidth={enhancedWidth}
         fill="none"
         strokeDasharray="12 8"
         strokeLinecap="round"
         className={getAnimationClass(efficiency)}
+        opacity={0.95}
       />
     );
   };
@@ -457,10 +460,10 @@ export function ValueNetworkGraph(props: ValueNetworkGraphProps) {
                 <stop offset="100%" stopColor="#00E676" stopOpacity="1" />
               </linearGradient>
               
-              {/* 中等效率渐变（黄色）- 提高最小透明度 */}
+              {/* 中等效率渐变（黄色）- 提高整体亮度 */}
               <linearGradient id="gradient-medium" x1="0%" y1="0%" x2="100%" y2="0%">
-                <stop offset="0%" stopColor="#FFD700" stopOpacity="0.5" />
-                <stop offset="50%" stopColor="#FFD700" stopOpacity="0.75" />
+                <stop offset="0%" stopColor="#FFD700" stopOpacity="0.7" />
+                <stop offset="50%" stopColor="#FFD700" stopOpacity="0.85" />
                 <stop offset="100%" stopColor="#FFD700" stopOpacity="1" />
               </linearGradient>
               
