@@ -33,13 +33,13 @@ export interface ValueNetworkGraphProps {
   links: NetworkLink[];
 }
 
-// 层级配置：自下而上
+// 层级配置：自下而上（颜色参考用户提供图片）
 const LEVEL_CONFIG = {
-  1: { y: 450, label: '基础支撑层', icon: '🏗️', color: '#FFD700' }, // 底部
-  2: { y: 350, label: '能力支撑层', icon: '⚙️', color: '#4CAF50' },
-  3: { y: 250, label: '流程转化层', icon: '🔄', color: '#2196F3' },
-  4: { y: 150, label: '价值汇聚层', icon: '💎', color: '#9C27B0' },
-  5: { y: 50, label: '目标收益层', icon: '🎯', color: '#FF9800' }, // 顶部
+  1: { y: 450, label: '基础支撑层', icon: '🏗️', color: '#8B6914' }, // 底部 - 棕褐色
+  2: { y: 350, label: '能力支撑层', icon: '⚙️', color: '#4CAF50' }, // 绿色
+  3: { y: 250, label: '流程转化层', icon: '🔄', color: '#2196F3' }, // 蓝色
+  4: { y: 150, label: '价值汇聚层', icon: '💎', color: '#9C27B0' }, // 紫色
+  5: { y: 50, label: '目标收益层', icon: '🎯', color: '#FFB300' }, // 顶部 - 橙黄色
 } as const;
 
 // 支撑强度样式
@@ -57,7 +57,7 @@ const NODE_COLORS: Record<NodeType, string> = {
   capability: '#66BB6A',
   process: '#2196F3',
   value: '#9C27B0',
-  revenue: '#FF9800',
+  revenue: '#FF6F00', // 深橙色，在橙黄色背景上更清晰
 };
 
 export function ValueNetworkGraph(props: ValueNetworkGraphProps) {
@@ -143,28 +143,18 @@ export function ValueNetworkGraph(props: ValueNetworkGraphProps) {
           </marker>
         </defs>
 
-        {/* 层级背景和标签 */}
+        {/* 全幅色带背景（无文字标签）*/}
         {Object.entries(LEVEL_CONFIG).map(([level, config]) => (
-          <g key={`level-${level}`}>
-            <rect
-              x={0}
-              y={config.y - 30}
-              width={svgWidth}
-              height={80}
-              fill={config.color}
-              opacity={0.05}
-              rx={8}
-            />
-            <text
-              x={20}
-              y={config.y - 10}
-              fontSize={12}
-              fontWeight="600"
-              fill={config.color}
-            >
-              {config.icon} {config.label}
-            </text>
-          </g>
+          <rect
+            key={`level-bg-${level}`}
+            x={0}
+            y={config.y - 55}
+            width={svgWidth}
+            height={110}
+            fill={config.color}
+            opacity={0.15}
+            rx={0}
+          />
         ))}
 
         {/* 支撑关系连接线（向上箭头）*/}
@@ -189,14 +179,23 @@ export function ValueNetworkGraph(props: ValueNetworkGraphProps) {
               }}
             >
               {drawArrow(source.x, source.y, target.x, target.y, style.color, style.width)}
-              {/* 效率标签 */}
+              {/* 效率标签（带白色背景提高可读性）*/}
+              <rect
+                x={(source.x + target.x) / 2 - 16}
+                y={(source.y + target.y) / 2 - 8}
+                width={32}
+                height={16}
+                fill="white"
+                opacity={0.9}
+                rx={3}
+              />
               <text
                 x={(source.x + target.x) / 2}
-                y={(source.y + target.y) / 2}
+                y={(source.y + target.y) / 2 + 3}
                 fontSize={10}
                 fill={style.color}
                 textAnchor="middle"
-                fontWeight="500"
+                fontWeight="600"
               >
                 {(link.efficiency * 100).toFixed(0)}%
               </text>
@@ -240,9 +239,9 @@ export function ValueNetworkGraph(props: ValueNetworkGraphProps) {
                 cy={pos.y}
                 r={radius}
                 fill={color}
-                opacity={isSelected ? 1 : 0.85}
-                stroke={isSelected ? "#fff" : "#fff"}
-                strokeWidth={isSelected ? 3 : 2}
+                opacity={isSelected ? 1 : 0.9}
+                stroke="#fff"
+                strokeWidth={isSelected ? 4 : 3}
               />
               
               {/* 节点名称 */}
