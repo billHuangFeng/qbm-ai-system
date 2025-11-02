@@ -27,7 +27,7 @@ export interface NetworkLink {
   value: number;
   strength: SupportStrength; // 支撑强度
   efficiency: number; // 支撑效率 0-1
-  linkType?: 'normal' | 'horizontal' | 'feedback'; // 连接类型
+  linkType?: 'normal' | 'horizontal' | 'feedback' | 'revenue-to-cost'; // 连接类型
 }
 
 export interface ValueNetworkGraphProps {
@@ -91,9 +91,9 @@ export function ValueNetworkGraph(props: ValueNetworkGraphProps) {
     return acc;
   }, {} as Record<number, NetworkNode[]>);
 
-  // 计算节点位置（第5层分为收益组和毛利组）
+  // 计算节点位置（第5层分为收益组和毛利组，第1层成本放左侧）
   const svgWidth = 1400; // 增加宽度
-  const svgHeight = 650; // 增加高度以容纳L型回流路径
+  const svgHeight = 700; // 增加高度以容纳门字形回流路径
   const nodePositions = new Map<string, { x: number; y: number }>();
   
   Object.entries(nodesByLevel).forEach(([level, levelNodes]) => {
@@ -113,6 +113,20 @@ export function ValueNetworkGraph(props: ValueNetworkGraphProps) {
       const marginSpacing = (svgWidth * 0.4) / (marginNodes.length + 1);
       marginNodes.forEach((node, idx) => {
         nodePositions.set(node.id, { x: svgWidth * 0.6 + marginSpacing * (idx + 1), y });
+      });
+    } else if (levelNum === 1) {
+      // 第1层特殊处理：成本在左侧，投资在右侧
+      const costNodes = levelNodes.filter(n => n.type === 'cost');
+      const investmentNodes = levelNodes.filter(n => n.type === 'investment');
+      
+      // 成本节点放在左侧（x = 150）
+      costNodes.forEach((node) => {
+        nodePositions.set(node.id, { x: 150, y });
+      });
+      
+      // 投资节点放在右侧（x = svgWidth - 150）
+      investmentNodes.forEach((node) => {
+        nodePositions.set(node.id, { x: svgWidth - 150, y });
       });
     } else {
       // 其他层级均匀分布
@@ -159,29 +173,28 @@ export function ValueNetworkGraph(props: ValueNetworkGraphProps) {
     );
   };
 
-  // 绘制毛利回流箭头（L型路径：先垂直下降，再横向，最后继续下降到投资）
+  // 绘制毛利回流箭头（门字形路径：下→右→下→左到投资）
   const drawFeedbackArrow = (x1: number, y1: number, x2: number, y2: number) => {
-    const verticalOffset = 150; // 向下延伸150px，避开所有层级
-    const midY = y1 + verticalOffset;
-    const cornerRadius = 12; // 圆角半径
+    const cornerRadius = 12;
+    const bottomY = svgHeight - 60; // 底部水平线的Y坐标
+    const rightEdge = svgWidth - 50; // 右侧边缘
     
-    // 判断横向方向
-    const isRightward = x2 > x1;
-    const direction = isRightward ? 1 : -1;
-    
-    // L型路径：垂直下降 → 横向移动 → 继续垂直下降，使用Q命令添加圆角
+    // 门字形路径：垂直下降 → 水平向右到右边缘 → 垂直下降到底部 → 水平向左到投资上方 → 垂直下降到投资
     const pathData = `
       M ${x1} ${y1}
-      L ${x1} ${midY - cornerRadius}
-      Q ${x1} ${midY}, ${x1 + direction * cornerRadius} ${midY}
-      L ${x2 - direction * cornerRadius} ${midY}
-      Q ${x2} ${midY}, ${x2} ${midY + cornerRadius}
+      L ${x1} ${y1 + 80}
+      Q ${x1} ${y1 + 80 + cornerRadius}, ${x1 + cornerRadius} ${y1 + 80 + cornerRadius}
+      L ${rightEdge - cornerRadius} ${y1 + 80 + cornerRadius}
+      Q ${rightEdge} ${y1 + 80 + cornerRadius}, ${rightEdge} ${y1 + 80 + cornerRadius + cornerRadius}
+      L ${rightEdge} ${bottomY - cornerRadius}
+      Q ${rightEdge} ${bottomY}, ${rightEdge - cornerRadius} ${bottomY}
+      L ${x2 + cornerRadius} ${bottomY}
+      Q ${x2} ${bottomY}, ${x2} ${bottomY - cornerRadius}
       L ${x2} ${y2}
     `;
     
     return (
       <>
-        {/* 回流路径 */}
         <path
           d={pathData}
           stroke="#FFD700"
@@ -191,15 +204,57 @@ export function ValueNetworkGraph(props: ValueNetworkGraphProps) {
           markerEnd="url(#arrowhead-feedback)"
           opacity={0.85}
         />
-        
-        {/* 中间标注 */}
         <text
-          x={(x1 + x2) / 2}
-          y={midY - 8}
+          x={rightEdge - 60}
+          y={bottomY - 8}
           textAnchor="middle"
           className="text-xs fill-yellow-600 font-medium pointer-events-none"
         >
           💰 毛利回流
+        </text>
+      </>
+    );
+  };
+
+  // 绘制收入到成本的反馈箭头（左侧门字形路径）
+  const drawRevenueToCostArrow = (x1: number, y1: number, x2: number, y2: number) => {
+    const cornerRadius = 12;
+    const topOffset = 80; // 从收入节点向下的偏移
+    const bottomY = svgHeight - 60; // 底部水平线的Y坐标
+    const leftEdge = 50; // 左侧边缘
+    
+    // 左侧门字形路径：垂直下降 → 水平向左到左边缘 → 垂直下降到底部 → 水平向右到成本上方 → 垂直上升到成本
+    const pathData = `
+      M ${x1} ${y1}
+      L ${x1} ${y1 + topOffset - cornerRadius}
+      Q ${x1} ${y1 + topOffset}, ${x1 - cornerRadius} ${y1 + topOffset}
+      L ${leftEdge + cornerRadius} ${y1 + topOffset}
+      Q ${leftEdge} ${y1 + topOffset}, ${leftEdge} ${y1 + topOffset + cornerRadius}
+      L ${leftEdge} ${bottomY - cornerRadius}
+      Q ${leftEdge} ${bottomY}, ${leftEdge + cornerRadius} ${bottomY}
+      L ${x2 - cornerRadius} ${bottomY}
+      Q ${x2} ${bottomY}, ${x2} ${bottomY - cornerRadius}
+      L ${x2} ${y2}
+    `;
+    
+    return (
+      <>
+        <path
+          d={pathData}
+          stroke="#FF6B6B"
+          strokeWidth={2.5}
+          strokeDasharray="8,4"
+          fill="none"
+          markerEnd="url(#arrowhead-cost)"
+          opacity={0.85}
+        />
+        <text
+          x={leftEdge + 60}
+          y={bottomY - 8}
+          textAnchor="middle"
+          className="text-xs fill-red-600 font-medium pointer-events-none"
+        >
+          💸 成本投入
         </text>
       </>
     );
@@ -341,6 +396,17 @@ export function ValueNetworkGraph(props: ValueNetworkGraphProps) {
           >
             <path d="M0,0 L0,6 L10,3 z" fill="#FFD700" />
           </marker>
+          <marker
+            id="arrowhead-cost"
+            markerWidth="12"
+            markerHeight="12"
+            refX="10"
+            refY="3"
+            orient="auto"
+            markerUnits="strokeWidth"
+          >
+            <path d="M0,0 L0,6 L10,3 z" fill="#FF6B6B" />
+          </marker>
         </defs>
 
         {/* 全幅色带背景（无文字标签）*/}
@@ -371,6 +437,7 @@ export function ValueNetworkGraph(props: ValueNetworkGraphProps) {
 
           // 判断连接类型
           const isFeedback = link.linkType === 'feedback';
+          const isRevenueToCost = link.linkType === 'revenue-to-cost';
           const isHorizontal = link.linkType === 'horizontal';
 
           return (
@@ -385,8 +452,11 @@ export function ValueNetworkGraph(props: ValueNetworkGraphProps) {
               }}
             >
               {isFeedback ? (
-                // 毛利回流到投资（向下虚线）
+                // 毛利回流到投资（右侧门字形虚线）
                 drawFeedbackArrow(source.x, source.y, target.x, target.y)
+              ) : isRevenueToCost ? (
+                // 收入到成本（左侧门字形虚线）
+                drawRevenueToCostArrow(source.x, source.y, target.x, target.y)
               ) : isHorizontal ? (
                 // 同层水平连接（收益到毛利）
                 drawHorizontalLine(source.x, source.y, target.x, target.y, style.color, style.width)
@@ -395,8 +465,8 @@ export function ValueNetworkGraph(props: ValueNetworkGraphProps) {
                 drawArrow(source.x, source.y, target.x, target.y, style.color, style.width)
               )}
               
-              {/* 效率标签（仅非回流箭头显示）*/}
-              {!isFeedback && (
+              {/* 效率标签（仅普通箭头显示）*/}
+              {!isFeedback && !isRevenueToCost && (
                 <>
                   <rect
                     x={(source.x + target.x) / 2 - 18}
@@ -727,10 +797,15 @@ export function mockValueNetworkData() {
     { source: 'rev2', target: 'margin2', value: 50, strength: 'strong', efficiency: 0.625, linkType: 'horizontal' },
     { source: 'rev3', target: 'margin3', value: 70, strength: 'strong', efficiency: 0.583, linkType: 'horizontal' },
     
-    // 特殊：毛利回流到投资（向下虚线闭环）
+    // 特殊：毛利回流到投资（右侧门字形虚线闭环）
     { source: 'margin1', target: 'inv1', value: 60, strength: 'strong', efficiency: 1, linkType: 'feedback' },
     { source: 'margin2', target: 'inv1', value: 50, strength: 'strong', efficiency: 1, linkType: 'feedback' },
     { source: 'margin3', target: 'inv1', value: 70, strength: 'strong', efficiency: 1, linkType: 'feedback' },
+    
+    // 特殊：收入到成本的反馈（左侧门字形虚线）
+    { source: 'rev1', target: 'cost1', value: 40, strength: 'medium', efficiency: 1, linkType: 'revenue-to-cost' },
+    { source: 'rev2', target: 'cost1', value: 30, strength: 'medium', efficiency: 1, linkType: 'revenue-to-cost' },
+    { source: 'rev3', target: 'cost1', value: 50, strength: 'medium', efficiency: 1, linkType: 'revenue-to-cost' },
   ];
 
   return { nodes, links };
