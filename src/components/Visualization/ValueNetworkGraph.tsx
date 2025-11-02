@@ -5,7 +5,7 @@ import { Card } from "@/components/ui/card";
 import { X } from "lucide-react";
 
 // 节点类型：五层自下而上 + 毛利节点
-export type NodeType = 'investment' | 'cost' | 'asset' | 'capability' | 'process' | 'value' | 'revenue' | 'margin';
+export type NodeType = 'investment' | 'cost' | 'resource' | 'asset' | 'capability' | 'process' | 'value' | 'revenue' | 'margin';
 
 // 支撑强度
 export type SupportStrength = 'strong' | 'medium' | 'weak';
@@ -64,6 +64,7 @@ const getArrowStyle = (efficiency: number) => {
 const NODE_COLORS: Record<NodeType, string> = {
   investment: '#FFD700',
   cost: '#FF6B6B',
+  resource: '#795548', // 棕色，代表原材料/资源
   asset: '#4CAF50',
   capability: '#66BB6A',
   process: '#2196F3',
@@ -425,7 +426,11 @@ export function ValueNetworkGraph(props: ValueNetworkGraphProps) {
                     className="w-3 h-3 rounded-full" 
                     style={{ backgroundColor: NODE_COLORS[selectedNode.type] }}
                   />
-                  <span className="capitalize">{selectedNode.type === 'margin' ? '毛利' : selectedNode.type}</span>
+                  <span className="capitalize">
+                    {selectedNode.type === 'margin' ? '毛利' : 
+                     selectedNode.type === 'resource' ? '生产资源' : 
+                     selectedNode.type}
+                  </span>
                 </div>
               </div>
               <div>
@@ -493,7 +498,8 @@ export function mockValueNetworkData() {
     { id: 'inv1', type: 'investment', name: '投资', value: 1000, unit: '万', changeRate: -10, level: 1 },
     { id: 'cost1', type: 'cost', name: '成本', value: 500, unit: '万', changeRate: -5, level: 1 },
     
-    // 第2层：6个流程的资产+能力（每个流程对应1个资产+1个能力）
+    // 第2层：生产资源 + 6个流程的资产+能力（每个流程对应1个资产+1个能力）
+    { id: 'resource1', type: 'resource', name: '生产资源', value: 450, unit: '万', level: 2 },
     { id: 'asset1', type: 'asset', name: '生产资产', value: 200, unit: '万', level: 2 },
     { id: 'cap1', type: 'capability', name: '生产能力', value: 180, unit: '万', level: 2 },
     { id: 'asset2', type: 'asset', name: '播传资产', value: 150, unit: '万', level: 2 },
@@ -531,7 +537,7 @@ export function mockValueNetworkData() {
   ];
 
   const links: NetworkLink[] = [
-    // 第1层 → 第2层：投资支撑所有资产+能力（12条），成本只支撑生产资产+能力（2条）
+    // 第1层 → 第2层：投资支撑所有资产+能力（12条），成本转化为生产资源（1条）
     { source: 'inv1', target: 'asset1', value: 200, strength: 'strong', efficiency: 0.85, linkType: 'normal' },
     { source: 'inv1', target: 'cap1', value: 180, strength: 'strong', efficiency: 0.82, linkType: 'normal' },
     { source: 'inv1', target: 'asset2', value: 150, strength: 'strong', efficiency: 0.78, linkType: 'normal' },
@@ -545,10 +551,11 @@ export function mockValueNetworkData() {
     { source: 'inv1', target: 'asset6', value: 90, strength: 'strong', efficiency: 0.72, linkType: 'normal' },
     { source: 'inv1', target: 'cap6', value: 85, strength: 'medium', efficiency: 0.70, linkType: 'normal' },
     
-    { source: 'cost1', target: 'asset1', value: 250, strength: 'strong', efficiency: 0.88, linkType: 'normal' },
-    { source: 'cost1', target: 'cap1', value: 250, strength: 'strong', efficiency: 0.85, linkType: 'normal' },
+    // 成本转化为生产资源
+    { source: 'cost1', target: 'resource1', value: 450, strength: 'strong', efficiency: 0.90, linkType: 'normal' },
     
-    // 第2层 → 第3层：每个流程对应1个资产+1个能力（12条）
+    // 第2层 → 第3层：生产资源流入生产流程，每个流程对应1个资产+1个能力（13条）
+    { source: 'resource1', target: 'proc1', value: 0.08, strength: 'strong', efficiency: 0.85, linkType: 'normal' },
     { source: 'asset1', target: 'proc1', value: 0.08, strength: 'strong', efficiency: 0.92, linkType: 'normal' },
     { source: 'cap1', target: 'proc1', value: 0.08, strength: 'strong', efficiency: 0.90, linkType: 'normal' },
     { source: 'asset2', target: 'proc2', value: 0.06, strength: 'strong', efficiency: 0.85, linkType: 'normal' },
