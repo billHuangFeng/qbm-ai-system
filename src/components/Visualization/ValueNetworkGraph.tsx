@@ -1,8 +1,9 @@
 "use client";
 
-import React, { useState } from 'react';
+import React, { useState, useRef, useCallback } from 'react';
 import { Card } from "@/components/ui/card";
-import { X } from "lucide-react";
+import { Button } from "@/components/ui/button";
+import { X, Edit3, Eye, RotateCcw } from "lucide-react";
 
 // 节点类型：五层自下而上 + 毛利节点
 export type NodeType = 'investment' | 'cost' | 'resource' | 'asset' | 'capability' | 'process' | 'value' | 'revenue' | 'margin';
@@ -78,6 +79,10 @@ export function ValueNetworkGraph(props: ValueNetworkGraphProps) {
   const [selectedNode, setSelectedNode] = useState<NetworkNode | null>(null);
   const [selectedLink, setSelectedLink] = useState<NetworkLink | null>(null);
   const [hoveredNodeId, setHoveredNodeId] = useState<string | null>(null);
+  const [isEditMode, setIsEditMode] = useState(false);
+  const [customPositions, setCustomPositions] = useState<Map<string, { x: number; y: number }>>(new Map());
+  const [draggingNodeId, setDraggingNodeId] = useState<string | null>(null);
+  const svgRef = useRef<SVGSVGElement>(null);
   
   // 按层级分组节点
   const nodesByLevel = nodes.reduce((acc, node) => {
@@ -184,16 +189,105 @@ export function ValueNetworkGraph(props: ValueNetworkGraphProps) {
 
   const relatedLinks = getRelatedLinks(hoveredNodeId);
 
+  // 获取节点最终位置（优先使用自定义位置）
+  const getFinalPosition = useCallback((nodeId: string) => {
+    return customPositions.get(nodeId) || nodePositions.get(nodeId) || { x: 0, y: 0 };
+  }, [customPositions, nodePositions]);
+
+  // 处理拖拽开始
+  const handleMouseDown = useCallback((e: React.MouseEvent, node: NetworkNode) => {
+    if (!isEditMode) return;
+    
+    e.stopPropagation();
+    setDraggingNodeId(node.id);
+    
+    const svgElement = svgRef.current;
+    if (!svgElement) return;
+
+    const startClientX = e.clientX;
+    const currentPos = getFinalPosition(node.id);
+    const initialX = currentPos.x;
+    const nodeLevel = node.level;
+
+    const handleMouseMove = (moveEvent: MouseEvent) => {
+      const deltaX = moveEvent.clientX - startClientX;
+      let newX = initialX + deltaX;
+      
+      // 边界限制：50 到 svgWidth-50
+      newX = Math.max(50, Math.min(svgWidth - 50, newX));
+      
+      // 更新位置（Y轴保持不变）
+      setCustomPositions(prev => {
+        const newMap = new Map(prev);
+        newMap.set(node.id, {
+          x: newX,
+          y: currentPos.y // Y轴锁定
+        });
+        return newMap;
+      });
+    };
+
+    const handleMouseUp = () => {
+      setDraggingNodeId(null);
+      window.removeEventListener('mousemove', handleMouseMove);
+      window.removeEventListener('mouseup', handleMouseUp);
+    };
+
+    window.addEventListener('mousemove', handleMouseMove);
+    window.addEventListener('mouseup', handleMouseUp);
+  }, [isEditMode, getFinalPosition, svgWidth]);
+
+  // 重置布局
+  const handleResetLayout = useCallback(() => {
+    setCustomPositions(new Map());
+  }, []);
+
   return (
     <div className="flex gap-4">
       <Card className="flex-1 p-6">
-        <div className="mb-4">
-          <h3 className="text-lg font-semibold text-foreground">价值链网络图（自下而上支撑关系）</h3>
-          <p className="text-sm text-muted-foreground mt-1">底层基础支撑上层目标，箭头方向表示支撑流向。毛利回流形成闭环支撑投资。</p>
+        <div className="mb-4 flex items-start justify-between">
+          <div>
+            <h3 className="text-lg font-semibold text-foreground">价值链网络图（自下而上支撑关系）</h3>
+            <p className="text-sm text-muted-foreground mt-1">
+              底层基础支撑上层目标，箭头方向表示支撑流向。毛利回流形成闭环支撑投资。
+              {isEditMode && <span className="text-primary font-medium ml-2">🎨 拖拽节点可调整同层级位置</span>}
+            </p>
+          </div>
+          
+          {/* 工具栏 */}
+          <div className="flex gap-2">
+            <Button 
+              variant={isEditMode ? "default" : "outline"}
+              size="sm"
+              onClick={() => setIsEditMode(!isEditMode)}
+            >
+              {isEditMode ? (
+                <>
+                  <Edit3 className="w-4 h-4 mr-1" />
+                  编辑模式
+                </>
+              ) : (
+                <>
+                  <Eye className="w-4 h-4 mr-1" />
+                  查看模式
+                </>
+              )}
+            </Button>
+            
+            <Button 
+              variant="outline" 
+              size="sm"
+              onClick={handleResetLayout}
+              disabled={customPositions.size === 0}
+            >
+              <RotateCcw className="w-4 h-4 mr-1" />
+              重置布局
+            </Button>
+          </div>
         </div>
         
         <div className="overflow-x-auto overflow-y-hidden" style={{ maxHeight: '70vh' }}>
-          <svg width={svgWidth} height={svgHeight} className="min-w-full" style={{ minWidth: `${svgWidth}px` }}>
+          <svg ref={svgRef} width={svgWidth} height={svgHeight} className="min-w-full" style={{ minWidth: `${svgWidth}px` }}>
         <defs>
           <marker
             id="arrowhead"
@@ -235,8 +329,8 @@ export function ValueNetworkGraph(props: ValueNetworkGraphProps) {
 
         {/* 支撑关系连接线 */}
         {links.map((link, idx) => {
-          const source = nodePositions.get(link.source);
-          const target = nodePositions.get(link.target);
+          const source = getFinalPosition(link.source);
+          const target = getFinalPosition(link.target);
           if (!source || !target) return null;
 
           const efficiency = link.efficiency || 0.7;
@@ -301,25 +395,33 @@ export function ValueNetworkGraph(props: ValueNetworkGraphProps) {
 
         {/* 节点 */}
         {nodes.map((node) => {
-          const pos = nodePositions.get(node.id);
+          const pos = getFinalPosition(node.id);
           if (!pos) return null;
           
           const radius = getRadius(node);
           const color = NODE_COLORS[node.type];
           const isSelected = selectedNode?.id === node.id;
           const isHovered = hoveredNodeId === node.id;
+          const isDragging = draggingNodeId === node.id;
           
           return (
             <g 
               key={node.id}
-              className="cursor-pointer"
+              className={isEditMode ? 'cursor-grab active:cursor-grabbing' : 'cursor-pointer'}
               onClick={(e) => {
-                e.stopPropagation();
-                setSelectedNode(node);
-                setSelectedLink(null);
+                if (!isEditMode) {
+                  e.stopPropagation();
+                  setSelectedNode(node);
+                  setSelectedLink(null);
+                }
               }}
+              onMouseDown={(e) => handleMouseDown(e, node)}
               onMouseEnter={() => setHoveredNodeId(node.id)}
               onMouseLeave={() => setHoveredNodeId(null)}
+              style={{ 
+                transition: isDragging ? 'none' : 'all 0.2s ease',
+                opacity: isDragging ? 0.7 : 1
+              }}
             >
               {/* 节点圆圈 */}
               <circle
@@ -330,7 +432,11 @@ export function ValueNetworkGraph(props: ValueNetworkGraphProps) {
                 opacity={isSelected || isHovered ? 1 : (hoveredNodeId ? 0.3 : 0.9)}
                 stroke="#fff"
                 strokeWidth={isSelected ? 4 : 3}
-                style={{ transition: 'all 0.2s ease' }}
+                style={{ 
+                  transition: isDragging ? 'none' : 'all 0.2s ease',
+                  filter: isDragging ? 'drop-shadow(0 8px 16px rgba(0,0,0,0.3))' : 
+                          isHovered ? 'drop-shadow(0 4px 8px rgba(0,0,0,0.2))' : 'none'
+                }}
               />
               
               {/* 节点名称 */}
