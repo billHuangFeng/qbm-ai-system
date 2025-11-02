@@ -150,12 +150,6 @@ export function ValueNetworkGraph(props: ValueNetworkGraphProps) {
     }
   });
 
-  // 根据效率值动态选择箭头标记
-  const getArrowMarker = (efficiency: number) => {
-    if (efficiency >= 0.8) return 'url(#arrowhead-high)';
-    if (efficiency >= 0.6) return 'url(#arrowhead-medium)';
-    return 'url(#arrowhead-low)';
-  };
 
   // 计算节点半径
   const getRadius = (node: NetworkNode) => {
@@ -173,7 +167,8 @@ export function ValueNetworkGraph(props: ValueNetworkGraphProps) {
         stroke={color}
         strokeWidth={width}
         fill="none"
-        markerEnd={getArrowMarker(efficiency)}
+        strokeDasharray="6 8"
+        strokeLinecap="round"
       />
     );
   };
@@ -186,7 +181,8 @@ export function ValueNetworkGraph(props: ValueNetworkGraphProps) {
         stroke={color}
         strokeWidth={width}
         fill="none"
-        markerEnd={getArrowMarker(efficiency)}
+        strokeDasharray="6 8"
+        strokeLinecap="round"
       />
     );
   };
@@ -201,7 +197,9 @@ export function ValueNetworkGraph(props: ValueNetworkGraphProps) {
         stroke={color}
         strokeWidth={width}
         fill="none"
-        markerEnd={getArrowMarker(efficiency)}
+        strokeDasharray="6 8"
+        strokeLinecap="round"
+        strokeLinejoin="round"
       />
     );
   };
@@ -234,9 +232,9 @@ export function ValueNetworkGraph(props: ValueNetworkGraphProps) {
           d={pathData}
           stroke="#F59E0B"
           strokeWidth={2.5}
-          strokeDasharray="8,4"
+          strokeDasharray="10 6"
           fill="none"
-          markerEnd="url(#arrowhead-feedback)"
+          strokeLinecap="round"
           opacity={0.7}
         />
         {/* 毛利回流标签（深色背景+白色文字）*/}
@@ -291,9 +289,9 @@ export function ValueNetworkGraph(props: ValueNetworkGraphProps) {
           d={pathData}
           stroke="#EF4444"
           strokeWidth={2.5}
-          strokeDasharray="8,4"
+          strokeDasharray="10 6"
           fill="none"
-          markerEnd="url(#arrowhead-cost)"
+          strokeLinecap="round"
           opacity={0.7}
         />
         {/* 成本投入标签（深色背景+白色文字）*/}
@@ -433,68 +431,6 @@ export function ValueNetworkGraph(props: ValueNetworkGraphProps) {
         
         <div className="w-full flex items-center justify-center">
           <svg ref={svgRef} viewBox="0 0 1200 800" className="w-full h-auto max-h-[calc(100vh-180px)]" preserveAspectRatio="xMidYMid meet">
-        <defs>
-          {/* 高效率箭头标记（绿色）*/}
-          <marker
-            id="arrowhead-high"
-            markerWidth="8"
-            markerHeight="8"
-            refX="8"
-            refY="4"
-            orient="auto"
-            markerUnits="userSpaceOnUse"
-          >
-            <path d="M0,0 L0,8 L8,4 z" fill="#00E676" />
-          </marker>
-          {/* 中等效率箭头标记（黄色）*/}
-          <marker
-            id="arrowhead-medium"
-            markerWidth="8"
-            markerHeight="8"
-            refX="8"
-            refY="4"
-            orient="auto"
-            markerUnits="userSpaceOnUse"
-          >
-            <path d="M0,0 L0,8 L8,4 z" fill="#FFD700" />
-          </marker>
-          {/* 低效率箭头标记（红色）*/}
-          <marker
-            id="arrowhead-low"
-            markerWidth="8"
-            markerHeight="8"
-            refX="8"
-            refY="4"
-            orient="auto"
-            markerUnits="userSpaceOnUse"
-          >
-            <path d="M0,0 L0,8 L8,4 z" fill="#FF5252" />
-          </marker>
-          {/* 毛利回流箭头标记（琥珀色）*/}
-          <marker
-            id="arrowhead-feedback"
-            markerWidth="8"
-            markerHeight="8"
-            refX="8"
-            refY="4"
-            orient="auto"
-            markerUnits="userSpaceOnUse"
-          >
-            <path d="M0,0 L0,8 L8,4 z" fill="#F59E0B" />
-          </marker>
-          {/* 成本投入箭头标记（红色）*/}
-          <marker
-            id="arrowhead-cost"
-            markerWidth="8"
-            markerHeight="8"
-            refX="8"
-            refY="4"
-            orient="auto"
-            markerUnits="userSpaceOnUse"
-          >
-            <path d="M0,0 L0,8 L8,4 z" fill="#EF4444" />
-          </marker>
-        </defs>
 
         {/* 全幅色带背景（优化版：降低透明度+添加边框）*/}
         {Object.entries(LEVEL_CONFIG).map(([level, config]) => (
