@@ -236,7 +236,7 @@ class ValueChainDecisionMapping:
                 "operational": ["具体产品决策", "质量控制执行"]
             },
             "产品内在价值": {
-                "strategic": ["价值主张战略", "差异化定位"],
+                "strategic": ["产品内在价值战略", "差异化定位"],
                 "tactical": ["营销策略", "品牌建设计划"],
                 "operational": ["具体营销决策", "品牌推广执行"]
             },
