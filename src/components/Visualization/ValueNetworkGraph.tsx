@@ -187,7 +187,7 @@ export function ValueNetworkGraph(props: ValueNetworkGraphProps) {
     );
   };
 
-  // 绘制水平连接线（同层收益到毛利）- 从节点边缘开始避免被遮挡
+  // 绘制水平连接线（同层收益到毛利）- 测试版：使用纯色确保可见
   const drawHorizontalLine = (x1: number, y1: number, x2: number, y2: number, color: string, width: number, efficiency: number) => {
     // 计算节点半径（平均30px）
     const nodeRadius = 30;
@@ -195,26 +195,23 @@ export function ValueNetworkGraph(props: ValueNetworkGraphProps) {
     const adjustedX1 = x1 + nodeRadius;
     const adjustedX2 = x2 - nodeRadius;
     
-    // 调试信息
-    console.log('Horizontal line:', { 
-      from: { x: x1, y: y1 }, 
-      to: { x: x2, y: y2 },
-      adjusted: { x1: adjustedX1, x2: adjustedX2 },
-      efficiency 
-    });
-    
-    // 水平线使用专用的高亮渐变和更粗的线条
-    const enhancedWidth = Math.max(width + 2, 5); // 至少5px宽
+    // 测试：使用鲜艳的纯色和粗线条
     return (
-      <path
-        d={`M ${adjustedX1} ${y1} L ${adjustedX2} ${y2}`}
-        stroke="url(#gradient-horizontal)"
-        strokeWidth={enhancedWidth}
-        fill="none"
-        strokeDasharray="12 8"
-        strokeLinecap="round"
-        className="flow-arrow"
-      />
+      <g>
+        {/* 测试线条：亮橙色实线 */}
+        <path
+          d={`M ${adjustedX1} ${y1} L ${adjustedX2} ${y2}`}
+          stroke="#FF6B00"
+          strokeWidth={6}
+          fill="none"
+          strokeDasharray="12 8"
+          strokeLinecap="round"
+          opacity={1}
+        />
+        {/* 调试标记：在两端画小圆点 */}
+        <circle cx={adjustedX1} cy={y1} r={5} fill="red" />
+        <circle cx={adjustedX2} cy={y2} r={5} fill="blue" />
+      </g>
     );
   };
 
