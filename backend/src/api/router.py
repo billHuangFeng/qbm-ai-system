@@ -4,7 +4,7 @@ API路由配置
 
 import os
 from fastapi import APIRouter
-from .endpoints import auth, ai_strategic_layer, ai_planning_loop, ai_retrospective, ai_consistency, ai_influence, marginal_analysis, ingestion, expert_knowledge, learning, attribution
+from .endpoints import auth, ai_strategic_layer, ai_planning_loop, ai_retrospective, ai_consistency, ai_influence, marginal_analysis, ingestion, expert_knowledge, learning, attribution, data_enhancement
 
 # 创建主API路由器
 api_router = APIRouter()
@@ -98,5 +98,14 @@ api_router.include_router(
     prefix="",
     tags=["归因分析"]
 )
+
+# 数据增强路由（第3阶段）
+ENABLE_DATA_ENHANCEMENT = os.getenv("ENABLE_DATA_ENHANCEMENT", "1") == "1"
+if ENABLE_DATA_ENHANCEMENT:
+    api_router.include_router(
+        data_enhancement.router,
+        prefix="/api/v1",
+        tags=["数据增强"]
+    )
 
 
