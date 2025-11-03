@@ -59,6 +59,7 @@ class MasterDataMatcher(BaseService):
         # 3. 代码细微差异（1-2字符）+ 名称大致类似 = 置信度大打折扣（30-60%）
         # 4. 代码较大差异（3+字符）= 低置信度（0-30%），即使名称匹配
         # 5. 无代码时，仅依赖名称匹配
+        # 6. 总公司和分公司匹配 = 低置信度（60%），应该匹配到对应的记录（总公司匹配总公司，分公司匹配分公司）
         
         # 企业名称标准化规则
         self.company_suffixes = [
@@ -256,13 +257,17 @@ class MasterDataMatcher(BaseService):
             # 一个是总公司，一个是分公司/办事处
             elif (info1["is_branch"] or info1["is_office"]) and \
                  not info2["is_branch"] and not info2["is_office"]:
-                match_details["match_type"] = "headquarter_branch_match"
-                return 0.90, match_details  # 同一公司的总公司与分公司/办事处
+                # 场景：记录是分公司/办事处，主数据是总公司
+                # 这种情况应该匹配到分公司的主数据，而不是总公司的
+                match_details["match_type"] = "branch_to_headquarter"
+                return 0.60, match_details  # 低置信度：应该匹配到分公司的记录，而不是总公司的
             
             elif (info2["is_branch"] or info2["is_office"]) and \
                  not info1["is_branch"] and not info1["is_office"]:
-                match_details["match_type"] = "headquarter_branch_match"
-                return 0.90, match_details  # 同一公司的总公司与分公司/办事处
+                # 场景：记录是总公司，主数据是分公司/办事处
+                # 这种情况应该匹配到总公司的主数据，而不是分公司的
+                match_details["match_type"] = "headquarter_to_branch"
+                return 0.60, match_details  # 低置信度：应该匹配到总公司的记录，而不是分公司的
         
         # 场景3：总公司名称不一致，即使有分公司/办事处标识，也需要比较总公司部分
         headquarter_sim = self._calculate_name_similarity_core(std_headquarter1, std_headquarter2)
@@ -744,8 +749,10 @@ class MasterDataMatcher(BaseService):
             reasons.append("【分公司匹配】同一总公司的同一分公司")
         elif name_match_type == "same_headquarter_different_branch":
             reasons.append("【注意】同一总公司但不同分公司")
-        elif name_match_type == "headquarter_branch_match":
-            reasons.append("【总分公司匹配】同一公司的总公司与分公司/办事处")
+        elif name_match_type == "headquarter_to_branch":
+            reasons.append("【低置信度】记录是总公司，主数据是分公司/办事处，应该匹配到总公司的记录")
+        elif name_match_type == "branch_to_headquarter":
+            reasons.append("【低置信度】记录是分公司/办事处，主数据是总公司，应该匹配到分公司的记录")
         elif name_match_type == "similar_headquarter_different_branch":
             reasons.append("【警告】相似总公司名称但不同分支机构，需确认是否为同一公司")
         
