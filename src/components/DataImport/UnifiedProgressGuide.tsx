@@ -9,8 +9,13 @@ import {
   ChevronRight,
   Info,
   AlertCircle,
-  Bot
+  Bot,
+  Sparkles,
+  Play,
+  Settings,
+  ArrowLeft
 } from 'lucide-react';
+import { Button } from '@/components/ui/button';
 import type { ImportStage } from '@/pages/DataImportPage';
 
 interface TaskMessage {
@@ -30,9 +35,10 @@ interface TaskStage {
 
 interface UnifiedProgressGuideProps {
   currentStage: ImportStage;
+  onStageChange?: (stage: ImportStage) => void;
 }
 
-const UnifiedProgressGuide = ({ currentStage }: UnifiedProgressGuideProps) => {
+const UnifiedProgressGuide = ({ currentStage, onStageChange }: UnifiedProgressGuideProps) => {
   const [taskListExpanded, setTaskListExpanded] = useState(false);
   const [stages, setStages] = useState<TaskStage[]>([
     { key: 'UPLOAD', label: '上传文件', description: '选择数据文件', status: 'pending', messages: [] },
@@ -45,6 +51,136 @@ const UnifiedProgressGuide = ({ currentStage }: UnifiedProgressGuideProps) => {
   ]);
 
   const messagesEndRef = useRef<HTMLDivElement | null>(null);
+
+  const getActions = (): Array<{
+    label: string;
+    variant: 'default' | 'outline';
+    icon?: typeof Sparkles;
+    onClick: () => void;
+  }> => {
+    if (!onStageChange) return [];
+
+    switch(currentStage) {
+      case 'UPLOAD':
+        return [];
+      
+      case 'MAPPING':
+        return [
+          {
+            label: '✨ 应用 AI 推荐',
+            variant: 'default' as const,
+            icon: Sparkles,
+            onClick: () => onStageChange('ANALYZING')
+          },
+          {
+            label: '🛠️ 手动配置',
+            variant: 'outline' as const,
+            icon: Settings,
+            onClick: () => {}
+          }
+        ];
+      
+      case 'ANALYZING':
+        return [];
+      
+      case 'QUALITY_CHECK':
+        return [
+          {
+            label: '⏭️ 继续导入',
+            variant: 'default' as const,
+            onClick: () => onStageChange('READY')
+          }
+        ];
+      
+      case 'READY':
+        const qualityScore = 85;
+        
+        if (qualityScore >= 95) {
+          return [
+            {
+              label: '🚀 直接导入正式表',
+              variant: 'default' as const,
+              icon: Play,
+              onClick: () => onStageChange('IMPORTING')
+            },
+            {
+              label: '🔙 返回调整',
+              variant: 'outline' as const,
+              icon: ArrowLeft,
+              onClick: () => onStageChange('MAPPING')
+            }
+          ];
+        } else if (qualityScore >= 70) {
+          return [
+            {
+              label: '📥 导入暂存表（推荐）',
+              variant: 'default' as const,
+              icon: Play,
+              onClick: () => onStageChange('ENHANCEMENT')
+            },
+            {
+              label: '⚠️ 强制导入正式表',
+              variant: 'outline' as const,
+              icon: Play,
+              onClick: () => onStageChange('IMPORTING')
+            },
+            {
+              label: '🔙 返回调整',
+              variant: 'outline' as const,
+              icon: ArrowLeft,
+              onClick: () => onStageChange('MAPPING')
+            }
+          ];
+        } else {
+          return [
+            {
+              label: '⛔ 质量不合格，无法导入',
+              variant: 'outline' as const,
+              onClick: () => {}
+            },
+            {
+              label: '🔙 返回修复',
+              variant: 'default' as const,
+              icon: ArrowLeft,
+              onClick: () => onStageChange('MAPPING')
+            }
+          ];
+        }
+      
+      case 'ENHANCEMENT':
+        return [
+          {
+            label: '🤖 全部自动修复',
+            variant: 'default' as const,
+            onClick: () => onStageChange('CONFIRMING')
+          },
+          {
+            label: '✅ 完成并确认',
+            variant: 'outline' as const,
+            onClick: () => onStageChange('CONFIRMING')
+          }
+        ];
+      
+      case 'CONFIRMING':
+        return [
+          {
+            label: '🚀 导入正式表',
+            variant: 'default' as const,
+            icon: Play,
+            onClick: () => onStageChange('COMPLETED')
+          },
+          {
+            label: '🔙 返回调整',
+            variant: 'outline' as const,
+            icon: ArrowLeft,
+            onClick: () => onStageChange('ENHANCEMENT')
+          }
+        ];
+      
+      default:
+        return [];
+    }
+  };
 
   const generateMessagesForStage = (stage: ImportStage): TaskMessage[] => {
     const timestamp = new Date();
@@ -199,6 +335,7 @@ const UnifiedProgressGuide = ({ currentStage }: UnifiedProgressGuideProps) => {
   const activeStage = stages.find(s => s.status === 'active' || s.status === 'warning');
   const completedCount = stages.filter(s => s.status === 'completed').length;
   const totalCount = stages.length;
+  const actions = getActions();
 
   return (
     <div className="flex flex-col h-full gap-4">
@@ -219,7 +356,7 @@ const UnifiedProgressGuide = ({ currentStage }: UnifiedProgressGuideProps) => {
           </div>
           
           <div className="px-4 py-3 bg-muted/30 border-t">
-            <div className="space-y-2 max-h-[400px] overflow-y-auto">
+            <div className="space-y-2 max-h-[300px] overflow-y-auto">
               {activeStage.messages.map((message) => (
                 <div key={message.id} className="animate-fade-in">
                   <div className="flex gap-2 items-start">
@@ -241,6 +378,26 @@ const UnifiedProgressGuide = ({ currentStage }: UnifiedProgressGuideProps) => {
               <div ref={messagesEndRef} />
             </div>
           </div>
+
+          {/* 操作按钮区域 - 在卡片内部右下角 */}
+          {actions.length > 0 && (
+            <div className="px-4 py-3 bg-card border-t flex flex-col gap-2">
+              {actions.map((action, index) => {
+                const Icon = action.icon;
+                return (
+                  <Button
+                    key={index}
+                    variant={action.variant}
+                    className="w-full justify-start"
+                    onClick={action.onClick}
+                  >
+                    {Icon && <Icon className="w-4 h-4 mr-2" />}
+                    {action.label}
+                  </Button>
+                );
+              })}
+            </div>
+          )}
         </div>
       )}
 

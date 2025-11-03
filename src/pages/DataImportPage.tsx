@@ -5,7 +5,6 @@ import FieldMappingEditor from '@/components/DataImport/FieldMappingEditor';
 import QualityReportCard from '@/components/DataImport/QualityReportCard';
 import DataEnhancementPanel from '@/components/DataImport/DataEnhancementPanel';
 import UnifiedProgressGuide from '@/components/DataImport/UnifiedProgressGuide';
-import SmartActionPanel from '@/components/DataImport/SmartActionPanel';
 import { ChevronRight } from 'lucide-react';
 
 export type ImportStage = 
@@ -20,7 +19,7 @@ export type ImportStage =
   | 'COMPLETED';
 
 const DataImportPage = () => {
-  const [currentStage, setCurrentStage] = useState<ImportStage>('UPLOAD');
+  const [currentStage, setCurrentStage] = useState<ImportStage>('MAPPING');
 
   return (
     <div className="min-h-screen bg-background">
@@ -75,16 +74,13 @@ const DataImportPage = () => {
           {/* Right: AI Smart Guide Area */}
           <div className="flex flex-col gap-4 bg-card border rounded-lg p-6 overflow-hidden max-h-[calc(100vh-200px)]">
             
-            {/* Unified Progress Guide */}
+            {/* Unified Progress Guide with integrated actions */}
             <div className="flex-1 overflow-hidden">
-              <UnifiedProgressGuide currentStage={currentStage} />
+              <UnifiedProgressGuide 
+                currentStage={currentStage}
+                onStageChange={setCurrentStage}
+              />
             </div>
-            
-            {/* Smart Action Panel */}
-            <SmartActionPanel 
-              currentStage={currentStage}
-              onStageChange={setCurrentStage}
-            />
             
           </div>
 
