@@ -43,7 +43,7 @@ export class DocumentFormatDetector {
     
     // 计算各种格式的得分
     for (const [formatType, detector] of Object.entries(this.formatPatterns)) {
-      scores[formatType] = detector(data, metadata);
+      scores[formatType] = detector(data);
     }
     
     // 找到得分最高的格式
@@ -300,7 +300,7 @@ export class IntelligentDocumentProcessor {
       }
       
       // 3. 处理数据
-      const processedData = await processor(data, metadata);
+      const processedData = await processor(data);
       
       // 4. 计算质量分数
       const qualityScore = this.calculateQualityScore(processedData);

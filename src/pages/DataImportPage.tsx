@@ -1,0 +1,97 @@
+import { useState } from 'react';
+import FileUploadZone from '@/components/DataImport/FileUploadZone';
+import DataPreviewTable from '@/components/DataImport/DataPreviewTable';
+import FieldMappingEditor from '@/components/DataImport/FieldMappingEditor';
+import QualityReportCard from '@/components/DataImport/QualityReportCard';
+import DataEnhancementPanel from '@/components/DataImport/DataEnhancementPanel';
+import UnifiedProgressGuide from '@/components/DataImport/UnifiedProgressGuide';
+import SmartActionPanel from '@/components/DataImport/SmartActionPanel';
+import { ChevronRight } from 'lucide-react';
+
+export type ImportStage = 
+  | 'UPLOAD' 
+  | 'MAPPING' 
+  | 'ANALYZING' 
+  | 'QUALITY_CHECK' 
+  | 'READY' 
+  | 'IMPORTING' 
+  | 'ENHANCEMENT'
+  | 'CONFIRMING'
+  | 'COMPLETED';
+
+const DataImportPage = () => {
+  const [currentStage, setCurrentStage] = useState<ImportStage>('UPLOAD');
+
+  return (
+    <div className="min-h-screen bg-background">
+      {/* Header with Breadcrumb */}
+      <header className="border-b bg-card">
+        <div className="container mx-auto px-6 py-4">
+          <div className="flex items-center gap-2 text-sm text-muted-foreground mb-2">
+            <span className="hover:text-foreground cursor-pointer transition-colors">数据管理</span>
+            <ChevronRight className="w-4 h-4" />
+            <span className="text-foreground font-medium">智能数据导入</span>
+          </div>
+          <h1 className="text-3xl font-bold text-foreground">智能数据导入</h1>
+          <p className="text-muted-foreground mt-1">AI 驱动的数据导入系统，自动识别格式、智能映射字段、深度质量检查</p>
+        </div>
+      </header>
+
+      {/* Main Content: Two-Column Layout */}
+      <div className="container mx-auto px-6 py-6">
+        <div className="grid grid-cols-1 lg:grid-cols-[60%_40%] gap-6 h-[calc(100vh-200px)]">
+          
+          {/* Left: Data Operations Area */}
+          <div className="flex flex-col gap-6 overflow-y-auto pr-2">
+            
+            {/* File Upload Zone */}
+            <FileUploadZone 
+              currentStage={currentStage}
+              onStageChange={setCurrentStage}
+            />
+            
+            {/* Data Preview Table */}
+            {currentStage !== 'UPLOAD' && (
+              <DataPreviewTable />
+            )}
+            
+            {/* Field Mapping Editor */}
+            {(currentStage === 'MAPPING' || currentStage === 'ANALYZING' || currentStage === 'QUALITY_CHECK' || currentStage === 'READY') && (
+              <FieldMappingEditor />
+            )}
+            
+            {/* Quality Report Card */}
+            {(currentStage === 'QUALITY_CHECK' || currentStage === 'READY') && (
+              <QualityReportCard />
+            )}
+            
+            {/* Data Enhancement Panel */}
+            {(currentStage === 'ENHANCEMENT' || currentStage === 'CONFIRMING') && (
+              <DataEnhancementPanel />
+            )}
+            
+          </div>
+
+          {/* Right: AI Smart Guide Area */}
+          <div className="flex flex-col gap-4 bg-card border rounded-lg p-6 overflow-hidden">
+            
+            {/* Unified Progress Guide */}
+            <div className="flex-1 overflow-hidden">
+              <UnifiedProgressGuide currentStage={currentStage} />
+            </div>
+            
+            {/* Smart Action Panel */}
+            <SmartActionPanel 
+              currentStage={currentStage}
+              onStageChange={setCurrentStage}
+            />
+            
+          </div>
+
+        </div>
+      </div>
+    </div>
+  );
+};
+
+export default DataImportPage;

@@ -14,6 +14,71 @@ export type Database = {
   }
   public: {
     Tables: {
+      alert_rules: {
+        Row: {
+          alert_type: string | null
+          comparison_operator: string | null
+          condition_type: string | null
+          created_at: string | null
+          created_by: string | null
+          is_active: boolean | null
+          last_triggered_at: string | null
+          monitored_metric: string | null
+          notification_channels: Json | null
+          recipients: Json | null
+          rule_id: string
+          rule_name: string
+          severity_level: string | null
+          tenant_id: string | null
+          threshold_value: number | null
+          updated_at: string | null
+        }
+        Insert: {
+          alert_type?: string | null
+          comparison_operator?: string | null
+          condition_type?: string | null
+          created_at?: string | null
+          created_by?: string | null
+          is_active?: boolean | null
+          last_triggered_at?: string | null
+          monitored_metric?: string | null
+          notification_channels?: Json | null
+          recipients?: Json | null
+          rule_id?: string
+          rule_name: string
+          severity_level?: string | null
+          tenant_id?: string | null
+          threshold_value?: number | null
+          updated_at?: string | null
+        }
+        Update: {
+          alert_type?: string | null
+          comparison_operator?: string | null
+          condition_type?: string | null
+          created_at?: string | null
+          created_by?: string | null
+          is_active?: boolean | null
+          last_triggered_at?: string | null
+          monitored_metric?: string | null
+          notification_channels?: Json | null
+          recipients?: Json | null
+          rule_id?: string
+          rule_name?: string
+          severity_level?: string | null
+          tenant_id?: string | null
+          threshold_value?: number | null
+          updated_at?: string | null
+        }
+        Relationships: [
+          {
+            foreignKeyName: "alert_rules_tenant_id_fkey"
+            columns: ["tenant_id"]
+            isOneToOne: false
+            referencedRelation: "tenants"
+            referencedColumns: ["tenant_id"]
+          },
+        ]
+      }
       bridge_attribution: {
         Row: {
           attribution_id: string
@@ -261,6 +326,77 @@ export type Database = {
           },
         ]
       }
+      controllable_facts: {
+        Row: {
+          control_mechanism: string | null
+          controllability_level: string | null
+          created_at: string | null
+          created_by: string | null
+          effective_date: string | null
+          expiry_date: string | null
+          fact_category: string | null
+          fact_id: string
+          fact_name: string
+          fact_type: string | null
+          fact_unit: string | null
+          fact_value: number | null
+          max_value: number | null
+          min_value: number | null
+          optimal_value: number | null
+          related_decisions: Json | null
+          tenant_id: string | null
+          updated_at: string | null
+        }
+        Insert: {
+          control_mechanism?: string | null
+          controllability_level?: string | null
+          created_at?: string | null
+          created_by?: string | null
+          effective_date?: string | null
+          expiry_date?: string | null
+          fact_category?: string | null
+          fact_id?: string
+          fact_name: string
+          fact_type?: string | null
+          fact_unit?: string | null
+          fact_value?: number | null
+          max_value?: number | null
+          min_value?: number | null
+          optimal_value?: number | null
+          related_decisions?: Json | null
+          tenant_id?: string | null
+          updated_at?: string | null
+        }
+        Update: {
+          control_mechanism?: string | null
+          controllability_level?: string | null
+          created_at?: string | null
+          created_by?: string | null
+          effective_date?: string | null
+          expiry_date?: string | null
+          fact_category?: string | null
+          fact_id?: string
+          fact_name?: string
+          fact_type?: string | null
+          fact_unit?: string | null
+          fact_value?: number | null
+          max_value?: number | null
+          min_value?: number | null
+          optimal_value?: number | null
+          related_decisions?: Json | null
+          tenant_id?: string | null
+          updated_at?: string | null
+        }
+        Relationships: [
+          {
+            foreignKeyName: "controllable_facts_tenant_id_fkey"
+            columns: ["tenant_id"]
+            isOneToOne: false
+            referencedRelation: "tenants"
+            referencedColumns: ["tenant_id"]
+          },
+        ]
+      }
       cross_tenant_access: {
         Row: {
           access_id: string
@@ -292,6 +428,520 @@ export type Database = {
         Relationships: [
           {
             foreignKeyName: "cross_tenant_access_tenant_id_fkey"
+            columns: ["tenant_id"]
+            isOneToOne: false
+            referencedRelation: "tenants"
+            referencedColumns: ["tenant_id"]
+          },
+        ]
+      }
+      data_import_log: {
+        Row: {
+          created_at: string | null
+          duplicate_rows: number | null
+          error_details: Json | null
+          failed_rows: number | null
+          import_duration_ms: number | null
+          import_type: string | null
+          imported_at: string | null
+          imported_by: string | null
+          log_id: string
+          rows_per_second: number | null
+          staging_id: string | null
+          success_rows: number | null
+          target_table: string | null
+          tenant_id: string | null
+          total_rows: number | null
+        }
+        Insert: {
+          created_at?: string | null
+          duplicate_rows?: number | null
+          error_details?: Json | null
+          failed_rows?: number | null
+          import_duration_ms?: number | null
+          import_type?: string | null
+          imported_at?: string | null
+          imported_by?: string | null
+          log_id?: string
+          rows_per_second?: number | null
+          staging_id?: string | null
+          success_rows?: number | null
+          target_table?: string | null
+          tenant_id?: string | null
+          total_rows?: number | null
+        }
+        Update: {
+          created_at?: string | null
+          duplicate_rows?: number | null
+          error_details?: Json | null
+          failed_rows?: number | null
+          import_duration_ms?: number | null
+          import_type?: string | null
+          imported_at?: string | null
+          imported_by?: string | null
+          log_id?: string
+          rows_per_second?: number | null
+          staging_id?: string | null
+          success_rows?: number | null
+          target_table?: string | null
+          tenant_id?: string | null
+          total_rows?: number | null
+        }
+        Relationships: [
+          {
+            foreignKeyName: "data_import_log_staging_id_fkey"
+            columns: ["staging_id"]
+            isOneToOne: false
+            referencedRelation: "raw_data_staging"
+            referencedColumns: ["staging_id"]
+          },
+          {
+            foreignKeyName: "data_import_log_tenant_id_fkey"
+            columns: ["tenant_id"]
+            isOneToOne: false
+            referencedRelation: "tenants"
+            referencedColumns: ["tenant_id"]
+          },
+        ]
+      }
+      data_quality_report: {
+        Row: {
+          accuracy_score: number | null
+          completeness_score: number | null
+          consistency_score: number | null
+          created_at: string | null
+          duplicate_count: number | null
+          invalid_format_count: number | null
+          missing_field_count: number | null
+          outlier_count: number | null
+          overall_quality_score: number | null
+          quality_issues: Json | null
+          report_id: string
+          staging_id: string | null
+          tenant_id: string | null
+          validation_rules: Json | null
+        }
+        Insert: {
+          accuracy_score?: number | null
+          completeness_score?: number | null
+          consistency_score?: number | null
+          created_at?: string | null
+          duplicate_count?: number | null
+          invalid_format_count?: number | null
+          missing_field_count?: number | null
+          outlier_count?: number | null
+          overall_quality_score?: number | null
+          quality_issues?: Json | null
+          report_id?: string
+          staging_id?: string | null
+          tenant_id?: string | null
+          validation_rules?: Json | null
+        }
+        Update: {
+          accuracy_score?: number | null
+          completeness_score?: number | null
+          consistency_score?: number | null
+          created_at?: string | null
+          duplicate_count?: number | null
+          invalid_format_count?: number | null
+          missing_field_count?: number | null
+          outlier_count?: number | null
+          overall_quality_score?: number | null
+          quality_issues?: Json | null
+          report_id?: string
+          staging_id?: string | null
+          tenant_id?: string | null
+          validation_rules?: Json | null
+        }
+        Relationships: [
+          {
+            foreignKeyName: "data_quality_report_staging_id_fkey"
+            columns: ["staging_id"]
+            isOneToOne: false
+            referencedRelation: "raw_data_staging"
+            referencedColumns: ["staging_id"]
+          },
+          {
+            foreignKeyName: "data_quality_report_tenant_id_fkey"
+            columns: ["tenant_id"]
+            isOneToOne: false
+            referencedRelation: "tenants"
+            referencedColumns: ["tenant_id"]
+          },
+        ]
+      }
+      data_version_control: {
+        Row: {
+          affected_rows: number | null
+          change_description: string | null
+          change_details: Json | null
+          change_type: string | null
+          changed_by: string | null
+          created_at: string | null
+          data_type: string | null
+          is_current: boolean | null
+          snapshot_file_path: string | null
+          tenant_id: string | null
+          version_date: string | null
+          version_id: string
+          version_number: number | null
+        }
+        Insert: {
+          affected_rows?: number | null
+          change_description?: string | null
+          change_details?: Json | null
+          change_type?: string | null
+          changed_by?: string | null
+          created_at?: string | null
+          data_type?: string | null
+          is_current?: boolean | null
+          snapshot_file_path?: string | null
+          tenant_id?: string | null
+          version_date?: string | null
+          version_id?: string
+          version_number?: number | null
+        }
+        Update: {
+          affected_rows?: number | null
+          change_description?: string | null
+          change_details?: Json | null
+          change_type?: string | null
+          changed_by?: string | null
+          created_at?: string | null
+          data_type?: string | null
+          is_current?: boolean | null
+          snapshot_file_path?: string | null
+          tenant_id?: string | null
+          version_date?: string | null
+          version_id?: string
+          version_number?: number | null
+        }
+        Relationships: [
+          {
+            foreignKeyName: "data_version_control_tenant_id_fkey"
+            columns: ["tenant_id"]
+            isOneToOne: false
+            referencedRelation: "tenants"
+            referencedColumns: ["tenant_id"]
+          },
+        ]
+      }
+      decision_audit_trail: {
+        Row: {
+          action_type: string | null
+          audit_id: string
+          audit_timestamp: string | null
+          change_reason: string | null
+          changed_by: string | null
+          created_at: string | null
+          event_id: string | null
+          field_changed: string | null
+          new_value: string | null
+          old_value: string | null
+          tenant_id: string | null
+        }
+        Insert: {
+          action_type?: string | null
+          audit_id?: string
+          audit_timestamp?: string | null
+          change_reason?: string | null
+          changed_by?: string | null
+          created_at?: string | null
+          event_id?: string | null
+          field_changed?: string | null
+          new_value?: string | null
+          old_value?: string | null
+          tenant_id?: string | null
+        }
+        Update: {
+          action_type?: string | null
+          audit_id?: string
+          audit_timestamp?: string | null
+          change_reason?: string | null
+          changed_by?: string | null
+          created_at?: string | null
+          event_id?: string | null
+          field_changed?: string | null
+          new_value?: string | null
+          old_value?: string | null
+          tenant_id?: string | null
+        }
+        Relationships: [
+          {
+            foreignKeyName: "decision_audit_trail_event_id_fkey"
+            columns: ["event_id"]
+            isOneToOne: false
+            referencedRelation: "decision_events"
+            referencedColumns: ["event_id"]
+          },
+          {
+            foreignKeyName: "decision_audit_trail_tenant_id_fkey"
+            columns: ["tenant_id"]
+            isOneToOne: false
+            referencedRelation: "tenants"
+            referencedColumns: ["tenant_id"]
+          },
+        ]
+      }
+      decision_cycle_config: {
+        Row: {
+          created_at: string | null
+          created_by: string | null
+          cycle_id: string
+          cycle_name: string
+          cycle_type: string | null
+          decision_scope: Json | null
+          end_date: string | null
+          frequency: string | null
+          is_active: boolean | null
+          start_date: string | null
+          target_metrics: Json | null
+          tenant_id: string | null
+          updated_at: string | null
+        }
+        Insert: {
+          created_at?: string | null
+          created_by?: string | null
+          cycle_id?: string
+          cycle_name: string
+          cycle_type?: string | null
+          decision_scope?: Json | null
+          end_date?: string | null
+          frequency?: string | null
+          is_active?: boolean | null
+          start_date?: string | null
+          target_metrics?: Json | null
+          tenant_id?: string | null
+          updated_at?: string | null
+        }
+        Update: {
+          created_at?: string | null
+          created_by?: string | null
+          cycle_id?: string
+          cycle_name?: string
+          cycle_type?: string | null
+          decision_scope?: Json | null
+          end_date?: string | null
+          frequency?: string | null
+          is_active?: boolean | null
+          start_date?: string | null
+          target_metrics?: Json | null
+          tenant_id?: string | null
+          updated_at?: string | null
+        }
+        Relationships: [
+          {
+            foreignKeyName: "decision_cycle_config_tenant_id_fkey"
+            columns: ["tenant_id"]
+            isOneToOne: false
+            referencedRelation: "tenants"
+            referencedColumns: ["tenant_id"]
+          },
+        ]
+      }
+      decision_events: {
+        Row: {
+          approval_status: string | null
+          created_at: string | null
+          cycle_id: string | null
+          decision_description: string | null
+          decision_level: string | null
+          decision_maker: string | null
+          decision_params: Json | null
+          department: string | null
+          event_category: string | null
+          event_date: string
+          event_id: string
+          event_type: string | null
+          expected_benefit: number | null
+          expected_cost: number | null
+          expected_impact: Json | null
+          implementation_status: string | null
+          tenant_id: string | null
+          updated_at: string | null
+        }
+        Insert: {
+          approval_status?: string | null
+          created_at?: string | null
+          cycle_id?: string | null
+          decision_description?: string | null
+          decision_level?: string | null
+          decision_maker?: string | null
+          decision_params?: Json | null
+          department?: string | null
+          event_category?: string | null
+          event_date: string
+          event_id?: string
+          event_type?: string | null
+          expected_benefit?: number | null
+          expected_cost?: number | null
+          expected_impact?: Json | null
+          implementation_status?: string | null
+          tenant_id?: string | null
+          updated_at?: string | null
+        }
+        Update: {
+          approval_status?: string | null
+          created_at?: string | null
+          cycle_id?: string | null
+          decision_description?: string | null
+          decision_level?: string | null
+          decision_maker?: string | null
+          decision_params?: Json | null
+          department?: string | null
+          event_category?: string | null
+          event_date?: string
+          event_id?: string
+          event_type?: string | null
+          expected_benefit?: number | null
+          expected_cost?: number | null
+          expected_impact?: Json | null
+          implementation_status?: string | null
+          tenant_id?: string | null
+          updated_at?: string | null
+        }
+        Relationships: [
+          {
+            foreignKeyName: "decision_events_cycle_id_fkey"
+            columns: ["cycle_id"]
+            isOneToOne: false
+            referencedRelation: "decision_cycle_config"
+            referencedColumns: ["cycle_id"]
+          },
+          {
+            foreignKeyName: "decision_events_tenant_id_fkey"
+            columns: ["tenant_id"]
+            isOneToOne: false
+            referencedRelation: "tenants"
+            referencedColumns: ["tenant_id"]
+          },
+        ]
+      }
+      decision_executions: {
+        Row: {
+          actual_cost: number | null
+          budget_variance: number | null
+          completion_percentage: number | null
+          created_at: string | null
+          event_id: string | null
+          execution_date: string | null
+          execution_details: Json | null
+          execution_id: string
+          execution_status: string | null
+          executor: string | null
+          resources_allocated: Json | null
+          tenant_id: string | null
+          updated_at: string | null
+        }
+        Insert: {
+          actual_cost?: number | null
+          budget_variance?: number | null
+          completion_percentage?: number | null
+          created_at?: string | null
+          event_id?: string | null
+          execution_date?: string | null
+          execution_details?: Json | null
+          execution_id?: string
+          execution_status?: string | null
+          executor?: string | null
+          resources_allocated?: Json | null
+          tenant_id?: string | null
+          updated_at?: string | null
+        }
+        Update: {
+          actual_cost?: number | null
+          budget_variance?: number | null
+          completion_percentage?: number | null
+          created_at?: string | null
+          event_id?: string | null
+          execution_date?: string | null
+          execution_details?: Json | null
+          execution_id?: string
+          execution_status?: string | null
+          executor?: string | null
+          resources_allocated?: Json | null
+          tenant_id?: string | null
+          updated_at?: string | null
+        }
+        Relationships: [
+          {
+            foreignKeyName: "decision_executions_event_id_fkey"
+            columns: ["event_id"]
+            isOneToOne: false
+            referencedRelation: "decision_events"
+            referencedColumns: ["event_id"]
+          },
+          {
+            foreignKeyName: "decision_executions_tenant_id_fkey"
+            columns: ["tenant_id"]
+            isOneToOne: false
+            referencedRelation: "tenants"
+            referencedColumns: ["tenant_id"]
+          },
+        ]
+      }
+      decision_impact_evaluation: {
+        Row: {
+          actual_benefit: number | null
+          actual_impact: Json | null
+          attribution_factors: Json | null
+          created_at: string | null
+          effectiveness_score: number | null
+          evaluated_by: string | null
+          evaluation_date: string | null
+          evaluation_id: string
+          evaluation_period: string | null
+          event_id: string | null
+          expected_vs_actual: Json | null
+          external_factors: Json | null
+          impact_variance_pct: number | null
+          roi: number | null
+          tenant_id: string | null
+        }
+        Insert: {
+          actual_benefit?: number | null
+          actual_impact?: Json | null
+          attribution_factors?: Json | null
+          created_at?: string | null
+          effectiveness_score?: number | null
+          evaluated_by?: string | null
+          evaluation_date?: string | null
+          evaluation_id?: string
+          evaluation_period?: string | null
+          event_id?: string | null
+          expected_vs_actual?: Json | null
+          external_factors?: Json | null
+          impact_variance_pct?: number | null
+          roi?: number | null
+          tenant_id?: string | null
+        }
+        Update: {
+          actual_benefit?: number | null
+          actual_impact?: Json | null
+          attribution_factors?: Json | null
+          created_at?: string | null
+          effectiveness_score?: number | null
+          evaluated_by?: string | null
+          evaluation_date?: string | null
+          evaluation_id?: string
+          evaluation_period?: string | null
+          event_id?: string | null
+          expected_vs_actual?: Json | null
+          external_factors?: Json | null
+          impact_variance_pct?: number | null
+          roi?: number | null
+          tenant_id?: string | null
+        }
+        Relationships: [
+          {
+            foreignKeyName: "decision_impact_evaluation_event_id_fkey"
+            columns: ["event_id"]
+            isOneToOne: false
+            referencedRelation: "decision_events"
+            referencedColumns: ["event_id"]
+          },
+          {
+            foreignKeyName: "decision_impact_evaluation_tenant_id_fkey"
             columns: ["tenant_id"]
             isOneToOne: false
             referencedRelation: "tenants"
@@ -638,6 +1288,68 @@ export type Database = {
           },
         ]
       }
+      external_business_facts: {
+        Row: {
+          created_at: string | null
+          data_source: string | null
+          fact_category: string | null
+          fact_id: string
+          fact_name: string
+          fact_source: string | null
+          fact_unit: string | null
+          fact_value: number | null
+          impact_on_business: string | null
+          observation_date: string | null
+          relevance_score: number | null
+          tenant_id: string | null
+          trend_confidence: number | null
+          trend_direction: string | null
+          updated_at: string | null
+        }
+        Insert: {
+          created_at?: string | null
+          data_source?: string | null
+          fact_category?: string | null
+          fact_id?: string
+          fact_name: string
+          fact_source?: string | null
+          fact_unit?: string | null
+          fact_value?: number | null
+          impact_on_business?: string | null
+          observation_date?: string | null
+          relevance_score?: number | null
+          tenant_id?: string | null
+          trend_confidence?: number | null
+          trend_direction?: string | null
+          updated_at?: string | null
+        }
+        Update: {
+          created_at?: string | null
+          data_source?: string | null
+          fact_category?: string | null
+          fact_id?: string
+          fact_name?: string
+          fact_source?: string | null
+          fact_unit?: string | null
+          fact_value?: number | null
+          impact_on_business?: string | null
+          observation_date?: string | null
+          relevance_score?: number | null
+          tenant_id?: string | null
+          trend_confidence?: number | null
+          trend_direction?: string | null
+          updated_at?: string | null
+        }
+        Relationships: [
+          {
+            foreignKeyName: "external_business_facts_tenant_id_fkey"
+            columns: ["tenant_id"]
+            isOneToOne: false
+            referencedRelation: "tenants"
+            referencedColumns: ["tenant_id"]
+          },
+        ]
+      }
       fact_expense: {
         Row: {
           activity_id: string | null
@@ -896,6 +1608,1111 @@ export type Database = {
           },
           {
             foreignKeyName: "fact_voice_tenant_id_fkey"
+            columns: ["tenant_id"]
+            isOneToOne: false
+            referencedRelation: "tenants"
+            referencedColumns: ["tenant_id"]
+          },
+        ]
+      }
+      manager_evaluation: {
+        Row: {
+          avg_implementation_time: number | null
+          budget_adherence_pct: number | null
+          created_at: string | null
+          decision_count: number | null
+          decision_quality_score: number | null
+          department: string | null
+          evaluated_by: string | null
+          evaluation_date: string | null
+          evaluation_id: string
+          evaluation_period_end: string | null
+          evaluation_period_start: string | null
+          execution_efficiency_score: number | null
+          impact_score: number | null
+          improvement_areas: string | null
+          manager_id: string | null
+          manager_level: string | null
+          overall_score: number | null
+          performance_level: string | null
+          recommendations: string | null
+          roi_achieved: number | null
+          strengths: string | null
+          successful_decisions: number | null
+          tenant_id: string | null
+        }
+        Insert: {
+          avg_implementation_time?: number | null
+          budget_adherence_pct?: number | null
+          created_at?: string | null
+          decision_count?: number | null
+          decision_quality_score?: number | null
+          department?: string | null
+          evaluated_by?: string | null
+          evaluation_date?: string | null
+          evaluation_id?: string
+          evaluation_period_end?: string | null
+          evaluation_period_start?: string | null
+          execution_efficiency_score?: number | null
+          impact_score?: number | null
+          improvement_areas?: string | null
+          manager_id?: string | null
+          manager_level?: string | null
+          overall_score?: number | null
+          performance_level?: string | null
+          recommendations?: string | null
+          roi_achieved?: number | null
+          strengths?: string | null
+          successful_decisions?: number | null
+          tenant_id?: string | null
+        }
+        Update: {
+          avg_implementation_time?: number | null
+          budget_adherence_pct?: number | null
+          created_at?: string | null
+          decision_count?: number | null
+          decision_quality_score?: number | null
+          department?: string | null
+          evaluated_by?: string | null
+          evaluation_date?: string | null
+          evaluation_id?: string
+          evaluation_period_end?: string | null
+          evaluation_period_start?: string | null
+          execution_efficiency_score?: number | null
+          impact_score?: number | null
+          improvement_areas?: string | null
+          manager_id?: string | null
+          manager_level?: string | null
+          overall_score?: number | null
+          performance_level?: string | null
+          recommendations?: string | null
+          roi_achieved?: number | null
+          strengths?: string | null
+          successful_decisions?: number | null
+          tenant_id?: string | null
+        }
+        Relationships: [
+          {
+            foreignKeyName: "manager_evaluation_tenant_id_fkey"
+            columns: ["tenant_id"]
+            isOneToOne: false
+            referencedRelation: "tenants"
+            referencedColumns: ["tenant_id"]
+          },
+        ]
+      }
+      marginal_dynamic_weights: {
+        Row: {
+          created_at: string | null
+          effective_date: string | null
+          factor_name: string | null
+          factor_type: string | null
+          initial_weight: number | null
+          learned_weight: number | null
+          tenant_id: string | null
+          time_decay_factor: number | null
+          training_id: string | null
+          weight_change_pct: number | null
+          weight_confidence: number | null
+          weight_id: string
+        }
+        Insert: {
+          created_at?: string | null
+          effective_date?: string | null
+          factor_name?: string | null
+          factor_type?: string | null
+          initial_weight?: number | null
+          learned_weight?: number | null
+          tenant_id?: string | null
+          time_decay_factor?: number | null
+          training_id?: string | null
+          weight_change_pct?: number | null
+          weight_confidence?: number | null
+          weight_id?: string
+        }
+        Update: {
+          created_at?: string | null
+          effective_date?: string | null
+          factor_name?: string | null
+          factor_type?: string | null
+          initial_weight?: number | null
+          learned_weight?: number | null
+          tenant_id?: string | null
+          time_decay_factor?: number | null
+          training_id?: string | null
+          weight_change_pct?: number | null
+          weight_confidence?: number | null
+          weight_id?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "marginal_dynamic_weights_tenant_id_fkey"
+            columns: ["tenant_id"]
+            isOneToOne: false
+            referencedRelation: "tenants"
+            referencedColumns: ["tenant_id"]
+          },
+          {
+            foreignKeyName: "marginal_dynamic_weights_training_id_fkey"
+            columns: ["training_id"]
+            isOneToOne: false
+            referencedRelation: "marginal_model_training"
+            referencedColumns: ["training_id"]
+          },
+        ]
+      }
+      marginal_ensemble_models: {
+        Row: {
+          best_single_model_r_squared: number | null
+          created_at: string | null
+          created_by: string | null
+          ensemble_id: string
+          ensemble_mae: number | null
+          ensemble_name: string | null
+          ensemble_r_squared: number | null
+          ensemble_rmse: number | null
+          ensemble_type: string | null
+          improvement_over_best: number | null
+          is_active: boolean | null
+          member_models: Json | null
+          model_weights: Json | null
+          tenant_id: string | null
+          updated_at: string | null
+        }
+        Insert: {
+          best_single_model_r_squared?: number | null
+          created_at?: string | null
+          created_by?: string | null
+          ensemble_id?: string
+          ensemble_mae?: number | null
+          ensemble_name?: string | null
+          ensemble_r_squared?: number | null
+          ensemble_rmse?: number | null
+          ensemble_type?: string | null
+          improvement_over_best?: number | null
+          is_active?: boolean | null
+          member_models?: Json | null
+          model_weights?: Json | null
+          tenant_id?: string | null
+          updated_at?: string | null
+        }
+        Update: {
+          best_single_model_r_squared?: number | null
+          created_at?: string | null
+          created_by?: string | null
+          ensemble_id?: string
+          ensemble_mae?: number | null
+          ensemble_name?: string | null
+          ensemble_r_squared?: number | null
+          ensemble_rmse?: number | null
+          ensemble_type?: string | null
+          improvement_over_best?: number | null
+          is_active?: boolean | null
+          member_models?: Json | null
+          model_weights?: Json | null
+          tenant_id?: string | null
+          updated_at?: string | null
+        }
+        Relationships: [
+          {
+            foreignKeyName: "marginal_ensemble_models_tenant_id_fkey"
+            columns: ["tenant_id"]
+            isOneToOne: false
+            referencedRelation: "tenants"
+            referencedColumns: ["tenant_id"]
+          },
+        ]
+      }
+      marginal_fitting_config: {
+        Row: {
+          algorithm_params: Json | null
+          analysis_type: string | null
+          confidence_level: number | null
+          config_id: string
+          config_name: string
+          created_at: string | null
+          created_by: string | null
+          fitting_method: string | null
+          is_active: boolean | null
+          min_data_points: number | null
+          tenant_id: string | null
+          time_window_months: number | null
+          updated_at: string | null
+        }
+        Insert: {
+          algorithm_params?: Json | null
+          analysis_type?: string | null
+          confidence_level?: number | null
+          config_id?: string
+          config_name: string
+          created_at?: string | null
+          created_by?: string | null
+          fitting_method?: string | null
+          is_active?: boolean | null
+          min_data_points?: number | null
+          tenant_id?: string | null
+          time_window_months?: number | null
+          updated_at?: string | null
+        }
+        Update: {
+          algorithm_params?: Json | null
+          analysis_type?: string | null
+          confidence_level?: number | null
+          config_id?: string
+          config_name?: string
+          created_at?: string | null
+          created_by?: string | null
+          fitting_method?: string | null
+          is_active?: boolean | null
+          min_data_points?: number | null
+          tenant_id?: string | null
+          time_window_months?: number | null
+          updated_at?: string | null
+        }
+        Relationships: [
+          {
+            foreignKeyName: "marginal_fitting_config_tenant_id_fkey"
+            columns: ["tenant_id"]
+            isOneToOne: false
+            referencedRelation: "tenants"
+            referencedColumns: ["tenant_id"]
+          },
+        ]
+      }
+      marginal_impact_analysis: {
+        Row: {
+          analysis_date: string | null
+          analysis_id: string
+          baseline_value: number | null
+          confidence_lower: number | null
+          confidence_upper: number | null
+          created_at: string | null
+          elasticity: number | null
+          input_variable: string | null
+          is_significant: boolean | null
+          marginal_impact: number | null
+          p_value: number | null
+          target_metric: string | null
+          tenant_id: string | null
+          training_id: string | null
+        }
+        Insert: {
+          analysis_date?: string | null
+          analysis_id?: string
+          baseline_value?: number | null
+          confidence_lower?: number | null
+          confidence_upper?: number | null
+          created_at?: string | null
+          elasticity?: number | null
+          input_variable?: string | null
+          is_significant?: boolean | null
+          marginal_impact?: number | null
+          p_value?: number | null
+          target_metric?: string | null
+          tenant_id?: string | null
+          training_id?: string | null
+        }
+        Update: {
+          analysis_date?: string | null
+          analysis_id?: string
+          baseline_value?: number | null
+          confidence_lower?: number | null
+          confidence_upper?: number | null
+          created_at?: string | null
+          elasticity?: number | null
+          input_variable?: string | null
+          is_significant?: boolean | null
+          marginal_impact?: number | null
+          p_value?: number | null
+          target_metric?: string | null
+          tenant_id?: string | null
+          training_id?: string | null
+        }
+        Relationships: [
+          {
+            foreignKeyName: "marginal_impact_analysis_tenant_id_fkey"
+            columns: ["tenant_id"]
+            isOneToOne: false
+            referencedRelation: "tenants"
+            referencedColumns: ["tenant_id"]
+          },
+          {
+            foreignKeyName: "marginal_impact_analysis_training_id_fkey"
+            columns: ["training_id"]
+            isOneToOne: false
+            referencedRelation: "marginal_model_training"
+            referencedColumns: ["training_id"]
+          },
+        ]
+      }
+      marginal_lag_analysis: {
+        Row: {
+          analysis_date: string | null
+          correlation: number | null
+          created_at: string | null
+          cumulative_impact: number | null
+          is_significant: boolean | null
+          lag_id: string
+          lag_period: number | null
+          lag_unit: string | null
+          lagged_impact: number | null
+          p_value: number | null
+          tenant_id: string | null
+          training_id: string | null
+          variable_name: string | null
+        }
+        Insert: {
+          analysis_date?: string | null
+          correlation?: number | null
+          created_at?: string | null
+          cumulative_impact?: number | null
+          is_significant?: boolean | null
+          lag_id?: string
+          lag_period?: number | null
+          lag_unit?: string | null
+          lagged_impact?: number | null
+          p_value?: number | null
+          tenant_id?: string | null
+          training_id?: string | null
+          variable_name?: string | null
+        }
+        Update: {
+          analysis_date?: string | null
+          correlation?: number | null
+          created_at?: string | null
+          cumulative_impact?: number | null
+          is_significant?: boolean | null
+          lag_id?: string
+          lag_period?: number | null
+          lag_unit?: string | null
+          lagged_impact?: number | null
+          p_value?: number | null
+          tenant_id?: string | null
+          training_id?: string | null
+          variable_name?: string | null
+        }
+        Relationships: [
+          {
+            foreignKeyName: "marginal_lag_analysis_tenant_id_fkey"
+            columns: ["tenant_id"]
+            isOneToOne: false
+            referencedRelation: "tenants"
+            referencedColumns: ["tenant_id"]
+          },
+          {
+            foreignKeyName: "marginal_lag_analysis_training_id_fkey"
+            columns: ["training_id"]
+            isOneToOne: false
+            referencedRelation: "marginal_model_training"
+            referencedColumns: ["training_id"]
+          },
+        ]
+      }
+      marginal_model_performance: {
+        Row: {
+          created_at: string | null
+          current_mae: number | null
+          current_mape: number | null
+          current_r_squared: number | null
+          current_rmse: number | null
+          drift_detected: boolean | null
+          mae_change: number | null
+          monitoring_date: string | null
+          monitoring_period: string | null
+          performance_id: string
+          performance_status: string | null
+          prediction_accuracy: number | null
+          prediction_bias: number | null
+          r_squared_change: number | null
+          requires_retraining: boolean | null
+          stability_score: number | null
+          tenant_id: string | null
+          training_id: string | null
+        }
+        Insert: {
+          created_at?: string | null
+          current_mae?: number | null
+          current_mape?: number | null
+          current_r_squared?: number | null
+          current_rmse?: number | null
+          drift_detected?: boolean | null
+          mae_change?: number | null
+          monitoring_date?: string | null
+          monitoring_period?: string | null
+          performance_id?: string
+          performance_status?: string | null
+          prediction_accuracy?: number | null
+          prediction_bias?: number | null
+          r_squared_change?: number | null
+          requires_retraining?: boolean | null
+          stability_score?: number | null
+          tenant_id?: string | null
+          training_id?: string | null
+        }
+        Update: {
+          created_at?: string | null
+          current_mae?: number | null
+          current_mape?: number | null
+          current_r_squared?: number | null
+          current_rmse?: number | null
+          drift_detected?: boolean | null
+          mae_change?: number | null
+          monitoring_date?: string | null
+          monitoring_period?: string | null
+          performance_id?: string
+          performance_status?: string | null
+          prediction_accuracy?: number | null
+          prediction_bias?: number | null
+          r_squared_change?: number | null
+          requires_retraining?: boolean | null
+          stability_score?: number | null
+          tenant_id?: string | null
+          training_id?: string | null
+        }
+        Relationships: [
+          {
+            foreignKeyName: "marginal_model_performance_tenant_id_fkey"
+            columns: ["tenant_id"]
+            isOneToOne: false
+            referencedRelation: "tenants"
+            referencedColumns: ["tenant_id"]
+          },
+          {
+            foreignKeyName: "marginal_model_performance_training_id_fkey"
+            columns: ["training_id"]
+            isOneToOne: false
+            referencedRelation: "marginal_model_training"
+            referencedColumns: ["training_id"]
+          },
+        ]
+      }
+      marginal_model_training: {
+        Row: {
+          config_id: string | null
+          created_at: string | null
+          feature_importance: Json | null
+          mae: number | null
+          mape: number | null
+          model_params: Json | null
+          model_type: string | null
+          model_version: string | null
+          r_squared: number | null
+          rmse: number | null
+          tenant_id: string | null
+          trained_by: string | null
+          training_data_end_date: string | null
+          training_data_start_date: string | null
+          training_date: string | null
+          training_duration_ms: number | null
+          training_id: string
+          training_samples: number | null
+          training_status: string | null
+          validation_samples: number | null
+        }
+        Insert: {
+          config_id?: string | null
+          created_at?: string | null
+          feature_importance?: Json | null
+          mae?: number | null
+          mape?: number | null
+          model_params?: Json | null
+          model_type?: string | null
+          model_version?: string | null
+          r_squared?: number | null
+          rmse?: number | null
+          tenant_id?: string | null
+          trained_by?: string | null
+          training_data_end_date?: string | null
+          training_data_start_date?: string | null
+          training_date?: string | null
+          training_duration_ms?: number | null
+          training_id?: string
+          training_samples?: number | null
+          training_status?: string | null
+          validation_samples?: number | null
+        }
+        Update: {
+          config_id?: string | null
+          created_at?: string | null
+          feature_importance?: Json | null
+          mae?: number | null
+          mape?: number | null
+          model_params?: Json | null
+          model_type?: string | null
+          model_version?: string | null
+          r_squared?: number | null
+          rmse?: number | null
+          tenant_id?: string | null
+          trained_by?: string | null
+          training_data_end_date?: string | null
+          training_data_start_date?: string | null
+          training_date?: string | null
+          training_duration_ms?: number | null
+          training_id?: string
+          training_samples?: number | null
+          training_status?: string | null
+          validation_samples?: number | null
+        }
+        Relationships: [
+          {
+            foreignKeyName: "marginal_model_training_config_id_fkey"
+            columns: ["config_id"]
+            isOneToOne: false
+            referencedRelation: "marginal_fitting_config"
+            referencedColumns: ["config_id"]
+          },
+          {
+            foreignKeyName: "marginal_model_training_tenant_id_fkey"
+            columns: ["tenant_id"]
+            isOneToOne: false
+            referencedRelation: "tenants"
+            referencedColumns: ["tenant_id"]
+          },
+        ]
+      }
+      marginal_optimization_recommendations: {
+        Row: {
+          action_variables: Json | null
+          analysis_id: string | null
+          confidence_level: number | null
+          created_at: string | null
+          current_value: number | null
+          estimated_cost: number | null
+          expected_impact: number | null
+          generated_date: string | null
+          implementation_status: string | null
+          improvement_pct: number | null
+          priority_level: string | null
+          recommendation_id: string
+          recommendation_type: string | null
+          recommended_action: string | null
+          roi_estimate: number | null
+          target_metric: string | null
+          target_value: number | null
+          tenant_id: string | null
+        }
+        Insert: {
+          action_variables?: Json | null
+          analysis_id?: string | null
+          confidence_level?: number | null
+          created_at?: string | null
+          current_value?: number | null
+          estimated_cost?: number | null
+          expected_impact?: number | null
+          generated_date?: string | null
+          implementation_status?: string | null
+          improvement_pct?: number | null
+          priority_level?: string | null
+          recommendation_id?: string
+          recommendation_type?: string | null
+          recommended_action?: string | null
+          roi_estimate?: number | null
+          target_metric?: string | null
+          target_value?: number | null
+          tenant_id?: string | null
+        }
+        Update: {
+          action_variables?: Json | null
+          analysis_id?: string | null
+          confidence_level?: number | null
+          created_at?: string | null
+          current_value?: number | null
+          estimated_cost?: number | null
+          expected_impact?: number | null
+          generated_date?: string | null
+          implementation_status?: string | null
+          improvement_pct?: number | null
+          priority_level?: string | null
+          recommendation_id?: string
+          recommendation_type?: string | null
+          recommended_action?: string | null
+          roi_estimate?: number | null
+          target_metric?: string | null
+          target_value?: number | null
+          tenant_id?: string | null
+        }
+        Relationships: [
+          {
+            foreignKeyName: "marginal_optimization_recommendations_analysis_id_fkey"
+            columns: ["analysis_id"]
+            isOneToOne: false
+            referencedRelation: "marginal_impact_analysis"
+            referencedColumns: ["analysis_id"]
+          },
+          {
+            foreignKeyName: "marginal_optimization_recommendations_tenant_id_fkey"
+            columns: ["tenant_id"]
+            isOneToOne: false
+            referencedRelation: "tenants"
+            referencedColumns: ["tenant_id"]
+          },
+        ]
+      }
+      marginal_predictions: {
+        Row: {
+          actual_value: number | null
+          confidence_level: number | null
+          created_at: string | null
+          predicted_value: number | null
+          prediction_date: string | null
+          prediction_error: number | null
+          prediction_horizon: number | null
+          prediction_id: string
+          prediction_lower: number | null
+          prediction_upper: number | null
+          target_metric: string | null
+          tenant_id: string | null
+          training_id: string | null
+        }
+        Insert: {
+          actual_value?: number | null
+          confidence_level?: number | null
+          created_at?: string | null
+          predicted_value?: number | null
+          prediction_date?: string | null
+          prediction_error?: number | null
+          prediction_horizon?: number | null
+          prediction_id?: string
+          prediction_lower?: number | null
+          prediction_upper?: number | null
+          target_metric?: string | null
+          tenant_id?: string | null
+          training_id?: string | null
+        }
+        Update: {
+          actual_value?: number | null
+          confidence_level?: number | null
+          created_at?: string | null
+          predicted_value?: number | null
+          prediction_date?: string | null
+          prediction_error?: number | null
+          prediction_horizon?: number | null
+          prediction_id?: string
+          prediction_lower?: number | null
+          prediction_upper?: number | null
+          target_metric?: string | null
+          tenant_id?: string | null
+          training_id?: string | null
+        }
+        Relationships: [
+          {
+            foreignKeyName: "marginal_predictions_tenant_id_fkey"
+            columns: ["tenant_id"]
+            isOneToOne: false
+            referencedRelation: "tenants"
+            referencedColumns: ["tenant_id"]
+          },
+          {
+            foreignKeyName: "marginal_predictions_training_id_fkey"
+            columns: ["training_id"]
+            isOneToOne: false
+            referencedRelation: "marginal_model_training"
+            referencedColumns: ["training_id"]
+          },
+        ]
+      }
+      marginal_synergy_analysis: {
+        Row: {
+          analysis_date: string | null
+          combined_impact: number | null
+          created_at: string | null
+          factor_a: string | null
+          factor_a_impact: number | null
+          factor_b: string | null
+          factor_b_impact: number | null
+          is_significant: boolean | null
+          p_value: number | null
+          synergy_id: string
+          synergy_type: string | null
+          synergy_value: number | null
+          tenant_id: string | null
+          training_id: string | null
+        }
+        Insert: {
+          analysis_date?: string | null
+          combined_impact?: number | null
+          created_at?: string | null
+          factor_a?: string | null
+          factor_a_impact?: number | null
+          factor_b?: string | null
+          factor_b_impact?: number | null
+          is_significant?: boolean | null
+          p_value?: number | null
+          synergy_id?: string
+          synergy_type?: string | null
+          synergy_value?: number | null
+          tenant_id?: string | null
+          training_id?: string | null
+        }
+        Update: {
+          analysis_date?: string | null
+          combined_impact?: number | null
+          created_at?: string | null
+          factor_a?: string | null
+          factor_a_impact?: number | null
+          factor_b?: string | null
+          factor_b_impact?: number | null
+          is_significant?: boolean | null
+          p_value?: number | null
+          synergy_id?: string
+          synergy_type?: string | null
+          synergy_value?: number | null
+          tenant_id?: string | null
+          training_id?: string | null
+        }
+        Relationships: [
+          {
+            foreignKeyName: "marginal_synergy_analysis_tenant_id_fkey"
+            columns: ["tenant_id"]
+            isOneToOne: false
+            referencedRelation: "tenants"
+            referencedColumns: ["tenant_id"]
+          },
+          {
+            foreignKeyName: "marginal_synergy_analysis_training_id_fkey"
+            columns: ["training_id"]
+            isOneToOne: false
+            referencedRelation: "marginal_model_training"
+            referencedColumns: ["training_id"]
+          },
+        ]
+      }
+      marginal_threshold_analysis: {
+        Row: {
+          created_at: string | null
+          identified_date: string | null
+          impact_after_threshold: number | null
+          impact_before_threshold: number | null
+          impact_change: number | null
+          tenant_id: string | null
+          threshold_confidence: number | null
+          threshold_id: string
+          threshold_type: string | null
+          threshold_value: number | null
+          training_id: string | null
+          variable_name: string | null
+        }
+        Insert: {
+          created_at?: string | null
+          identified_date?: string | null
+          impact_after_threshold?: number | null
+          impact_before_threshold?: number | null
+          impact_change?: number | null
+          tenant_id?: string | null
+          threshold_confidence?: number | null
+          threshold_id?: string
+          threshold_type?: string | null
+          threshold_value?: number | null
+          training_id?: string | null
+          variable_name?: string | null
+        }
+        Update: {
+          created_at?: string | null
+          identified_date?: string | null
+          impact_after_threshold?: number | null
+          impact_before_threshold?: number | null
+          impact_change?: number | null
+          tenant_id?: string | null
+          threshold_confidence?: number | null
+          threshold_id?: string
+          threshold_type?: string | null
+          threshold_value?: number | null
+          training_id?: string | null
+          variable_name?: string | null
+        }
+        Relationships: [
+          {
+            foreignKeyName: "marginal_threshold_analysis_tenant_id_fkey"
+            columns: ["tenant_id"]
+            isOneToOne: false
+            referencedRelation: "tenants"
+            referencedColumns: ["tenant_id"]
+          },
+          {
+            foreignKeyName: "marginal_threshold_analysis_training_id_fkey"
+            columns: ["training_id"]
+            isOneToOne: false
+            referencedRelation: "marginal_model_training"
+            referencedColumns: ["training_id"]
+          },
+        ]
+      }
+      marginal_weight_validation: {
+        Row: {
+          actual_weight: number | null
+          adjustment_needed: boolean | null
+          created_at: string | null
+          deviation_pct: number | null
+          expected_weight: number | null
+          is_significant: boolean | null
+          is_valid: boolean | null
+          p_value: number | null
+          recommended_weight: number | null
+          tenant_id: string | null
+          validated_by: string | null
+          validation_date: string | null
+          validation_id: string
+          validation_method: string | null
+          validation_score: number | null
+          weight_id: string | null
+        }
+        Insert: {
+          actual_weight?: number | null
+          adjustment_needed?: boolean | null
+          created_at?: string | null
+          deviation_pct?: number | null
+          expected_weight?: number | null
+          is_significant?: boolean | null
+          is_valid?: boolean | null
+          p_value?: number | null
+          recommended_weight?: number | null
+          tenant_id?: string | null
+          validated_by?: string | null
+          validation_date?: string | null
+          validation_id?: string
+          validation_method?: string | null
+          validation_score?: number | null
+          weight_id?: string | null
+        }
+        Update: {
+          actual_weight?: number | null
+          adjustment_needed?: boolean | null
+          created_at?: string | null
+          deviation_pct?: number | null
+          expected_weight?: number | null
+          is_significant?: boolean | null
+          is_valid?: boolean | null
+          p_value?: number | null
+          recommended_weight?: number | null
+          tenant_id?: string | null
+          validated_by?: string | null
+          validation_date?: string | null
+          validation_id?: string
+          validation_method?: string | null
+          validation_score?: number | null
+          weight_id?: string | null
+        }
+        Relationships: [
+          {
+            foreignKeyName: "marginal_weight_validation_tenant_id_fkey"
+            columns: ["tenant_id"]
+            isOneToOne: false
+            referencedRelation: "tenants"
+            referencedColumns: ["tenant_id"]
+          },
+          {
+            foreignKeyName: "marginal_weight_validation_weight_id_fkey"
+            columns: ["weight_id"]
+            isOneToOne: false
+            referencedRelation: "marginal_dynamic_weights"
+            referencedColumns: ["weight_id"]
+          },
+        ]
+      }
+      periodic_report_config: {
+        Row: {
+          analysis_dimensions: Json | null
+          config_id: string
+          created_at: string | null
+          created_by: string | null
+          frequency: string | null
+          included_metrics: Json | null
+          is_active: boolean | null
+          last_generated_at: string | null
+          recipients: Json | null
+          report_name: string
+          report_type: string | null
+          schedule_config: Json | null
+          tenant_id: string | null
+          updated_at: string | null
+        }
+        Insert: {
+          analysis_dimensions?: Json | null
+          config_id?: string
+          created_at?: string | null
+          created_by?: string | null
+          frequency?: string | null
+          included_metrics?: Json | null
+          is_active?: boolean | null
+          last_generated_at?: string | null
+          recipients?: Json | null
+          report_name: string
+          report_type?: string | null
+          schedule_config?: Json | null
+          tenant_id?: string | null
+          updated_at?: string | null
+        }
+        Update: {
+          analysis_dimensions?: Json | null
+          config_id?: string
+          created_at?: string | null
+          created_by?: string | null
+          frequency?: string | null
+          included_metrics?: Json | null
+          is_active?: boolean | null
+          last_generated_at?: string | null
+          recipients?: Json | null
+          report_name?: string
+          report_type?: string | null
+          schedule_config?: Json | null
+          tenant_id?: string | null
+          updated_at?: string | null
+        }
+        Relationships: [
+          {
+            foreignKeyName: "periodic_report_config_tenant_id_fkey"
+            columns: ["tenant_id"]
+            isOneToOne: false
+            referencedRelation: "tenants"
+            referencedColumns: ["tenant_id"]
+          },
+        ]
+      }
+      raw_data_staging: {
+        Row: {
+          column_count: number | null
+          created_at: string | null
+          detected_format: string | null
+          document_type: string | null
+          error_message: string | null
+          failed_row_count: number | null
+          file_name: string
+          file_size_kb: number | null
+          file_type: string | null
+          format_characteristics: Json | null
+          format_confidence: number | null
+          processed_at: string | null
+          processed_row_count: number | null
+          processing_duration_ms: number | null
+          quality_score: number | null
+          raw_data: Json | null
+          row_count: number | null
+          staging_id: string
+          tenant_id: string | null
+          upload_status: string | null
+          uploaded_at: string | null
+          uploaded_by: string | null
+        }
+        Insert: {
+          column_count?: number | null
+          created_at?: string | null
+          detected_format?: string | null
+          document_type?: string | null
+          error_message?: string | null
+          failed_row_count?: number | null
+          file_name: string
+          file_size_kb?: number | null
+          file_type?: string | null
+          format_characteristics?: Json | null
+          format_confidence?: number | null
+          processed_at?: string | null
+          processed_row_count?: number | null
+          processing_duration_ms?: number | null
+          quality_score?: number | null
+          raw_data?: Json | null
+          row_count?: number | null
+          staging_id?: string
+          tenant_id?: string | null
+          upload_status?: string | null
+          uploaded_at?: string | null
+          uploaded_by?: string | null
+        }
+        Update: {
+          column_count?: number | null
+          created_at?: string | null
+          detected_format?: string | null
+          document_type?: string | null
+          error_message?: string | null
+          failed_row_count?: number | null
+          file_name?: string
+          file_size_kb?: number | null
+          file_type?: string | null
+          format_characteristics?: Json | null
+          format_confidence?: number | null
+          processed_at?: string | null
+          processed_row_count?: number | null
+          processing_duration_ms?: number | null
+          quality_score?: number | null
+          raw_data?: Json | null
+          row_count?: number | null
+          staging_id?: string
+          tenant_id?: string | null
+          upload_status?: string | null
+          uploaded_at?: string | null
+          uploaded_by?: string | null
+        }
+        Relationships: [
+          {
+            foreignKeyName: "raw_data_staging_tenant_id_fkey"
+            columns: ["tenant_id"]
+            isOneToOne: false
+            referencedRelation: "tenants"
+            referencedColumns: ["tenant_id"]
+          },
+        ]
+      }
+      report_instances: {
+        Row: {
+          config_id: string | null
+          created_at: string | null
+          generated_at: string | null
+          generation_status: string | null
+          instance_id: string
+          key_findings: string | null
+          period_end: string | null
+          period_start: string | null
+          recommendations: string | null
+          report_data: Json | null
+          report_date: string | null
+          report_file_path: string | null
+          report_format: string | null
+          summary_metrics: Json | null
+          tenant_id: string | null
+        }
+        Insert: {
+          config_id?: string | null
+          created_at?: string | null
+          generated_at?: string | null
+          generation_status?: string | null
+          instance_id?: string
+          key_findings?: string | null
+          period_end?: string | null
+          period_start?: string | null
+          recommendations?: string | null
+          report_data?: Json | null
+          report_date?: string | null
+          report_file_path?: string | null
+          report_format?: string | null
+          summary_metrics?: Json | null
+          tenant_id?: string | null
+        }
+        Update: {
+          config_id?: string | null
+          created_at?: string | null
+          generated_at?: string | null
+          generation_status?: string | null
+          instance_id?: string
+          key_findings?: string | null
+          period_end?: string | null
+          period_start?: string | null
+          recommendations?: string | null
+          report_data?: Json | null
+          report_date?: string | null
+          report_file_path?: string | null
+          report_format?: string | null
+          summary_metrics?: Json | null
+          tenant_id?: string | null
+        }
+        Relationships: [
+          {
+            foreignKeyName: "report_instances_config_id_fkey"
+            columns: ["config_id"]
+            isOneToOne: false
+            referencedRelation: "periodic_report_config"
+            referencedColumns: ["config_id"]
+          },
+          {
+            foreignKeyName: "report_instances_tenant_id_fkey"
             columns: ["tenant_id"]
             isOneToOne: false
             referencedRelation: "tenants"

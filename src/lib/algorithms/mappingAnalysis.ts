@@ -589,7 +589,7 @@ export class MappingOptimizer {
   /**
    * 优化产品特性-客户价值映射
    */
-  optimizeMapping(
+  async optimizeMapping(
     productCharacteristics: ProductCharacteristic[],
     customerValues: CustomerValue[],
     constraints: {
@@ -597,12 +597,12 @@ export class MappingOptimizer {
       maxCharacteristics?: number;
       minMappingStrength?: number;
     } = {}
-  ): {
+  ): Promise<{
     optimizedCharacteristics: ProductCharacteristic[];
     optimizedValues: CustomerValue[];
     totalMappingScore: number;
     optimizationRecommendations: string[];
-  } {
+  }> {
     // 基于约束条件优化特性
     const optimizedCharacteristics = this.optimizeCharacteristics(productCharacteristics, constraints);
     
@@ -611,7 +611,7 @@ export class MappingOptimizer {
     
     // 计算优化后的映射分数
     const analyzer = new ProductCustomerMappingAnalyzer();
-    const mappingResult = analyzer.calculateMappingStrength(optimizedCharacteristics, optimizedValues);
+    const mappingResult = await analyzer.calculateMappingStrength(optimizedCharacteristics, optimizedValues);
     
     // 生成优化建议
     const optimizationRecommendations = this.generateOptimizationRecommendations(
