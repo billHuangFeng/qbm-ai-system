@@ -40,6 +40,8 @@ const UnifiedProgressGuide = ({ currentStage }: UnifiedProgressGuideProps) => {
     { key: 'ANALYZING', label: '格式识别', description: '基于映射识别格式', status: 'pending', messages: [], isExpanded: false },
     { key: 'QUALITY_CHECK', label: '质量检查', description: '7维度分析', status: 'pending', messages: [], isExpanded: false },
     { key: 'READY', label: '准备导入', description: '确认并导入', status: 'pending', messages: [], isExpanded: false },
+    { key: 'ENHANCEMENT', label: '数据完善', description: '第二阶段处理', status: 'pending', messages: [], isExpanded: false },
+    { key: 'CONFIRMING', label: '确认入库', description: '最终确认', status: 'pending', messages: [], isExpanded: false },
   ]);
 
   const messagesEndRef = useRef<{ [key: string]: HTMLDivElement | null }>({});
@@ -107,7 +109,32 @@ const UnifiedProgressGuide = ({ currentStage }: UnifiedProgressGuideProps) => {
           { id: `msg-${Date.now()}-2`, type: 'info', content: '📊 数据质量评分: 85 分（良好）', timestamp: new Date(timestamp.getTime() + 100) },
           { id: `msg-${Date.now()}-3`, type: 'info', content: '📋 映射字段: 12 个', timestamp: new Date(timestamp.getTime() + 200) },
           { id: `msg-${Date.now()}-4`, type: 'info', content: '📈 待导入记录: 1,234 行', timestamp: new Date(timestamp.getTime() + 300) },
-          { id: `msg-${Date.now()}-5`, type: 'success', content: '✅ 点击下方"开始导入"按钮即可开始', timestamp: new Date(timestamp.getTime() + 400) },
+          { id: `msg-${Date.now()}-5`, type: 'info', content: '💡 建议先导入暂存表，完善后再入库', timestamp: new Date(timestamp.getTime() + 400) },
+          { id: `msg-${Date.now()}-6`, type: 'success', content: '✅ 点击下方按钮选择导入方式', timestamp: new Date(timestamp.getTime() + 500) },
+        ];
+      
+      case 'ENHANCEMENT':
+        return [
+          { id: `msg-${Date.now()}-1`, type: 'success', content: '✅ 数据已导入暂存表', timestamp },
+          { id: `msg-${Date.now()}-2`, type: 'info', content: '🔧 开始第二阶段数据完善处理...', timestamp: new Date(timestamp.getTime() + 100) },
+          { id: `msg-${Date.now()}-3`, type: 'info', content: '🏢 正在匹配主数据ID...', timestamp: new Date(timestamp.getTime() + 500) },
+          { id: `msg-${Date.now()}-4`, type: 'success', content: '   • 自动匹配成功: 3/5 个往来单位', timestamp: new Date(timestamp.getTime() + 1500) },
+          { id: `msg-${Date.now()}-5`, type: 'warning', content: '   • 需手动选择: 2 个往来单位', timestamp: new Date(timestamp.getTime() + 1600) },
+          { id: `msg-${Date.now()}-6`, type: 'info', content: '🧮 正在处理计算字段冲突...', timestamp: new Date(timestamp.getTime() + 2000) },
+          { id: `msg-${Date.now()}-7`, type: 'success', content: '   • 可自动修复: 3 处计算冲突', timestamp: new Date(timestamp.getTime() + 2500) },
+          { id: `msg-${Date.now()}-8`, type: 'info', content: '📊 完善进度: 0 / 8 处问题已修复', timestamp: new Date(timestamp.getTime() + 3000) },
+          { id: `msg-${Date.now()}-9`, type: 'info', content: '💡 请在左侧面板处理待完善的数据', timestamp: new Date(timestamp.getTime() + 3100) },
+        ];
+      
+      case 'CONFIRMING':
+        return [
+          { id: `msg-${Date.now()}-1`, type: 'success', content: '✅ 所有问题已完善', timestamp },
+          { id: `msg-${Date.now()}-2`, type: 'info', content: '📊 完善统计:', timestamp: new Date(timestamp.getTime() + 100) },
+          { id: `msg-${Date.now()}-3`, type: 'info', content: '   • 主数据ID匹配: 5 处', timestamp: new Date(timestamp.getTime() + 200) },
+          { id: `msg-${Date.now()}-4`, type: 'info', content: '   • 计算冲突修复: 3 处', timestamp: new Date(timestamp.getTime() + 300) },
+          { id: `msg-${Date.now()}-5`, type: 'success', content: '✅ 数据质量评分: 98 分（优秀）', timestamp: new Date(timestamp.getTime() + 500) },
+          { id: `msg-${Date.now()}-6`, type: 'info', content: '🎯 待入库记录: 1,234 行', timestamp: new Date(timestamp.getTime() + 600) },
+          { id: `msg-${Date.now()}-7`, type: 'success', content: '✅ 可以导入正式表了', timestamp: new Date(timestamp.getTime() + 700) },
         ];
       
       default:

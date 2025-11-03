@@ -3,6 +3,7 @@ import FileUploadZone from '@/components/DataImport/FileUploadZone';
 import DataPreviewTable from '@/components/DataImport/DataPreviewTable';
 import FieldMappingEditor from '@/components/DataImport/FieldMappingEditor';
 import QualityReportCard from '@/components/DataImport/QualityReportCard';
+import DataEnhancementPanel from '@/components/DataImport/DataEnhancementPanel';
 import UnifiedProgressGuide from '@/components/DataImport/UnifiedProgressGuide';
 import SmartActionPanel from '@/components/DataImport/SmartActionPanel';
 import { ChevronRight } from 'lucide-react';
@@ -14,6 +15,8 @@ export type ImportStage =
   | 'QUALITY_CHECK' 
   | 'READY' 
   | 'IMPORTING' 
+  | 'ENHANCEMENT'
+  | 'CONFIRMING'
   | 'COMPLETED';
 
 const DataImportPage = () => {
@@ -60,6 +63,11 @@ const DataImportPage = () => {
             {/* Quality Report Card */}
             {(currentStage === 'QUALITY_CHECK' || currentStage === 'READY') && (
               <QualityReportCard />
+            )}
+            
+            {/* Data Enhancement Panel */}
+            {(currentStage === 'ENHANCEMENT' || currentStage === 'CONFIRMING') && (
+              <DataEnhancementPanel />
             )}
             
           </div>

@@ -40,13 +40,8 @@ const SmartActionPanel = ({ currentStage, onStageChange }: SmartActionPanelProps
       case 'QUALITY_CHECK':
         return [
           {
-            label: '🔧 一键修复问题',
-            variant: 'default' as const,
-            onClick: () => {}
-          },
-          {
             label: '⏭️ 继续导入',
-            variant: 'outline' as const,
+            variant: 'default' as const,
             onClick: () => onStageChange('READY')
           }
         ];
@@ -79,8 +74,8 @@ const SmartActionPanel = ({ currentStage, onStageChange }: SmartActionPanelProps
               variant: 'default' as const,
               icon: Play,
               onClick: () => {
-                // TODO: Import to staging table, then go to ENHANCEMENT stage
-                onStageChange('IMPORTING');
+                // Import to staging table, then go to ENHANCEMENT stage
+                onStageChange('ENHANCEMENT');
               }
             },
             {
@@ -116,6 +111,38 @@ const SmartActionPanel = ({ currentStage, onStageChange }: SmartActionPanelProps
           ];
         }
       
+      case 'ENHANCEMENT':
+        return [
+          {
+            label: '🤖 全部自动修复',
+            variant: 'default' as const,
+            onClick: () => {
+              // TODO: Auto-fix all fixable issues
+              onStageChange('CONFIRMING');
+            }
+          },
+          {
+            label: '✅ 完成并确认',
+            variant: 'outline' as const,
+            onClick: () => onStageChange('CONFIRMING')
+          }
+        ];
+      
+      case 'CONFIRMING':
+        return [
+          {
+            label: '🚀 导入正式表',
+            variant: 'default' as const,
+            icon: Play,
+            onClick: () => onStageChange('COMPLETED')
+          },
+          {
+            label: '🔙 返回调整',
+            variant: 'outline' as const,
+            icon: ArrowLeft,
+            onClick: () => onStageChange('ENHANCEMENT')
+          }
+        ];
       
       default:
         return [];
