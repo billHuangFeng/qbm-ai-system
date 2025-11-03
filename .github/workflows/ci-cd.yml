@@ -53,19 +53,9 @@ jobs:
         node-version: '18'
         cache: 'npm'
 
-    - name: Determine frontend location
+    - name: Set frontend working directory
       id: frontend_location
-      run: |
-        if [ -f package.json ] && [ -d src ]; then
-          echo "location=root" >> $GITHUB_OUTPUT
-          echo "working_dir=." >> $GITHUB_OUTPUT
-        elif [ -f frontend/package.json ]; then
-          echo "location=frontend" >> $GITHUB_OUTPUT
-          echo "working_dir=frontend" >> $GITHUB_OUTPUT
-        else
-          echo "No frontend found"
-          exit 1
-        fi
+      run: echo "working_dir=." >> $GITHUB_OUTPUT
 
     - name: Install Node.js dependencies
       working-directory: ${{ steps.frontend_location.outputs.working_dir }}
@@ -152,19 +142,9 @@ jobs:
         node-version: '18'
         cache: 'npm'
 
-    - name: Determine frontend location
+    - name: Set frontend working directory
       id: frontend_location
-      run: |
-        if [ -f package.json ] && [ -d src ]; then
-          echo "location=root" >> $GITHUB_OUTPUT
-          echo "working_dir=." >> $GITHUB_OUTPUT
-        elif [ -f frontend/package.json ]; then
-          echo "location=frontend" >> $GITHUB_OUTPUT
-          echo "working_dir=frontend" >> $GITHUB_OUTPUT
-        else
-          echo "No frontend found"
-          exit 1
-        fi
+      run: echo "working_dir=." >> $GITHUB_OUTPUT
 
     - name: Install dependencies
       working-directory: ${{ steps.frontend_location.outputs.working_dir }}
