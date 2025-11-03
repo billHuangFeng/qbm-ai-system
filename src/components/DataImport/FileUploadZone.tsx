@@ -6,11 +6,12 @@ import type { ImportStage } from '@/pages/DataImportPage';
 interface FileUploadZoneProps {
   currentStage: ImportStage;
   onStageChange: (stage: ImportStage) => void;
+  uploadedFile: File | null;
+  onFileUpload: (file: File | null) => void;
 }
 
-const FileUploadZone = ({ currentStage, onStageChange }: FileUploadZoneProps) => {
+const FileUploadZone = ({ currentStage, onStageChange, uploadedFile, onFileUpload }: FileUploadZoneProps) => {
   const [isDragging, setIsDragging] = useState(false);
-  const [uploadedFile, setUploadedFile] = useState<File | null>(null);
 
   const handleDragOver = useCallback((e: React.DragEvent) => {
     e.preventDefault();
@@ -40,7 +41,7 @@ const FileUploadZone = ({ currentStage, onStageChange }: FileUploadZoneProps) =>
   }, []);
 
   const handleFileUpload = (file: File) => {
-    setUploadedFile(file);
+    onFileUpload(file);
     onStageChange('MAPPING');
   };
 

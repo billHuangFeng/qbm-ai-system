@@ -19,7 +19,8 @@ export type ImportStage =
   | 'COMPLETED';
 
 const DataImportPage = () => {
-  const [currentStage, setCurrentStage] = useState<ImportStage>('MAPPING');
+  const [currentStage, setCurrentStage] = useState<ImportStage>('UPLOAD');
+  const [uploadedFile, setUploadedFile] = useState<File | null>(null);
 
   return (
     <div className="min-h-screen bg-background">
@@ -47,25 +48,27 @@ const DataImportPage = () => {
             <FileUploadZone 
               currentStage={currentStage}
               onStageChange={setCurrentStage}
+              uploadedFile={uploadedFile}
+              onFileUpload={setUploadedFile}
             />
             
             {/* Data Preview Table */}
-            {currentStage !== 'UPLOAD' && (
+            {uploadedFile && (
               <DataPreviewTable />
             )}
             
             {/* Field Mapping Editor */}
-            {(currentStage === 'MAPPING' || currentStage === 'ANALYZING' || currentStage === 'QUALITY_CHECK' || currentStage === 'READY') && (
+            {uploadedFile && (currentStage === 'MAPPING' || currentStage === 'ANALYZING' || currentStage === 'QUALITY_CHECK' || currentStage === 'READY') && (
               <FieldMappingEditor />
             )}
             
             {/* Quality Report Card */}
-            {(currentStage === 'QUALITY_CHECK' || currentStage === 'READY') && (
+            {uploadedFile && (currentStage === 'QUALITY_CHECK' || currentStage === 'READY') && (
               <QualityReportCard />
             )}
             
             {/* Data Enhancement Panel */}
-            {(currentStage === 'ENHANCEMENT' || currentStage === 'CONFIRMING') && (
+            {uploadedFile && (currentStage === 'ENHANCEMENT' || currentStage === 'CONFIRMING') && (
               <DataEnhancementPanel />
             )}
             
