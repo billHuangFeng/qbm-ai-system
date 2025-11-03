@@ -52,8 +52,13 @@ class MasterDataMatcher(BaseService):
     ):
         super().__init__(db_service, config=config)
         self.confidence_threshold = 0.8
-        self.name_weight = 0.6
-        self.code_weight = 0.4
+        
+        # 匹配规则说明：
+        # 1. 代码完全一致 + 名称大致类似（>0.7）= 100%置信度
+        # 2. 代码完全一致但名称不匹配 = 高置信度（75-100%），代码是唯一标识
+        # 3. 代码细微差异（1-2字符）+ 名称大致类似 = 置信度大打折扣（30-60%）
+        # 4. 代码较大差异（3+字符）= 低置信度（0-30%），即使名称匹配
+        # 5. 无代码时，仅依赖名称匹配
         
         # 企业名称标准化规则
         self.company_suffixes = [
@@ -177,7 +182,12 @@ class MasterDataMatcher(BaseService):
     
     def calculate_code_similarity(self, code1: str, code2: str) -> float:
         """
-        计算信用代码相似度
+        计算代码相似度（支持统一社会信用代码、身份证号码、产品代码等）
+        
+        逻辑：
+        - 完全匹配 = 1.0（最高置信度）
+        - 细微差异（1-2个字符差异）= 0.3-0.5（可能是输入错误，但风险较高）
+        - 较大差异（3+个字符差异）= 0.0-0.2（很可能不匹配）
         
         Args:
             code1: 代码1
@@ -189,15 +199,45 @@ class MasterDataMatcher(BaseService):
         if not code1 or not code2 or pd.isna(code1) or pd.isna(code2):
             return 0.0
         
-        code1 = str(code1).strip()
-        code2 = str(code2).strip()
+        code1 = str(code1).strip().upper()
+        code2 = str(code2).strip().upper()
         
-        # 完全匹配
+        # 完全匹配 = 1.0（最高置信度）
         if code1 == code2:
             return 1.0
         
-        # 信用代码不允许部分匹配，只有完全匹配才有效
-        return 0.0
+        # 计算编辑距离（Levenshtein距离）
+        edit_distance = levenshtein_distance(code1, code2)
+        max_length = max(len(code1), len(code2))
+        
+        if max_length == 0:
+            return 0.0
+        
+        # 基于编辑距离计算相似度
+        # 相似度 = 1 - (编辑距离 / 最大长度)
+        base_similarity = 1.0 - (edit_distance / max_length)
+        
+        # 根据差异程度调整置信度
+        # 细微差异（1-2个字符）：置信度0.3-0.5（可能是输入错误，风险较高）
+        if edit_distance <= 2:
+            # 细微差异时，置信度大幅降低
+            # 1个字符差异：0.5
+            # 2个字符差异：0.3
+            similarity = max(0.3, 0.5 - (edit_distance - 1) * 0.2)
+        # 较大差异（3-4个字符）：置信度0.1-0.2（很可能不匹配）
+        elif edit_distance <= 4:
+            similarity = max(0.1, 0.2 - (edit_distance - 3) * 0.05)
+        # 很大差异（5+个字符）：置信度0.0（几乎肯定不匹配）
+        else:
+            similarity = 0.0
+        
+        # 考虑长度差异的影响
+        length_diff = abs(len(code1) - len(code2))
+        if length_diff > 0:
+            # 长度不同进一步降低置信度
+            similarity *= (1.0 - length_diff * 0.1)
+        
+        return max(0.0, min(1.0, similarity))
     
     async def fetch_master_data(
         self,
@@ -293,16 +333,48 @@ class MasterDataMatcher(BaseService):
             
             # 计算代码相似度
             code_sim = 0.0
+            code_fully_matched = False
             if record_code and master_code:
                 code_sim = self.calculate_code_similarity(record_code, master_code)
+                code_fully_matched = (code_sim >= 1.0)
             
-            # 综合评分
-            if code_sim > 0:
-                # 有信用代码时，代码匹配权重更高
-                final_score = name_sim * 0.4 + code_sim * 0.6
-            else:
-                # 无信用代码时，仅依赖名称匹配
+            # 综合评分（改进逻辑）
+            # 规则1：代码完全一致 + 名称大致类似（>0.7）= 100%置信度
+            if code_fully_matched and name_sim >= 0.7:
+                final_score = 1.0
+            # 规则2：代码完全一致但名称不匹配 = 高置信度（可能是输入错误，但代码是唯一标识）
+            elif code_fully_matched and name_sim >= 0.5:
+                # 代码完全一致时，即使名称不完全匹配，也给予高置信度
+                # 但名称匹配度仍然会影响最终分数
+                final_score = 0.85 + name_sim * 0.15  # 85-100%之间
+            # 规则3：代码有细微差异（0.3-1.0）+ 名称大致类似 = 置信度大打折扣
+            elif code_sim >= 0.3 and name_sim >= 0.7:
+                # 代码有细微差异时，即使名称匹配，也大幅降低置信度
+                # 可能是输入错误，但也可能是不匹配
+                final_score = code_sim * 0.6 + name_sim * 0.4
+                # 进一步降低：代码细微差异的风险惩罚
+                if code_sim < 1.0:
+                    final_score *= 0.7  # 代码有差异时，再打7折
+            # 规则4：代码有较大差异（<0.3）+ 名称匹配 = 低置信度
+            elif code_sim < 0.3 and name_sim >= 0.7:
+                # 代码差异较大时，即使名称匹配，也认为可能不匹配
+                final_score = name_sim * 0.6  # 仅基于名称，且降低权重
+            # 规则5：有代码但差异大 + 名称也不匹配 = 低置信度
+            elif code_sim > 0 and code_sim < 0.3 and name_sim < 0.7:
+                final_score = code_sim * 0.3 + name_sim * 0.7
+            # 规则6：有代码且完全匹配，但名称完全不匹配（<0.5）= 中等置信度（代码优先）
+            elif code_fully_matched and name_sim < 0.5:
+                final_score = 0.75  # 代码完全匹配时，即使名称不匹配，仍给予中等置信度
+            # 规则7：无代码，仅依赖名称匹配
+            elif code_sim == 0:
                 final_score = name_sim
+            # 规则8：其他情况
+            else:
+                # 有代码但匹配度低，名称匹配度也低
+                final_score = code_sim * 0.4 + name_sim * 0.6
+            
+            # 确保最终分数在0-1范围内
+            final_score = max(0.0, min(1.0, final_score))
             
             # 记录候选匹配
             if final_score >= 0.6:
@@ -353,21 +425,42 @@ class MasterDataMatcher(BaseService):
         name_sim = match.get("name_similarity", 0.0)
         code_sim = match.get("code_similarity", 0.0)
         confidence = match.get("confidence", 0.0)
+        code_fully_matched = (code_sim >= 1.0)
         
         reasons = []
         
-        if name_sim >= 0.9:
-            reasons.append(f"企业名称相似度{name_sim*100:.0f}%")
-        elif name_sim >= 0.7:
-            reasons.append(f"企业名称相似度{name_sim*100:.0f}%（模糊匹配）")
+        # 代码匹配情况
+        if code_fully_matched:
+            reasons.append("代码完全匹配（100%）")
+        elif code_sim >= 0.3:
+            # 计算编辑距离用于描述
+            edit_distance = int((1.0 - code_sim) * max(len(record_code), 10))
+            reasons.append(f"代码存在细微差异（约{edit_distance}个字符，相似度{code_sim*100:.0f}%）")
+        elif code_sim > 0:
+            reasons.append(f"代码存在较大差异（相似度{code_sim*100:.0f}%）")
         
-        if code_sim > 0:
-            reasons.append("统一社会信用代码完全匹配")
+        # 名称匹配情况
+        if name_sim >= 0.9:
+            reasons.append(f"名称相似度{name_sim*100:.0f}%（高度匹配）")
+        elif name_sim >= 0.7:
+            reasons.append(f"名称相似度{name_sim*100:.0f}%（大致相似）")
+        elif name_sim >= 0.5:
+            reasons.append(f"名称相似度{name_sim*100:.0f}%（部分相似）")
+        elif name_sim > 0:
+            reasons.append(f"名称相似度{name_sim*100:.0f}%（低相似度）")
+        
+        # 特殊情况说明
+        if code_fully_matched and name_sim >= 0.7:
+            reasons.append("【完全匹配】代码完全一致且名称相似")
+        elif code_fully_matched and name_sim < 0.5:
+            reasons.append("【注意】代码完全一致但名称差异较大，可能是输入错误")
+        elif code_sim >= 0.3 and code_sim < 1.0 and name_sim >= 0.7:
+            reasons.append("【警告】代码存在细微差异，可能是输入错误，也可能是不匹配")
         
         if not reasons:
             reasons.append(f"综合相似度{confidence*100:.0f}%")
         
-        return " + ".join(reasons) if reasons else "低相似度匹配"
+        return " | ".join(reasons) if reasons else "低相似度匹配"
     
     async def match_master_data(
         self,
