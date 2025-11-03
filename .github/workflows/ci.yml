@@ -89,29 +89,29 @@ jobs:
       with:
         node-version: '18'
         cache: 'npm'
-        cache-dependency-path: frontend/package.json
+        cache-dependency-path: package.json
     
     - name: Install dependencies
       run: |
-        cd frontend
-        npm install
+        if [ -f package.json ] && [ -d src ]; then
+          npm ci
+        else
+          echo "Frontend not found in root directory"
+          exit 1
+        fi
     
     - name: Run linting
       run: |
-        cd frontend
         npm run lint || echo "Linting failed, continuing..."
         npm run type-check || echo "Type check failed, continuing..."
     
     - name: Run tests
       run: |
-        cd frontend
-        npm run test:coverage || echo "Tests failed, continuing..."
+        npm run test:ci || npm run test || echo "Tests failed, continuing..."
       continue-on-error: true
     
     - name: Build
-      run: |
-        cd frontend
-        npm run build
+      run: npm run build
 
   # 集成测试
   integration-test:
