@@ -305,7 +305,7 @@ class TestWeightValidator:
             'feature1': np.random.normal(0, 1, 100),
             'feature2': np.random.normal(0, 1, 100)
         })
-        high_corr_y = pd.Series(high_corr_X['feature1'] * 2 + high_corr_y['feature2'] * 1.5)
+        high_corr_y = pd.Series(high_corr_X['feature1'] * 2 + high_corr_X['feature2'] * 1.5)
         high_corr_weights = {'feature1': 0.6, 'feature2': 0.4}
         
         result = self.weight_validator.validate_weights(high_corr_X, high_corr_y, high_corr_weights)
