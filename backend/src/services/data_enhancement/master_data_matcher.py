@@ -66,18 +66,95 @@ class MasterDataMatcher(BaseService):
             "集团", "集团有限公司", "股份公司",
             "企业", "实业", "贸易", "科技", "信息技术"
         ]
+        
+        # 分公司/办事处标识（用于识别分支机构）
+        self.branch_identifiers = [
+            "分公司", "分支机构", "分店", "分厂",
+            "办事处", "代表处", "联络处", "营销中心",
+            "分部", "分中心", "服务点"
+        ]
+        
         self.standardization_patterns = [
             (r'\([^)]*\)', ''),  # 去除括号内容
             (r'（[^）]*）', ''),   # 去除中文括号内容
             (r'[A-Za-z]+', ''),  # 去除英文
         ]
     
-    def standardize_company_name(self, name: str) -> str:
+    def extract_company_info(self, name: str) -> Dict[str, Any]:
         """
-        企业名称标准化
+        提取企业名称信息（总公司名称、是否分公司/办事处等）
         
         Args:
             name: 原始企业名称
+            
+        Returns:
+            企业信息字典：
+            {
+                "full_name": "完整名称",
+                "headquarter_name": "总公司名称",
+                "branch_name": "分公司/办事处名称",
+                "is_branch": bool,  # 是否为分公司
+                "is_office": bool,  # 是否为办事处
+                "branch_type": "分公司" | "办事处" | None,
+                "standardized_name": "标准化后的名称"
+            }
+        """
+        if not name or pd.isna(name):
+            return {
+                "full_name": "",
+                "headquarter_name": "",
+                "branch_name": "",
+                "is_branch": False,
+                "is_office": False,
+                "branch_type": None,
+                "standardized_name": ""
+            }
+        
+        full_name = str(name).strip()
+        headquarter_name = full_name
+        branch_name = ""
+        is_branch = False
+        is_office = False
+        branch_type = None
+        
+        # 识别分公司
+        for branch_id in self.branch_identifiers:
+            if branch_id in full_name:
+                # 提取分公司/办事处前的总公司名称
+                parts = full_name.split(branch_id)
+                if len(parts) >= 2:
+                    headquarter_name = parts[0].strip()
+                    branch_name = branch_id + parts[1].strip() if parts[1].strip() else branch_id
+                    
+                    # 判断类型
+                    if branch_id in ["分公司", "分支机构", "分店", "分厂", "分部", "分中心"]:
+                        is_branch = True
+                        branch_type = "分公司"
+                    elif branch_id in ["办事处", "代表处", "联络处", "营销中心", "服务点"]:
+                        is_office = True
+                        branch_type = "办事处"
+                    
+                    break
+        
+        # 标准化总公司名称（去除后缀等）
+        standardized_name = self.standardize_company_name(headquarter_name)
+        
+        return {
+            "full_name": full_name,
+            "headquarter_name": headquarter_name,
+            "branch_name": branch_name,
+            "is_branch": is_branch,
+            "is_office": is_office,
+            "branch_type": branch_type,
+            "standardized_name": standardized_name
+        }
+    
+    def standardize_company_name(self, name: str) -> str:
+        """
+        企业名称标准化（用于匹配）
+        
+        Args:
+            name: 原始企业名称（可能是总公司名称）
             
         Returns:
             标准化后的企业名称
@@ -102,9 +179,106 @@ class MasterDataMatcher(BaseService):
         
         return name
     
-    def calculate_name_similarity(self, name1: str, name2: str) -> float:
+    def calculate_name_similarity(self, name1: str, name2: str) -> Tuple[float, Dict[str, Any]]:
         """
-        计算企业名称相似度
+        计算企业名称相似度（考虑总公司和分公司/办事处关系）
+        
+        Args:
+            name1: 名称1
+            name2: 名称2
+            
+        Returns:
+            (相似度分数 (0-1), 匹配详情)
+        """
+        if not name1 or not name2:
+            return 0.0, {"match_type": "empty"}
+        
+        # 提取企业信息
+        info1 = self.extract_company_info(name1)
+        info2 = self.extract_company_info(name2)
+        
+        # 匹配详情
+        match_details = {
+            "name1_info": info1,
+            "name2_info": info2,
+            "match_type": "unknown"
+        }
+        
+        # 场景1：两者都是总公司名称（直接比较）
+        if not info1["is_branch"] and not info1["is_office"] and \
+           not info2["is_branch"] and not info2["is_office"]:
+            std_name1 = info1["standardized_name"]
+            std_name2 = info2["standardized_name"]
+            
+            if std_name1 == std_name2:
+                return 1.0, {"match_type": "headquarter_exact", **match_details}
+            
+            similarity = self._calculate_name_similarity_core(std_name1, std_name2)
+            match_details["match_type"] = "headquarter_fuzzy"
+            return similarity, match_details
+        
+        # 场景2：一个总公司，一个分公司/办事处
+        # 比较总公司名称是否一致
+        headquarter1 = info1["headquarter_name"] if info1["is_branch"] or info1["is_office"] else info1["full_name"]
+        headquarter2 = info2["headquarter_name"] if info2["is_branch"] or info2["is_office"] else info2["full_name"]
+        
+        std_headquarter1 = self.standardize_company_name(headquarter1)
+        std_headquarter2 = self.standardize_company_name(headquarter2)
+        
+        # 场景2a：总公司名称完全一致
+        if std_headquarter1 == std_headquarter2:
+            # 如果两者都是分公司，比较分公司名称
+            if info1["is_branch"] and info2["is_branch"]:
+                branch1 = info1["branch_name"]
+                branch2 = info2["branch_name"]
+                branch_sim = self._calculate_name_similarity_core(branch1, branch2)
+                
+                if branch_sim >= 0.9:
+                    match_details["match_type"] = "same_headquarter_same_branch"
+                    return 1.0, match_details
+                else:
+                    match_details["match_type"] = "same_headquarter_different_branch"
+                    return 0.85, match_details  # 同一总公司但不同分公司
+            
+            # 如果两者都是办事处，比较办事处名称
+            elif info1["is_office"] and info2["is_office"]:
+                office1 = info1["branch_name"]
+                office2 = info2["branch_name"]
+                office_sim = self._calculate_name_similarity_core(office1, office2)
+                
+                if office_sim >= 0.9:
+                    match_details["match_type"] = "same_headquarter_same_office"
+                    return 1.0, match_details
+                else:
+                    match_details["match_type"] = "same_headquarter_different_office"
+                    return 0.80, match_details  # 同一总公司但不同办事处
+            
+            # 一个是总公司，一个是分公司/办事处
+            elif (info1["is_branch"] or info1["is_office"]) and \
+                 not info2["is_branch"] and not info2["is_office"]:
+                match_details["match_type"] = "headquarter_branch_match"
+                return 0.90, match_details  # 同一公司的总公司与分公司/办事处
+            
+            elif (info2["is_branch"] or info2["is_office"]) and \
+                 not info1["is_branch"] and not info1["is_office"]:
+                match_details["match_type"] = "headquarter_branch_match"
+                return 0.90, match_details  # 同一公司的总公司与分公司/办事处
+        
+        # 场景3：总公司名称不一致，即使有分公司/办事处标识，也需要比较总公司部分
+        headquarter_sim = self._calculate_name_similarity_core(std_headquarter1, std_headquarter2)
+        
+        # 如果总公司名称相似度很低，即使有分公司标识，也不匹配
+        if headquarter_sim < 0.7:
+            match_details["match_type"] = "different_headquarter"
+            return headquarter_sim * 0.5, match_details  # 降低权重
+        
+        # 总公司名称相似，但可能是不同的公司
+        match_details["match_type"] = "similar_headquarter_different_branch"
+        return headquarter_sim * 0.8, match_details  # 稍微降低权重
+    
+    def _calculate_name_similarity_core(self, name1: str, name2: str) -> float:
+        """
+        核心名称相似度计算（不涉及分公司/办事处逻辑）
         
         Args:
             name1: 名称1
@@ -116,25 +290,21 @@ class MasterDataMatcher(BaseService):
         if not name1 or not name2:
             return 0.0
         
-        # 标准化名称
-        std_name1 = self.standardize_company_name(name1)
-        std_name2 = self.standardize_company_name(name2)
-        
         # 完全匹配
-        if std_name1 == std_name2:
+        if name1 == name2:
             return 1.0
         
         # 使用fuzzywuzzy计算相似度
-        ratio = fuzz.ratio(std_name1, std_name2) / 100.0
+        ratio = fuzz.ratio(name1, name2) / 100.0
         
         # 使用部分匹配（考虑子串匹配）
-        partial_ratio = fuzz.partial_ratio(std_name1, std_name2) / 100.0
+        partial_ratio = fuzz.partial_ratio(name1, name2) / 100.0
         
         # 使用token排序匹配（考虑词序）
-        token_sort_ratio = fuzz.token_sort_ratio(std_name1, std_name2) / 100.0
+        token_sort_ratio = fuzz.token_sort_ratio(name1, name2) / 100.0
         
         # 拼音匹配（中文名称）
-        pinyin_similarity = self._calculate_pinyin_similarity(std_name1, std_name2)
+        pinyin_similarity = self._calculate_pinyin_similarity(name1, name2)
         
         # 综合评分
         final_score = max(ratio, partial_ratio, token_sort_ratio, pinyin_similarity)
@@ -325,11 +495,15 @@ class MasterDataMatcher(BaseService):
             master_code = master_row.get("credit_code", "")
             master_alias = master_row.get("alias_name", "")
             
-            # 计算名称相似度
-            name_sim = self.calculate_name_similarity(record_name, master_name)
+            # 计算名称相似度（考虑总公司和分公司/办事处）
+            name_sim, name_match_details = self.calculate_name_similarity(record_name, master_name)
+            
+            # 如果有别名，也计算相似度
             if master_alias:
-                alias_sim = self.calculate_name_similarity(record_name, master_alias)
-                name_sim = max(name_sim, alias_sim)
+                alias_sim, alias_match_details = self.calculate_name_similarity(record_name, master_alias)
+                if alias_sim > name_sim:
+                    name_sim = alias_sim
+                    name_match_details = alias_match_details
             
             # 计算代码相似度
             code_sim = 0.0
@@ -383,7 +557,9 @@ class MasterDataMatcher(BaseService):
                     "master_name": master_name,
                     "confidence": final_score,
                     "name_similarity": name_sim,
-                    "code_similarity": code_sim
+                    "code_similarity": code_sim,
+                    "name_match_type": name_match_details.get("match_type", "unknown"),
+                    "name_match_details": name_match_details
                 })
             
             # 更新最佳匹配
@@ -394,7 +570,9 @@ class MasterDataMatcher(BaseService):
                     "master_name": master_name,
                     "confidence": final_score,
                     "name_similarity": name_sim,
-                    "code_similarity": code_sim
+                    "code_similarity": code_sim,
+                    "name_match_type": name_match_details.get("match_type", "unknown"),
+                    "name_match_details": name_match_details
                 }
         
         # 排序候选匹配（按置信度降序）
@@ -404,11 +582,17 @@ class MasterDataMatcher(BaseService):
         # 生成匹配原因
         match_reason = self._generate_match_reason(best_match, record_name, record_code)
         
+        # 添加名称匹配类型信息
+        name_match_type = best_match.get("name_match_type", "unknown") if best_match else "unknown"
+        name_match_details = best_match.get("name_match_details", {}) if best_match else {}
+        
         return {
             "row_index": row_index,
             "suggested_master_id": best_match["master_id"] if best_match and best_score >= self.confidence_threshold else None,
             "confidence": best_score,
             "match_reason": match_reason,
+            "name_match_type": name_match_type,
+            "name_match_details": name_match_details,
             "alternatives": alternatives
         }
     
@@ -448,6 +632,19 @@ class MasterDataMatcher(BaseService):
             reasons.append(f"名称相似度{name_sim*100:.0f}%（部分相似）")
         elif name_sim > 0:
             reasons.append(f"名称相似度{name_sim*100:.0f}%（低相似度）")
+        
+        # 名称匹配类型说明
+        name_match_type = match.get("name_match_type", "unknown")
+        name_match_details = match.get("name_match_details", {})
+        
+        if name_match_type == "same_headquarter_same_branch":
+            reasons.append("【分公司匹配】同一总公司的同一分公司")
+        elif name_match_type == "same_headquarter_different_branch":
+            reasons.append("【注意】同一总公司但不同分公司")
+        elif name_match_type == "headquarter_branch_match":
+            reasons.append("【总分公司匹配】同一公司的总公司与分公司/办事处")
+        elif name_match_type == "similar_headquarter_different_branch":
+            reasons.append("【警告】相似总公司名称但不同分支机构，需确认是否为同一公司")
         
         # 特殊情况说明
         if code_fully_matched and name_sim >= 0.7:
