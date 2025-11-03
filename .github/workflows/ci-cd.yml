@@ -51,31 +51,33 @@ jobs:
       uses: actions/setup-node@v4
       with:
         node-version: '18'
+        cache: 'npm'
+
+    - name: Determine frontend location
+      id: frontend_location
+      run: |
+        if [ -f package.json ] && [ -d src ]; then
+          echo "location=root" >> $GITHUB_OUTPUT
+          echo "working_dir=." >> $GITHUB_OUTPUT
+        elif [ -f frontend/package.json ]; then
+          echo "location=frontend" >> $GITHUB_OUTPUT
+          echo "working_dir=frontend" >> $GITHUB_OUTPUT
+        else
+          echo "No frontend found"
+          exit 1
+        fi
 
     - name: Install Node.js dependencies
-      run: |
-        # 前端代码在根目录，优先使用根目录的 package.json
-        if [ -f package.json ] && [ -d src ]; then
-          npm ci
-        elif [ -f frontend/package.json ]; then
-          cd frontend && npm ci
-        fi
+      working-directory: ${{ steps.frontend_location.outputs.working_dir }}
+      run: npm ci
 
     - name: Lint frontend code
-      run: |
-        if [ -f package.json ] && [ -d src ]; then
-          npm run lint || echo "Lint skipped"
-        elif [ -f frontend/package.json ]; then
-          cd frontend && npm run lint || echo "Lint skipped"
-        fi
+      working-directory: ${{ steps.frontend_location.outputs.working_dir }}
+      run: npm run lint || echo "Lint skipped"
 
     - name: Type check frontend code
-      run: |
-        if [ -f package.json ] && [ -d src ]; then
-          npm run type-check || npx tsc --noEmit || echo "Type check skipped"
-        elif [ -f frontend/package.json ]; then
-          cd frontend && npm run type-check || npx tsc --noEmit || echo "Type check skipped"
-        fi
+      working-directory: ${{ steps.frontend_location.outputs.working_dir }}
+      run: npm run type-check || npx tsc --noEmit || echo "Type check skipped"
 
   # Backend Tests
   backend-tests:
@@ -150,44 +152,35 @@ jobs:
         node-version: '18'
         cache: 'npm'
 
-    - name: Install dependencies
+    - name: Determine frontend location
+      id: frontend_location
       run: |
-        # 前端代码在根目录，优先使用根目录的 package.json
         if [ -f package.json ] && [ -d src ]; then
-          npm ci
+          echo "location=root" >> $GITHUB_OUTPUT
+          echo "working_dir=." >> $GITHUB_OUTPUT
         elif [ -f frontend/package.json ]; then
-          cd frontend && npm ci
+          echo "location=frontend" >> $GITHUB_OUTPUT
+          echo "working_dir=frontend" >> $GITHUB_OUTPUT
         else
-          echo "No package.json found"
+          echo "No frontend found"
           exit 1
         fi
+
+    - name: Install dependencies
+      working-directory: ${{ steps.frontend_location.outputs.working_dir }}
+      run: npm ci
 
     - name: Type check frontend
-      run: |
-        if [ -f package.json ] && [ -d src ]; then
-          npm run type-check || npx tsc --noEmit || echo "Type check skipped"
-        elif [ -f frontend/package.json ]; then
-          cd frontend && npm run type-check || npx tsc --noEmit || echo "Type check skipped"
-        fi
+      working-directory: ${{ steps.frontend_location.outputs.working_dir }}
+      run: npm run type-check || npx tsc --noEmit
 
     - name: Build frontend
-      run: |
-        if [ -f package.json ] && [ -d src ]; then
-          npm run build
-        elif [ -f frontend/package.json ]; then
-          cd frontend && npm run build
-        else
-          echo "No frontend found to build"
-          exit 1
-        fi
+      working-directory: ${{ steps.frontend_location.outputs.working_dir }}
+      run: npm run build
 
     - name: Run frontend tests
-      run: |
-        if [ -f package.json ] && [ -d src ]; then
-          npm run test:ci || npm run test || echo "No test script found - tests skipped"
-        elif [ -f frontend/package.json ]; then
-          cd frontend && npm run test:ci || npm run test || echo "No test script found - tests skipped"
-        fi
+      working-directory: ${{ steps.frontend_location.outputs.working_dir }}
+      run: npm run test:ci || npm run test || echo "No test script found - tests skipped"
 
     - name: Upload coverage to Codecov
       uses: codecov/codecov-action@v3
