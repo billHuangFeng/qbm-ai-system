@@ -987,6 +987,57 @@ export type Database = {
           },
         ]
       }
+      dim_business_entity: {
+        Row: {
+          address: string | null
+          contact_person: string | null
+          contact_phone: string | null
+          created_at: string | null
+          entity_code: string
+          entity_id: string
+          entity_name: string
+          entity_type: string | null
+          is_active: boolean | null
+          legal_name: string | null
+          region: string | null
+          tax_id: string | null
+          tenant_id: string
+          updated_at: string | null
+        }
+        Insert: {
+          address?: string | null
+          contact_person?: string | null
+          contact_phone?: string | null
+          created_at?: string | null
+          entity_code: string
+          entity_id?: string
+          entity_name: string
+          entity_type?: string | null
+          is_active?: boolean | null
+          legal_name?: string | null
+          region?: string | null
+          tax_id?: string | null
+          tenant_id: string
+          updated_at?: string | null
+        }
+        Update: {
+          address?: string | null
+          contact_person?: string | null
+          contact_phone?: string | null
+          created_at?: string | null
+          entity_code?: string
+          entity_id?: string
+          entity_name?: string
+          entity_type?: string | null
+          is_active?: boolean | null
+          legal_name?: string | null
+          region?: string | null
+          tax_id?: string | null
+          tenant_id?: string
+          updated_at?: string | null
+        }
+        Relationships: []
+      }
       dim_channel: {
         Row: {
           channel_code: string
@@ -1098,6 +1149,149 @@ export type Database = {
           },
         ]
       }
+      dim_department: {
+        Row: {
+          cost_center: string | null
+          created_at: string | null
+          department_code: string
+          department_id: string
+          department_level: number | null
+          department_name: string
+          department_type: string | null
+          entity_id: string | null
+          is_active: boolean | null
+          manager_id: string | null
+          parent_department_id: string | null
+          tenant_id: string
+          updated_at: string | null
+        }
+        Insert: {
+          cost_center?: string | null
+          created_at?: string | null
+          department_code: string
+          department_id?: string
+          department_level?: number | null
+          department_name: string
+          department_type?: string | null
+          entity_id?: string | null
+          is_active?: boolean | null
+          manager_id?: string | null
+          parent_department_id?: string | null
+          tenant_id: string
+          updated_at?: string | null
+        }
+        Update: {
+          cost_center?: string | null
+          created_at?: string | null
+          department_code?: string
+          department_id?: string
+          department_level?: number | null
+          department_name?: string
+          department_type?: string | null
+          entity_id?: string | null
+          is_active?: boolean | null
+          manager_id?: string | null
+          parent_department_id?: string | null
+          tenant_id?: string
+          updated_at?: string | null
+        }
+        Relationships: [
+          {
+            foreignKeyName: "dim_department_parent_department_id_fkey"
+            columns: ["parent_department_id"]
+            isOneToOne: false
+            referencedRelation: "dim_department"
+            referencedColumns: ["department_id"]
+          },
+        ]
+      }
+      dim_employee: {
+        Row: {
+          birth_date: string | null
+          created_at: string | null
+          department_id: string | null
+          email: string | null
+          employee_code: string
+          employee_id: string
+          employee_name: string
+          employee_name_en: string | null
+          employment_type: string | null
+          entity_id: string | null
+          gender: string | null
+          hire_date: string | null
+          is_active: boolean | null
+          job_level: string | null
+          leave_date: string | null
+          mobile_phone: string | null
+          position: string | null
+          status: string | null
+          supervisor_id: string | null
+          tenant_id: string
+          updated_at: string | null
+        }
+        Insert: {
+          birth_date?: string | null
+          created_at?: string | null
+          department_id?: string | null
+          email?: string | null
+          employee_code: string
+          employee_id?: string
+          employee_name: string
+          employee_name_en?: string | null
+          employment_type?: string | null
+          entity_id?: string | null
+          gender?: string | null
+          hire_date?: string | null
+          is_active?: boolean | null
+          job_level?: string | null
+          leave_date?: string | null
+          mobile_phone?: string | null
+          position?: string | null
+          status?: string | null
+          supervisor_id?: string | null
+          tenant_id: string
+          updated_at?: string | null
+        }
+        Update: {
+          birth_date?: string | null
+          created_at?: string | null
+          department_id?: string | null
+          email?: string | null
+          employee_code?: string
+          employee_id?: string
+          employee_name?: string
+          employee_name_en?: string | null
+          employment_type?: string | null
+          entity_id?: string | null
+          gender?: string | null
+          hire_date?: string | null
+          is_active?: boolean | null
+          job_level?: string | null
+          leave_date?: string | null
+          mobile_phone?: string | null
+          position?: string | null
+          status?: string | null
+          supervisor_id?: string | null
+          tenant_id?: string
+          updated_at?: string | null
+        }
+        Relationships: [
+          {
+            foreignKeyName: "dim_employee_department_id_fkey"
+            columns: ["department_id"]
+            isOneToOne: false
+            referencedRelation: "dim_department"
+            referencedColumns: ["department_id"]
+          },
+          {
+            foreignKeyName: "dim_employee_supervisor_id_fkey"
+            columns: ["supervisor_id"]
+            isOneToOne: false
+            referencedRelation: "dim_employee"
+            referencedColumns: ["employee_id"]
+          },
+        ]
+      }
       dim_media_channel: {
         Row: {
           channel_code: string
@@ -1171,6 +1365,87 @@ export type Database = {
             isOneToOne: false
             referencedRelation: "tenants"
             referencedColumns: ["tenant_id"]
+          },
+        ]
+      }
+      dim_project: {
+        Row: {
+          actual_budget: number | null
+          created_at: string | null
+          department_id: string | null
+          description: string | null
+          end_date: string | null
+          entity_id: string | null
+          is_active: boolean | null
+          planned_budget: number | null
+          priority: string | null
+          project_code: string
+          project_id: string
+          project_manager_id: string | null
+          project_name: string
+          project_status: string | null
+          project_type: string | null
+          sponsor_id: string | null
+          start_date: string | null
+          tenant_id: string
+          updated_at: string | null
+        }
+        Insert: {
+          actual_budget?: number | null
+          created_at?: string | null
+          department_id?: string | null
+          description?: string | null
+          end_date?: string | null
+          entity_id?: string | null
+          is_active?: boolean | null
+          planned_budget?: number | null
+          priority?: string | null
+          project_code: string
+          project_id?: string
+          project_manager_id?: string | null
+          project_name: string
+          project_status?: string | null
+          project_type?: string | null
+          sponsor_id?: string | null
+          start_date?: string | null
+          tenant_id: string
+          updated_at?: string | null
+        }
+        Update: {
+          actual_budget?: number | null
+          created_at?: string | null
+          department_id?: string | null
+          description?: string | null
+          end_date?: string | null
+          entity_id?: string | null
+          is_active?: boolean | null
+          planned_budget?: number | null
+          priority?: string | null
+          project_code?: string
+          project_id?: string
+          project_manager_id?: string | null
+          project_name?: string
+          project_status?: string | null
+          project_type?: string | null
+          sponsor_id?: string | null
+          start_date?: string | null
+          tenant_id?: string
+          updated_at?: string | null
+        }
+        Relationships: [
+          {
+            foreignKeyName: "dim_project_department_id_fkey"
+            columns: ["department_id"]
+            isOneToOne: false
+            referencedRelation: "dim_department"
+            referencedColumns: ["department_id"]
+          },
+          {
+            foreignKeyName: "dim_project_project_manager_id_fkey"
+            columns: ["project_manager_id"]
+            isOneToOne: false
+            referencedRelation: "dim_employee"
+            referencedColumns: ["employee_id"]
           },
         ]
       }
