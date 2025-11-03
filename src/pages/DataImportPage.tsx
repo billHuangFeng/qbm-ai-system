@@ -3,8 +3,7 @@ import FileUploadZone from '@/components/DataImport/FileUploadZone';
 import DataPreviewTable from '@/components/DataImport/DataPreviewTable';
 import FieldMappingEditor from '@/components/DataImport/FieldMappingEditor';
 import QualityReportCard from '@/components/DataImport/QualityReportCard';
-import AIAssistantChat from '@/components/DataImport/AIAssistantChat';
-import ImportProgressTracker from '@/components/DataImport/ImportProgressTracker';
+import UnifiedProgressGuide from '@/components/DataImport/UnifiedProgressGuide';
 import SmartActionPanel from '@/components/DataImport/SmartActionPanel';
 import { ChevronRight } from 'lucide-react';
 
@@ -68,12 +67,9 @@ const DataImportPage = () => {
           {/* Right: AI Smart Guide Area */}
           <div className="flex flex-col gap-4 bg-card border rounded-lg p-6 overflow-hidden">
             
-            {/* Progress Tracker */}
-            <ImportProgressTracker currentStage={currentStage} />
-            
-            {/* AI Assistant Chat */}
+            {/* Unified Progress Guide */}
             <div className="flex-1 overflow-hidden">
-              <AIAssistantChat currentStage={currentStage} />
+              <UnifiedProgressGuide currentStage={currentStage} />
             </div>
             
             {/* Smart Action Panel */}
