@@ -459,7 +459,8 @@ class MasterDataMatcher(BaseService):
     def match_single_record(
         self,
         record: Dict[str, Any],
-        master_data: pd.DataFrame
+        master_data: pd.DataFrame,
+        data_type: str = "order"
     ) -> Dict[str, Any]:
         """
         匹配单条记录
@@ -467,12 +468,27 @@ class MasterDataMatcher(BaseService):
         Args:
             record: 待匹配记录
             master_data: 主数据DataFrame
+            data_type: 数据类型（order/production/expense/product）
             
         Returns:
             匹配结果
         """
         record_name = record.get("name", "")
         record_code = record.get("credit_code", "")
+        
+        # 产品匹配特殊字段：规格型号
+        record_specification = None
+        if data_type == "product":
+            # 尝试多个可能的字段名
+            record_specification = (
+                record.get("specification") or 
+                record.get("spec") or 
+                record.get("model") or 
+                record.get("model_number") or
+                record.get("规格型号") or
+                record.get("型号规格")
+            )
+        
         row_index = record.get("row_index", 0)
         
         if master_data.empty:
@@ -495,6 +511,18 @@ class MasterDataMatcher(BaseService):
             master_code = master_row.get("credit_code", "")
             master_alias = master_row.get("alias_name", "")
             
+            # 产品匹配特殊字段：规格型号
+            master_specification = None
+            if data_type == "product":
+                master_specification = (
+                    master_row.get("specification") or 
+                    master_row.get("spec") or 
+                    master_row.get("model") or 
+                    master_row.get("model_number") or
+                    master_row.get("规格型号") or
+                    master_row.get("型号规格")
+                )
+            
             # 计算名称相似度（考虑总公司和分公司/办事处）
             name_sim, name_match_details = self.calculate_name_similarity(record_name, master_name)
             
@@ -505,6 +533,35 @@ class MasterDataMatcher(BaseService):
                     name_sim = alias_sim
                     name_match_details = alias_match_details
             
+            # 产品匹配特殊逻辑：检查规格型号
+            specification_matched = False
+            if data_type == "product":
+                # 规则：如果存在规格型号，必须规格型号完全一致 + 名称至少大致相似
+                # 如果不存在规格型号，仅名称匹配即可
+                if record_specification and master_specification:
+                    # 两者都有规格型号：必须完全一致
+                    record_spec_clean = str(record_specification).strip().upper()
+                    master_spec_clean = str(master_specification).strip().upper()
+                    specification_matched = (record_spec_clean == master_spec_clean)
+                    
+                    if not specification_matched:
+                        # 规格型号不一致，直接跳过（不匹配）
+                        continue
+                    
+                    # 规格型号一致，检查名称是否大致相似（阈值0.7）
+                    if name_sim < 0.7:
+                        # 规格型号一致但名称不够相似，降低置信度但不完全拒绝
+                        # 可能是同型号不同名称
+                        pass
+                elif record_specification and not master_specification:
+                    # 记录有规格型号但主数据没有：不匹配（可能是不同产品）
+                    continue
+                elif not record_specification and master_specification:
+                    # 记录没有规格型号但主数据有：不匹配（可能是不完整的数据）
+                    continue
+                # 两者都没有规格型号：仅依赖名称匹配
+                # specification_matched 保持 False，但这是允许的
+            
             # 计算代码相似度
             code_sim = 0.0
             code_fully_matched = False
@@ -513,8 +570,25 @@ class MasterDataMatcher(BaseService):
                 code_fully_matched = (code_sim >= 1.0)
             
             # 综合评分（改进逻辑）
+            # 产品匹配特殊规则：规格型号必须匹配（如果存在）
+            if data_type == "product" and record_specification and master_specification:
+                if not specification_matched:
+                    continue  # 规格型号不一致，跳过此记录
+                # 规格型号一致 + 名称至少大致相似（>0.7）= 100%置信度
+                if name_sim >= 0.7:
+                    final_score = 1.0
+                elif name_sim >= 0.5:
+                    # 规格型号一致但名称不够相似，降低置信度
+                    final_score = 0.85 + name_sim * 0.15  # 85-100%之间
+                else:
+                    # 规格型号一致但名称差异较大，可能不是同一产品
+                    final_score = name_sim * 0.7  # 降低权重
+            # 产品匹配：无规格型号时，仅依赖名称匹配
+            elif data_type == "product" and not record_specification and not master_specification:
+                final_score = name_sim
+            # 非产品匹配：使用原有逻辑
             # 规则1：代码完全一致 + 名称大致类似（>0.7）= 100%置信度
-            if code_fully_matched and name_sim >= 0.7:
+            elif code_fully_matched and name_sim >= 0.7:
                 final_score = 1.0
             # 规则2：代码完全一致但名称不匹配 = 高置信度（可能是输入错误，但代码是唯一标识）
             elif code_fully_matched and name_sim >= 0.5:
@@ -552,7 +626,7 @@ class MasterDataMatcher(BaseService):
             
             # 记录候选匹配
             if final_score >= 0.6:
-                alternatives.append({
+                match_info = {
                     "master_id": master_id,
                     "master_name": master_name,
                     "confidence": final_score,
@@ -560,7 +634,15 @@ class MasterDataMatcher(BaseService):
                     "code_similarity": code_sim,
                     "name_match_type": name_match_details.get("match_type", "unknown"),
                     "name_match_details": name_match_details
-                })
+                }
+                
+                # 添加规格型号匹配信息（产品匹配）
+                if data_type == "product":
+                    match_info["specification_matched"] = specification_matched
+                    match_info["record_specification"] = record_specification
+                    match_info["master_specification"] = master_specification
+                
+                alternatives.append(match_info)
             
             # 更新最佳匹配
             if final_score > best_score:
@@ -574,6 +656,12 @@ class MasterDataMatcher(BaseService):
                     "name_match_type": name_match_details.get("match_type", "unknown"),
                     "name_match_details": name_match_details
                 }
+                
+                # 添加规格型号匹配信息（产品匹配）
+                if data_type == "product":
+                    best_match["specification_matched"] = specification_matched
+                    best_match["record_specification"] = record_specification
+                    best_match["master_specification"] = master_specification
         
         # 排序候选匹配（按置信度降序）
         alternatives.sort(key=lambda x: x["confidence"], reverse=True)
@@ -637,6 +725,21 @@ class MasterDataMatcher(BaseService):
         name_match_type = match.get("name_match_type", "unknown")
         name_match_details = match.get("name_match_details", {})
         
+        # 产品匹配特殊说明：规格型号
+        specification_matched = match.get("specification_matched", False)
+        record_specification = match.get("record_specification")
+        master_specification = match.get("master_specification")
+        
+        if record_specification or master_specification:
+            if specification_matched:
+                reasons.append("【产品匹配】规格型号完全一致")
+            elif record_specification and not master_specification:
+                reasons.append("【不匹配】记录有规格型号但主数据没有")
+            elif not record_specification and master_specification:
+                reasons.append("【不匹配】记录没有规格型号但主数据有")
+            else:
+                reasons.append("【不匹配】规格型号不一致")
+        
         if name_match_type == "same_headquarter_same_branch":
             reasons.append("【分公司匹配】同一总公司的同一分公司")
         elif name_match_type == "same_headquarter_different_branch":
@@ -695,7 +798,7 @@ class MasterDataMatcher(BaseService):
             unmatched_records = []
             
             for record in records:
-                match_result = self.match_single_record(record, master_data)
+                match_result = self.match_single_record(record, master_data, data_type)
                 
                 if match_result["suggested_master_id"]:
                     matched_records.append(match_result)
