@@ -26,7 +26,6 @@ interface TaskStage {
   description: string;
   status: 'pending' | 'active' | 'completed' | 'warning' | 'error';
   messages: TaskMessage[];
-  isExpanded: boolean;
 }
 
 interface UnifiedProgressGuideProps {
@@ -34,17 +33,18 @@ interface UnifiedProgressGuideProps {
 }
 
 const UnifiedProgressGuide = ({ currentStage }: UnifiedProgressGuideProps) => {
+  const [taskListExpanded, setTaskListExpanded] = useState(false);
   const [stages, setStages] = useState<TaskStage[]>([
-    { key: 'UPLOAD', label: '上传文件', description: '选择数据文件', status: 'pending', messages: [], isExpanded: false },
-    { key: 'MAPPING', label: '字段映射', description: '智能字段匹配', status: 'pending', messages: [], isExpanded: false },
-    { key: 'ANALYZING', label: '格式识别', description: '基于映射识别格式', status: 'pending', messages: [], isExpanded: false },
-    { key: 'QUALITY_CHECK', label: '质量检查', description: '7维度分析', status: 'pending', messages: [], isExpanded: false },
-    { key: 'READY', label: '准备导入', description: '确认并导入', status: 'pending', messages: [], isExpanded: false },
-    { key: 'ENHANCEMENT', label: '数据完善', description: '第二阶段处理', status: 'pending', messages: [], isExpanded: false },
-    { key: 'CONFIRMING', label: '确认入库', description: '最终确认', status: 'pending', messages: [], isExpanded: false },
+    { key: 'UPLOAD', label: '上传文件', description: '选择数据文件', status: 'pending', messages: [] },
+    { key: 'MAPPING', label: '字段映射', description: '智能字段匹配', status: 'pending', messages: [] },
+    { key: 'ANALYZING', label: '格式识别', description: '基于映射识别格式', status: 'pending', messages: [] },
+    { key: 'QUALITY_CHECK', label: '质量检查', description: '7维度分析', status: 'pending', messages: [] },
+    { key: 'READY', label: '准备导入', description: '确认并导入', status: 'pending', messages: [] },
+    { key: 'ENHANCEMENT', label: '数据完善', description: '第二阶段处理', status: 'pending', messages: [] },
+    { key: 'CONFIRMING', label: '确认入库', description: '最终确认', status: 'pending', messages: [] },
   ]);
 
-  const messagesEndRef = useRef<{ [key: string]: HTMLDivElement | null }>({});
+  const messagesEndRef = useRef<HTMLDivElement | null>(null);
 
   const generateMessagesForStage = (stage: ImportStage): TaskMessage[] => {
     const timestamp = new Date();
@@ -147,36 +147,26 @@ const UnifiedProgressGuide = ({ currentStage }: UnifiedProgressGuideProps) => {
     
     setStages(prev => prev.map((stage, index) => {
       if (index < currentIndex) {
-        return { ...stage, status: 'completed' as const, isExpanded: false };
+        return { ...stage, status: 'completed' as const };
       } else if (index === currentIndex) {
         const newMessages = stage.messages.length === 0 ? generateMessagesForStage(currentStage) : stage.messages;
         const newStatus = currentStage === 'QUALITY_CHECK' ? 'warning' : 'active';
         return { 
           ...stage, 
           status: newStatus,
-          isExpanded: true,
           messages: newMessages
         };
       } else {
-        return { ...stage, status: 'pending' as const, isExpanded: false };
+        return { ...stage, status: 'pending' as const };
       }
     }));
   }, [currentStage]);
 
   useEffect(() => {
-    const activeStage = stages.find(s => s.isExpanded);
-    if (activeStage && messagesEndRef.current[activeStage.key]) {
-      messagesEndRef.current[activeStage.key]?.scrollIntoView({ behavior: 'smooth' });
+    if (messagesEndRef.current) {
+      messagesEndRef.current.scrollIntoView({ behavior: 'smooth' });
     }
   }, [stages]);
-
-  const toggleStage = (stageKey: ImportStage) => {
-    setStages(prev => prev.map(stage => 
-      stage.key === stageKey 
-        ? { ...stage, isExpanded: !stage.isExpanded }
-        : stage
-    ));
-  };
 
   const getStatusIcon = (status: TaskStage['status']) => {
     switch(status) {
@@ -206,82 +196,86 @@ const UnifiedProgressGuide = ({ currentStage }: UnifiedProgressGuideProps) => {
     }
   };
 
+  const activeStage = stages.find(s => s.status === 'active' || s.status === 'warning');
+  const completedCount = stages.filter(s => s.status === 'completed').length;
+  const totalCount = stages.length;
+
   return (
-    <div className="flex flex-col h-full">
-      <div className="flex items-center gap-2 mb-4 pb-4 border-b">
-        <div className="p-2 rounded-lg bg-primary/10">
-          <Bot className="w-5 h-5 text-primary" />
-        </div>
-        <div>
-          <h3 className="font-semibold text-foreground">AI 智能导入引导</h3>
-          <p className="text-xs text-muted-foreground">实时进度与反馈</p>
-        </div>
-      </div>
-
-      <div className="flex-1 overflow-y-auto space-y-2 pr-2">
-        {stages.map((stage) => (
-          <div key={stage.key} className="border rounded-lg overflow-hidden">
-            <div
-              className={`
-                flex items-center gap-3 px-4 cursor-pointer transition-all
-                hover:bg-accent/50
-                ${stage.status === 'active' ? 'bg-primary/5 border-l-4 border-l-primary' : ''}
-                ${stage.status === 'completed' ? 'opacity-60' : ''}
-                ${stage.isExpanded ? 'py-3' : 'py-1.5'}
-              `}
-              onClick={() => toggleStage(stage.key)}
-            >
-              <div className="flex-shrink-0">
-                {getStatusIcon(stage.status)}
-              </div>
-              
-              <div className="flex-1 min-w-0">
-                <div className={`text-sm font-medium text-foreground ${stage.status === 'completed' ? 'line-through' : ''}`}>
-                  {stage.label}
-                </div>
-                {stage.isExpanded && (
-                  <div className="text-xs text-muted-foreground">
-                    {stage.description}
-                  </div>
-                )}
-              </div>
-
-              <div className="flex-shrink-0">
-                {stage.isExpanded ? (
-                  <ChevronDown className="w-4 h-4 text-muted-foreground" />
-                ) : (
-                  <ChevronRight className="w-4 h-4 text-muted-foreground" />
-                )}
-              </div>
+    <div className="flex flex-col h-full gap-4">
+      {/* 当前任务信息卡片 */}
+      {activeStage && (
+        <div className="border rounded-lg overflow-hidden border-l-4 border-l-primary">
+          <div className="flex items-center gap-3 px-4 py-3 bg-primary/5">
+            <div className="p-2 rounded-lg bg-primary/10 flex-shrink-0">
+              <Bot className="w-5 h-5 text-primary" />
             </div>
-
-            {stage.isExpanded && (
-              <div className="px-4 py-3 bg-muted/30 border-t animate-accordion-down">
-                <div className="space-y-2 max-h-[400px] overflow-y-auto">
-                  {stage.messages.map((message) => (
-                    <div key={message.id} className="animate-fade-in">
-                      <div className="flex gap-2 items-start">
-                        {getMessageIcon(message.type)}
-                        <div className="flex-1 min-w-0">
-                          <div className="text-sm text-foreground leading-relaxed whitespace-pre-wrap">
-                            {message.content}
-                          </div>
-                        </div>
-                      </div>
-                      <div className="text-xs text-muted-foreground/70 mt-0.5 ml-6">
-                        {message.timestamp.toLocaleTimeString('zh-CN', { 
-                          hour: '2-digit', 
-                          minute: '2-digit' 
-                        })}
+            <div className="flex-1 min-w-0">
+              <div className="flex items-center gap-2">
+                {getStatusIcon(activeStage.status)}
+                <h3 className="font-semibold text-foreground">当前任务：{activeStage.label}</h3>
+              </div>
+              <p className="text-xs text-muted-foreground mt-0.5">{activeStage.description}</p>
+            </div>
+          </div>
+          
+          <div className="px-4 py-3 bg-muted/30 border-t">
+            <div className="space-y-2 max-h-[400px] overflow-y-auto">
+              {activeStage.messages.map((message) => (
+                <div key={message.id} className="animate-fade-in">
+                  <div className="flex gap-2 items-start">
+                    {getMessageIcon(message.type)}
+                    <div className="flex-1 min-w-0">
+                      <div className="text-sm text-foreground leading-relaxed whitespace-pre-wrap">
+                        {message.content}
                       </div>
                     </div>
-                  ))}
-                  <div ref={(el) => { messagesEndRef.current[stage.key] = el; }} />
+                  </div>
+                  <div className="text-xs text-muted-foreground/70 mt-0.5 ml-6">
+                    {message.timestamp.toLocaleTimeString('zh-CN', { 
+                      hour: '2-digit', 
+                      minute: '2-digit' 
+                    })}
+                  </div>
                 </div>
-              </div>
-            )}
+              ))}
+              <div ref={messagesEndRef} />
+            </div>
           </div>
-        ))}
+        </div>
+      )}
+
+      {/* 任务清单卡片 */}
+      <div className="border rounded-lg overflow-hidden">
+        <div
+          className="flex items-center justify-between px-4 py-2 cursor-pointer hover:bg-accent/50 transition-colors"
+          onClick={() => setTaskListExpanded(!taskListExpanded)}
+        >
+          <div className="flex items-center gap-2">
+            {taskListExpanded ? (
+              <ChevronDown className="w-4 h-4 text-muted-foreground" />
+            ) : (
+              <ChevronRight className="w-4 h-4 text-muted-foreground" />
+            )}
+            <span className="font-medium text-foreground">
+              {completedCount} / {totalCount} 任务
+            </span>
+          </div>
+        </div>
+
+        {taskListExpanded && (
+          <div className="px-4 py-2 space-y-1 border-t bg-muted/30 animate-accordion-down">
+            {stages.map((stage) => (
+              <div key={stage.key} className="flex items-center gap-2 py-1">
+                <div className="flex-shrink-0">
+                  {getStatusIcon(stage.status)}
+                </div>
+                <span className={`text-sm ${stage.status === 'completed' ? 'line-through opacity-60' : ''}`}>
+                  {stage.label}
+                </span>
+              </div>
+            ))}
+          </div>
+        )}
       </div>
     </div>
   );
