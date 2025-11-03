@@ -353,7 +353,7 @@ const UnifiedProgressGuide = ({ currentStage, onStageChange }: UnifiedProgressGu
   const actions = getActions();
 
   return (
-    <div className="flex flex-col h-full gap-4 overflow-y-auto">
+    <div className="flex flex-col gap-4">
       {/* 当前任务信息卡片 */}
       {activeStage && (
         <div className="border rounded-lg overflow-hidden border-l-4 border-l-primary flex-shrink-0">
@@ -460,7 +460,7 @@ const UnifiedProgressGuide = ({ currentStage, onStageChange }: UnifiedProgressGu
         </div>
 
         {taskListExpanded && (
-          <div className="px-4 py-2 space-y-1 border-t bg-muted/30 animate-accordion-down max-h-[400px] overflow-y-auto">
+          <div className="px-4 py-2 space-y-1 border-t bg-muted/30 animate-accordion-down">
             {stages.map((stage) => (
               <div key={stage.key} className="flex items-center gap-2 py-1">
                 <div className="flex-shrink-0">

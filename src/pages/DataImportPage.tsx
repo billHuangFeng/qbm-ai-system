@@ -72,16 +72,13 @@ const DataImportPage = () => {
           </div>
 
           {/* Right: AI Smart Guide Area */}
-          <div className="flex flex-col gap-4 bg-card border rounded-lg p-6 overflow-hidden max-h-[calc(100vh-200px)]">
+          <div className="flex flex-col gap-4 bg-card border rounded-lg p-6 max-h-[calc(100vh-200px)] overflow-y-auto">
             
             {/* Unified Progress Guide with integrated actions */}
-            <div className="flex-1 overflow-hidden">
-              <UnifiedProgressGuide 
+            <UnifiedProgressGuide
                 currentStage={currentStage}
                 onStageChange={setCurrentStage}
               />
-            </div>
-            
           </div>
 
         </div>
