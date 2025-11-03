@@ -20,7 +20,7 @@ export type ImportStage =
   | 'COMPLETED';
 
 const DataImportPage = () => {
-  const [currentStage, setCurrentStage] = useState<ImportStage>('UPLOAD');
+  const [currentStage, setCurrentStage] = useState<ImportStage>('QUALITY_CHECK');
 
   return (
     <div className="min-h-screen bg-background">
