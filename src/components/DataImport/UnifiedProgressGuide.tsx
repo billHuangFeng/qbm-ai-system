@@ -56,6 +56,7 @@ const UnifiedProgressGuide = ({ currentStage, onStageChange }: UnifiedProgressGu
     label: string;
     variant: 'default' | 'outline';
     icon?: typeof Sparkles;
+    position?: 'left' | 'right';
     onClick: () => void;
   }> => {
     if (!onStageChange) return [];
@@ -67,16 +68,18 @@ const UnifiedProgressGuide = ({ currentStage, onStageChange }: UnifiedProgressGu
       case 'MAPPING':
         return [
           {
-            label: '✨ 应用 AI 推荐',
-            variant: 'default' as const,
-            icon: Sparkles,
-            onClick: () => onStageChange('ANALYZING')
-          },
-          {
             label: '🛠️ 手动配置',
             variant: 'outline' as const,
             icon: Settings,
+            position: 'left' as const,
             onClick: () => {}
+          },
+          {
+            label: '✨ 应用 AI 推荐',
+            variant: 'default' as const,
+            icon: Sparkles,
+            position: 'right' as const,
+            onClick: () => onStageChange('ANALYZING')
           }
         ];
       
@@ -88,6 +91,7 @@ const UnifiedProgressGuide = ({ currentStage, onStageChange }: UnifiedProgressGu
           {
             label: '⏭️ 继续导入',
             variant: 'default' as const,
+            position: 'right' as const,
             onClick: () => onStageChange('READY')
           }
         ];
@@ -98,37 +102,42 @@ const UnifiedProgressGuide = ({ currentStage, onStageChange }: UnifiedProgressGu
         if (qualityScore >= 95) {
           return [
             {
-              label: '🚀 直接导入正式表',
-              variant: 'default' as const,
-              icon: Play,
-              onClick: () => onStageChange('IMPORTING')
-            },
-            {
               label: '🔙 返回调整',
               variant: 'outline' as const,
               icon: ArrowLeft,
+              position: 'left' as const,
               onClick: () => onStageChange('MAPPING')
+            },
+            {
+              label: '🚀 直接导入正式表',
+              variant: 'default' as const,
+              icon: Play,
+              position: 'right' as const,
+              onClick: () => onStageChange('IMPORTING')
             }
           ];
         } else if (qualityScore >= 70) {
           return [
             {
-              label: '📥 导入暂存表（推荐）',
-              variant: 'default' as const,
-              icon: Play,
-              onClick: () => onStageChange('ENHANCEMENT')
+              label: '🔙 返回调整',
+              variant: 'outline' as const,
+              icon: ArrowLeft,
+              position: 'left' as const,
+              onClick: () => onStageChange('MAPPING')
             },
             {
               label: '⚠️ 强制导入正式表',
               variant: 'outline' as const,
               icon: Play,
+              position: 'right' as const,
               onClick: () => onStageChange('IMPORTING')
             },
             {
-              label: '🔙 返回调整',
-              variant: 'outline' as const,
-              icon: ArrowLeft,
-              onClick: () => onStageChange('MAPPING')
+              label: '📥 导入暂存表（推荐）',
+              variant: 'default' as const,
+              icon: Play,
+              position: 'right' as const,
+              onClick: () => onStageChange('ENHANCEMENT')
             }
           ];
         } else {
@@ -136,12 +145,14 @@ const UnifiedProgressGuide = ({ currentStage, onStageChange }: UnifiedProgressGu
             {
               label: '⛔ 质量不合格，无法导入',
               variant: 'outline' as const,
+              position: 'left' as const,
               onClick: () => {}
             },
             {
               label: '🔙 返回修复',
               variant: 'default' as const,
               icon: ArrowLeft,
+              position: 'right' as const,
               onClick: () => onStageChange('MAPPING')
             }
           ];
@@ -150,13 +161,15 @@ const UnifiedProgressGuide = ({ currentStage, onStageChange }: UnifiedProgressGu
       case 'ENHANCEMENT':
         return [
           {
-            label: '🤖 全部自动修复',
-            variant: 'default' as const,
+            label: '✅ 完成并确认',
+            variant: 'outline' as const,
+            position: 'left' as const,
             onClick: () => onStageChange('CONFIRMING')
           },
           {
-            label: '✅ 完成并确认',
-            variant: 'outline' as const,
+            label: '🤖 全部自动修复',
+            variant: 'default' as const,
+            position: 'right' as const,
             onClick: () => onStageChange('CONFIRMING')
           }
         ];
@@ -164,16 +177,18 @@ const UnifiedProgressGuide = ({ currentStage, onStageChange }: UnifiedProgressGu
       case 'CONFIRMING':
         return [
           {
-            label: '🚀 导入正式表',
-            variant: 'default' as const,
-            icon: Play,
-            onClick: () => onStageChange('COMPLETED')
-          },
-          {
             label: '🔙 返回调整',
             variant: 'outline' as const,
             icon: ArrowLeft,
+            position: 'left' as const,
             onClick: () => onStageChange('ENHANCEMENT')
+          },
+          {
+            label: '🚀 导入正式表',
+            variant: 'default' as const,
+            icon: Play,
+            position: 'right' as const,
+            onClick: () => onStageChange('COMPLETED')
           }
         ];
       
@@ -379,23 +394,48 @@ const UnifiedProgressGuide = ({ currentStage, onStageChange }: UnifiedProgressGu
             </div>
           </div>
 
-          {/* 操作按钮区域 - 在卡片内部右下角 */}
+          {/* 操作按钮区域 - 水平左右分布 */}
           {actions.length > 0 && (
-            <div className="px-4 py-3 bg-card border-t flex flex-col gap-2">
-              {actions.map((action, index) => {
-                const Icon = action.icon;
-                return (
-                  <Button
-                    key={index}
-                    variant={action.variant}
-                    className="w-full justify-start"
-                    onClick={action.onClick}
-                  >
-                    {Icon && <Icon className="w-4 h-4 mr-2" />}
-                    {action.label}
-                  </Button>
-                );
-              })}
+            <div className="px-4 py-3 bg-card border-t flex items-center justify-between gap-3">
+              {/* 左侧按钮组 */}
+              <div className="flex gap-2">
+                {actions
+                  .filter(action => action.position === 'left')
+                  .map((action, index) => {
+                    const Icon = action.icon;
+                    return (
+                      <Button
+                        key={index}
+                        variant={action.variant}
+                        size="sm"
+                        onClick={action.onClick}
+                      >
+                        {Icon && <Icon className="w-3.5 h-3.5 mr-1.5" />}
+                        {action.label}
+                      </Button>
+                    );
+                  })}
+              </div>
+
+              {/* 右侧按钮组 */}
+              <div className="flex gap-2">
+                {actions
+                  .filter(action => action.position !== 'left')
+                  .map((action, index) => {
+                    const Icon = action.icon;
+                    return (
+                      <Button
+                        key={index}
+                        variant={action.variant}
+                        size="sm"
+                        onClick={action.onClick}
+                      >
+                        {Icon && <Icon className="w-3.5 h-3.5 mr-1.5" />}
+                        {action.label}
+                      </Button>
+                    );
+                  })}
+              </div>
             </div>
           )}
         </div>
