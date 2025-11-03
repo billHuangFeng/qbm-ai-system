@@ -75,6 +75,40 @@ class SmartValueImputer(BaseService):
             ]
         }
     
+    def should_allow_imputation(
+        self,
+        field_name: str,
+        field_config: Dict[str, Any]
+    ) -> Tuple[bool, str]:
+        """
+        判断是否允许补值
+        
+        Args:
+            field_name: 字段名
+            field_config: 字段配置
+            
+        Returns:
+            (是否允许, 原因)
+        """
+        # 检查是否明确禁止补值
+        if field_config.get("allow_imputation") is False:
+            return False, "字段配置不允许补值"
+        
+        # 检查是否为关键业务字段
+        if field_config.get("business_critical") is True:
+            return False, "关键业务字段，不允许自动补值"
+        
+        # 检查风险等级
+        risk_level = field_config.get("imputation_risk", "medium")
+        if risk_level == "high":
+            return False, "高风险字段，需要人工审核"
+        
+        # 检查是否为必填字段（必填字段不建议自动补值）
+        if field_config.get("required") is True and risk_level != "low":
+            return False, "必填字段，建议人工输入而非自动补值"
+        
+        return True, "允许补值"
+    
     def select_imputation_strategy(
         self,
         field_config: Dict[str, Any],
@@ -92,7 +126,7 @@ class SmartValueImputer(BaseService):
         Returns:
             推荐策略（auto/knn/iterative/random_forest/rule_based）
         """
-        # 如果有业务规则，优先使用规则补值
+        # 如果有业务规则，优先使用规则补值（最安全）
         if field_config.get("default_value") is not None:
             return "rule_based"
         
@@ -100,8 +134,15 @@ class SmartValueImputer(BaseService):
         if field_config.get("rule_name") in self.default_rules:
             return "rule_based"
         
+        # 检查是否允许使用机器学习方法
+        use_ml = field_config.get("allow_ml_imputation", True)
+        
         # 数值型字段
         if field_type == "numeric":
+            if not use_ml:
+                # 不允许机器学习，只能使用规则补值
+                return "rule_based"
+            
             if missing_ratio < 0.1:
                 # 缺失率低，使用KNN
                 return "knn"
@@ -114,8 +155,8 @@ class SmartValueImputer(BaseService):
         
         # 分类型字段
         elif field_type == "categorical":
-            if missing_ratio < 0.2:
-                # 缺失率低，使用众数
+            if missing_ratio < 0.2 or not use_ml:
+                # 缺失率低或不允许ML，使用众数（规则补值）
                 return "rule_based"
             else:
                 # 缺失率高，使用随机森林
@@ -401,13 +442,57 @@ class SmartValueImputer(BaseService):
         
         return df_imputed, imputation_log
     
+    def assess_imputation_risk(
+        self,
+        field_configs: Dict[str, Dict[str, Any]]
+    ) -> Dict[str, Any]:
+        """
+        评估补值风险
+        
+        Args:
+            field_configs: 字段配置字典
+            
+        Returns:
+            风险评估结果
+        """
+        risk_assessment = {
+            "high_risk_fields": [],
+            "medium_risk_fields": [],
+            "low_risk_fields": [],
+            "blocked_fields": [],
+            "requires_approval": False
+        }
+        
+        for field_name, field_config in field_configs.items():
+            allow, reason = self.should_allow_imputation(field_name, field_config)
+            
+            if not allow:
+                risk_assessment["blocked_fields"].append({
+                    "field": field_name,
+                    "reason": reason
+                })
+                continue
+            
+            risk_level = field_config.get("imputation_risk", "medium")
+            
+            if risk_level == "high":
+                risk_assessment["high_risk_fields"].append(field_name)
+                risk_assessment["requires_approval"] = True
+            elif risk_level == "medium":
+                risk_assessment["medium_risk_fields"].append(field_name)
+            else:
+                risk_assessment["low_risk_fields"].append(field_name)
+        
+        return risk_assessment
+    
     async def impute_values(
         self,
         data_type: str,
         records: List[Dict[str, Any]],
         field_configs: Dict[str, Dict[str, Any]],
         strategy: str = "auto",
-        tenant_id: Optional[str] = None
+        tenant_id: Optional[str] = None,
+        skip_blocked_fields: bool = True
     ) -> Dict[str, Any]:
         """
         智能补值
@@ -448,10 +533,28 @@ class SmartValueImputer(BaseService):
             all_imputation_log = []
             
             # 根据策略补值
+            # 风险评估
+            risk_assessment = self.assess_imputation_risk(field_configs)
+            
+            # 检查是否有被阻止的字段
+            if risk_assessment["blocked_fields"] and skip_blocked_fields:
+                logger.warning(f"以下字段被阻止补值: {[f['field'] for f in risk_assessment['blocked_fields']]}")
+                # 从配置中移除被阻止的字段
+                for blocked in risk_assessment["blocked_fields"]:
+                    field_name = blocked["field"]
+                    if field_name in field_configs:
+                        del field_configs[field_name]
+            
             if strategy == "auto":
                 # 自动选择策略
                 for field_name, field_config in field_configs.items():
                     if field_name not in df.columns:
+                        continue
+                    
+                    # 检查是否允许补值
+                    allow, reason = self.should_allow_imputation(field_name, field_config)
+                    if not allow:
+                        logger.warning(f"字段 {field_name} 不允许补值: {reason}")
                         continue
                     
                     missing_ratio = missing_info["missing_ratio"].get(field_name, 0.0)
@@ -504,8 +607,20 @@ class SmartValueImputer(BaseService):
                 "imputed_count": imputed_count,
                 "imputation_rate": imputation_rate,
                 "strategy_used": strategy,
-                "fields_imputed": list(set([log["field"] for log in all_imputation_log]))
+                "fields_imputed": list(set([log["field"] for log in all_imputation_log])),
+                "risk_assessment": risk_assessment,
+                "blocked_fields_count": len(risk_assessment["blocked_fields"]),
+                "requires_approval": risk_assessment["requires_approval"]
             }
+            
+            # 在补值日志中标记风险等级
+            for log in all_imputation_log:
+                field_name = log["field"]
+                if field_name in field_configs:
+                    field_config = field_configs[field_name]
+                    log["risk_level"] = field_config.get("imputation_risk", "medium")
+                    log["business_critical"] = field_config.get("business_critical", False)
+                    log["can_revert"] = True  # 标记为可回滚
             
             return {
                 "imputed_records": df_imputed.to_dict('records'),
