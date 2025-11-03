@@ -327,7 +327,7 @@ async def get_training_status(
             "started_at": training_info['started_at'],
             "completed_at": training_info['completed_at'],
             "error_message": training_info.get('error_message'),
-            "duration": self._calculate_duration(
+            "duration": _calculate_duration(
                 training_info['started_at'],
                 training_info['completed_at']
             )

@@ -4,7 +4,7 @@ BMOS系统 - 优化后的主应用
 """
 
 import uvicorn
-from fastapi import FastAPI, HTTPException, Request, status
+from fastapi import FastAPI, HTTPException, Request, status, Depends
 from fastapi.middleware.cors import CORSMiddleware
 from fastapi.middleware.trustedhost import TrustedHostMiddleware
 from fastapi.exceptions import RequestValidationError
@@ -37,6 +37,14 @@ from src.api.dependencies import (
     get_db_service, get_cache_service, get_model_training_service,
     get_memory_service, get_ai_copilot_service, get_data_import_etl,
     get_data_quality_service, get_scheduler_service, get_monitoring_service
+)
+# 导入缓存相关
+from src.cache.redis_cache import RedisCache
+from src.cache.cache_manager import CacheManager
+from src.cache.middleware import (
+    CacheMiddleware,
+    CacheControlMiddleware,
+    CacheInvalidationMiddleware
 )
 
 # 初始化配置管理器

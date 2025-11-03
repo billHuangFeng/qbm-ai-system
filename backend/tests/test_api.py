@@ -17,6 +17,13 @@ from services.model_training_service import ModelTrainingService
 from services.enterprise_memory_service import EnterpriseMemoryService
 from services.database_service import DatabaseService
 from services.cache_service import CacheService
+from src.api.dependencies import (
+    get_model_training_service,
+    get_database_service,
+    get_current_user,
+    get_memory_service,
+    get_cache_service
+)
 
 # 测试客户端
 client = TestClient(app)

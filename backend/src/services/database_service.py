@@ -10,6 +10,7 @@ from typing import Optional, Dict, Any, List
 import logging
 import os
 from contextlib import asynccontextmanager
+from fastapi import HTTPException
 
 logger = logging.getLogger(__name__)
 

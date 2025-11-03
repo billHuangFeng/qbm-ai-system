@@ -13,17 +13,7 @@ warnings.warn(
 # 重定向到优化后的主应用
 from main_optimized import app
 
-__all__ = ['app'],
-    description="基于机器学习的边际影响分析系统",
-    version="0.1.0",
-    lifespan=lifespan
-)
-
-# 设置中间件
-setup_middleware(app)
-
-# 包含API路由
-app.include_router(api_router, prefix="/api/v1")
+__all__ = ['app']
 
 @app.get("/")
 async def root():
