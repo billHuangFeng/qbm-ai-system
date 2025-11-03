@@ -81,6 +81,7 @@ const DataImportPage = () => {
             <UnifiedProgressGuide
                 currentStage={currentStage}
                 onStageChange={setCurrentStage}
+                onFileUpload={setUploadedFile}
               />
           </div>
 

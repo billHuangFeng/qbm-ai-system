@@ -13,7 +13,8 @@ import {
   Sparkles,
   Play,
   Settings,
-  ArrowLeft
+  ArrowLeft,
+  Upload
 } from 'lucide-react';
 import { Button } from '@/components/ui/button';
 import type { ImportStage } from '@/pages/DataImportPage';
@@ -36,10 +37,12 @@ interface TaskStage {
 interface UnifiedProgressGuideProps {
   currentStage: ImportStage;
   onStageChange?: (stage: ImportStage) => void;
+  onFileUpload?: (file: File) => void;
 }
 
-const UnifiedProgressGuide = ({ currentStage, onStageChange }: UnifiedProgressGuideProps) => {
+const UnifiedProgressGuide = ({ currentStage, onStageChange, onFileUpload }: UnifiedProgressGuideProps) => {
   const [taskListExpanded, setTaskListExpanded] = useState(false);
+  const fileInputRef = useRef<HTMLInputElement>(null);
   const [stages, setStages] = useState<TaskStage[]>([
     { key: 'UPLOAD', label: '上传文件', description: '选择数据文件', status: 'pending', messages: [] },
     { key: 'MAPPING', label: '字段映射', description: '智能字段匹配', status: 'pending', messages: [] },
@@ -63,7 +66,15 @@ const UnifiedProgressGuide = ({ currentStage, onStageChange }: UnifiedProgressGu
 
     switch(currentStage) {
       case 'UPLOAD':
-        return [];
+        return [
+          {
+            label: '📤 上传文件',
+            variant: 'default' as const,
+            icon: Upload,
+            position: 'right' as const,
+            onClick: () => fileInputRef.current?.click()
+          }
+        ];
       
       case 'MAPPING':
         return [
@@ -352,8 +363,27 @@ const UnifiedProgressGuide = ({ currentStage, onStageChange }: UnifiedProgressGu
   const totalCount = stages.length;
   const actions = getActions();
 
+  const handleFileSelect = (e: React.ChangeEvent<HTMLInputElement>) => {
+    const files = e.target.files;
+    if (files && files.length > 0 && onFileUpload) {
+      onFileUpload(files[0]);
+      if (onStageChange) {
+        onStageChange('MAPPING');
+      }
+    }
+  };
+
   return (
     <div className="flex flex-col gap-4">
+      {/* 隐藏的文件输入 */}
+      <input
+        ref={fileInputRef}
+        type="file"
+        className="hidden"
+        accept=".xlsx,.xls,.csv,.json,.xml"
+        onChange={handleFileSelect}
+      />
+      
       {/* 当前任务信息卡片 */}
       {activeStage && (
         <div className="border rounded-lg overflow-hidden border-l-4 border-l-primary flex-shrink-0">
