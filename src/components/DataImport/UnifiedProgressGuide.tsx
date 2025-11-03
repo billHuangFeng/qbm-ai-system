@@ -226,8 +226,8 @@ const UnifiedProgressGuide = ({ currentStage }: UnifiedProgressGuideProps) => {
                 flex items-center gap-3 px-4 cursor-pointer transition-all
                 hover:bg-accent/50
                 ${stage.status === 'active' ? 'bg-primary/5 border-l-4 border-l-primary' : ''}
-                ${stage.status === 'completed' ? 'opacity-70' : ''}
-                ${stage.isExpanded ? 'py-3' : 'py-2'}
+                ${stage.status === 'completed' ? 'opacity-60' : ''}
+                ${stage.isExpanded ? 'py-3' : 'py-1.5'}
               `}
               onClick={() => toggleStage(stage.key)}
             >
@@ -236,7 +236,7 @@ const UnifiedProgressGuide = ({ currentStage }: UnifiedProgressGuideProps) => {
               </div>
               
               <div className="flex-1 min-w-0">
-                <div className="text-sm font-medium text-foreground">
+                <div className={`text-sm font-medium text-foreground ${stage.status === 'completed' ? 'line-through' : ''}`}>
                   {stage.label}
                 </div>
                 {stage.isExpanded && (
