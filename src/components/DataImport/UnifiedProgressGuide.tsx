@@ -36,8 +36,8 @@ interface UnifiedProgressGuideProps {
 const UnifiedProgressGuide = ({ currentStage }: UnifiedProgressGuideProps) => {
   const [stages, setStages] = useState<TaskStage[]>([
     { key: 'UPLOAD', label: '上传文件', description: '选择数据文件', status: 'pending', messages: [], isExpanded: false },
-    { key: 'ANALYZING', label: '格式识别', description: '分析文件结构', status: 'pending', messages: [], isExpanded: false },
     { key: 'MAPPING', label: '字段映射', description: '智能字段匹配', status: 'pending', messages: [], isExpanded: false },
+    { key: 'ANALYZING', label: '格式识别', description: '基于映射识别格式', status: 'pending', messages: [], isExpanded: false },
     { key: 'QUALITY_CHECK', label: '质量检查', description: '7维度分析', status: 'pending', messages: [], isExpanded: false },
     { key: 'READY', label: '准备导入', description: '确认并导入', status: 'pending', messages: [], isExpanded: false },
   ]);
@@ -54,26 +54,29 @@ const UnifiedProgressGuide = ({ currentStage }: UnifiedProgressGuideProps) => {
           { id: `msg-${Date.now()}-2`, type: 'info', content: '📤 请选择要导入的数据文件，支持 Excel、CSV、JSON、XML 格式', timestamp: new Date(timestamp.getTime() + 100) },
         ];
       
-      case 'ANALYZING':
-        return [
-          { id: `msg-${Date.now()}-1`, type: 'info', content: '🔍 正在分析文件格式和内容结构...', timestamp },
-          { id: `msg-${Date.now()}-2`, type: 'info', content: '⏱️ 预计需要 3 秒', timestamp: new Date(timestamp.getTime() + 100) },
-          { id: `msg-${Date.now()}-3`, type: 'success', content: '✅ 检测到"标准横表格式"（格式1）', timestamp: new Date(timestamp.getTime() + 2000) },
-          { id: `msg-${Date.now()}-4`, type: 'info', content: '📋 识别出 12 个字段', timestamp: new Date(timestamp.getTime() + 2100) },
-          { id: `msg-${Date.now()}-5`, type: 'info', content: '📊 数据行: 1,234 行 × 12 列', timestamp: new Date(timestamp.getTime() + 2200) },
-          { id: `msg-${Date.now()}-6`, type: 'success', content: '✅ 表头识别成功', timestamp: new Date(timestamp.getTime() + 2300) },
-        ];
-      
       case 'MAPPING':
         return [
           { id: `msg-${Date.now()}-1`, type: 'info', content: '🗺️ 开始智能字段映射...', timestamp },
-          { id: `msg-${Date.now()}-2`, type: 'info', content: '🤖 正在应用历史学习经验', timestamp: new Date(timestamp.getTime() + 100) },
-          { id: `msg-${Date.now()}-3`, type: 'success', content: '✅ 已自动映射 10/12 字段', timestamp: new Date(timestamp.getTime() + 1500) },
-          { id: `msg-${Date.now()}-4`, type: 'info', content: '📊 平均置信度: 92%', timestamp: new Date(timestamp.getTime() + 1600) },
-          { id: `msg-${Date.now()}-5`, type: 'info', content: '✨ 高置信度字段: 订单号(98%), 日期(95%), 客户名称(90%)...', timestamp: new Date(timestamp.getTime() + 1700) },
-          { id: `msg-${Date.now()}-6`, type: 'warning', content: '⚠️ 2 个字段需要手动确认', timestamp: new Date(timestamp.getTime() + 1800) },
-          { id: `msg-${Date.now()}-7`, type: 'warning', content: '   • "SKU编码" → "产品SKU" (置信度 75%)', timestamp: new Date(timestamp.getTime() + 1900) },
-          { id: `msg-${Date.now()}-8`, type: 'warning', content: '   • "金额合计" → "订单金额" (置信度 68%)', timestamp: new Date(timestamp.getTime() + 2000) },
+          { id: `msg-${Date.now()}-2`, type: 'info', content: '📋 请确认数据类型：订单 / 生产 / 费用', timestamp: new Date(timestamp.getTime() + 100) },
+          { id: `msg-${Date.now()}-3`, type: 'info', content: '🤖 正在应用历史学习经验...', timestamp: new Date(timestamp.getTime() + 200) },
+          { id: `msg-${Date.now()}-4`, type: 'success', content: '✅ 已自动映射 10/12 字段', timestamp: new Date(timestamp.getTime() + 1500) },
+          { id: `msg-${Date.now()}-5`, type: 'info', content: '📊 平均置信度: 92%', timestamp: new Date(timestamp.getTime() + 1600) },
+          { id: `msg-${Date.now()}-6`, type: 'info', content: '✨ 高置信度字段: 订单号(98%), 日期(95%), 客户名称(90%)...', timestamp: new Date(timestamp.getTime() + 1700) },
+          { id: `msg-${Date.now()}-7`, type: 'warning', content: '⚠️ 2 个字段需要手动确认:', timestamp: new Date(timestamp.getTime() + 1800) },
+          { id: `msg-${Date.now()}-8`, type: 'warning', content: '   • "SKU编码" → "产品SKU" (置信度 75%)', timestamp: new Date(timestamp.getTime() + 1900) },
+          { id: `msg-${Date.now()}-9`, type: 'warning', content: '   • "金额合计" → "订单金额" (置信度 68%)', timestamp: new Date(timestamp.getTime() + 2000) },
+          { id: `msg-${Date.now()}-10`, type: 'info', content: '💡 映射完成后，将基于目标字段识别数据格式', timestamp: new Date(timestamp.getTime() + 2100) },
+        ];
+      
+      case 'ANALYZING':
+        return [
+          { id: `msg-${Date.now()}-1`, type: 'info', content: '🔍 正在分析数据格式...', timestamp },
+          { id: `msg-${Date.now()}-2`, type: 'info', content: '📊 已知目标字段组合：订单号、日期、客户、产品SKU、数量、金额...', timestamp: new Date(timestamp.getTime() + 100) },
+          { id: `msg-${Date.now()}-3`, type: 'info', content: '🎯 正在识别"订单数据"的具体格式...', timestamp: new Date(timestamp.getTime() + 200) },
+          { id: `msg-${Date.now()}-4`, type: 'success', content: '✅ 检测到"订单数据 - 标准横表格式"（格式1）', timestamp: new Date(timestamp.getTime() + 2000) },
+          { id: `msg-${Date.now()}-5`, type: 'info', content: '📋 数据结构: 1,234 行 × 12 列', timestamp: new Date(timestamp.getTime() + 2100) },
+          { id: `msg-${Date.now()}-6`, type: 'success', content: '✅ 格式识别完成', timestamp: new Date(timestamp.getTime() + 2200) },
+          { id: `msg-${Date.now()}-7`, type: 'warning', content: '⚠️ 检测到 3 处合并单元格，已自动处理', timestamp: new Date(timestamp.getTime() + 2300) },
         ];
       
       case 'QUALITY_CHECK':

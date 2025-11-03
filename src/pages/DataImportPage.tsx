@@ -9,8 +9,8 @@ import { ChevronRight } from 'lucide-react';
 
 export type ImportStage = 
   | 'UPLOAD' 
-  | 'ANALYZING' 
   | 'MAPPING' 
+  | 'ANALYZING' 
   | 'QUALITY_CHECK' 
   | 'READY' 
   | 'IMPORTING' 
@@ -53,7 +53,7 @@ const DataImportPage = () => {
             )}
             
             {/* Field Mapping Editor */}
-            {(currentStage === 'MAPPING' || currentStage === 'QUALITY_CHECK' || currentStage === 'READY') && (
+            {(currentStage === 'MAPPING' || currentStage === 'ANALYZING' || currentStage === 'QUALITY_CHECK' || currentStage === 'READY') && (
               <FieldMappingEditor />
             )}
             

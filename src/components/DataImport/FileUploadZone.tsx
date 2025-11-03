@@ -41,12 +41,7 @@ const FileUploadZone = ({ currentStage, onStageChange }: FileUploadZoneProps) =>
 
   const handleFileUpload = (file: File) => {
     setUploadedFile(file);
-    onStageChange('ANALYZING');
-    
-    // Simulate analysis
-    setTimeout(() => {
-      onStageChange('MAPPING');
-    }, 2000);
+    onStageChange('MAPPING');
   };
 
   if (currentStage !== 'UPLOAD' && uploadedFile) {

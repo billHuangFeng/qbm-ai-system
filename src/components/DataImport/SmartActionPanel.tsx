@@ -18,16 +18,13 @@ const SmartActionPanel = ({ currentStage, onStageChange }: SmartActionPanelProps
       case 'UPLOAD':
         return [];
       
-      case 'ANALYZING':
-        return [];
-      
       case 'MAPPING':
         return [
           {
             label: '✨ 应用 AI 推荐',
             variant: 'default' as const,
             icon: Sparkles,
-            onClick: () => onStageChange('QUALITY_CHECK')
+            onClick: () => onStageChange('ANALYZING')
           },
           {
             label: '🛠️ 手动配置',
@@ -36,6 +33,9 @@ const SmartActionPanel = ({ currentStage, onStageChange }: SmartActionPanelProps
             onClick: () => {}
           }
         ];
+      
+      case 'ANALYZING':
+        return [];
       
       case 'QUALITY_CHECK':
         return [
