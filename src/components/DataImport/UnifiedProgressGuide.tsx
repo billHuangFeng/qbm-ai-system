@@ -460,7 +460,7 @@ const UnifiedProgressGuide = ({ currentStage, onStageChange }: UnifiedProgressGu
         </div>
 
         {taskListExpanded && (
-          <div className="px-4 py-2 space-y-1 border-t bg-muted/30 animate-accordion-down">
+          <div className="px-4 py-2 space-y-1 border-t bg-muted/30 animate-accordion-down max-h-[400px] overflow-y-auto">
             {stages.map((stage) => (
               <div key={stage.key} className="flex items-center gap-2 py-1">
                 <div className="flex-shrink-0">
