@@ -39,10 +39,10 @@ const DataImportPage = () => {
 
       {/* Main Content: Two-Column Layout */}
       <div className="container mx-auto px-6 py-6">
-        <div className="grid grid-cols-1 lg:grid-cols-[60%_40%] gap-6 h-[calc(100vh-200px)]">
+        <div className="grid grid-cols-1 xl:grid-cols-[60%_40%] gap-6 min-h-[calc(100vh-200px)]">
           
           {/* Left: Data Operations Area */}
-          <div className="flex flex-col gap-6 overflow-y-auto pr-2">
+          <div className="flex flex-col gap-6 overflow-y-auto pr-2 max-h-[calc(100vh-200px)]">
             
             {/* File Upload Zone */}
             <FileUploadZone 
@@ -73,7 +73,7 @@ const DataImportPage = () => {
           </div>
 
           {/* Right: AI Smart Guide Area */}
-          <div className="flex flex-col gap-4 bg-card border rounded-lg p-6 overflow-hidden">
+          <div className="flex flex-col gap-4 bg-card border rounded-lg p-6 overflow-hidden max-h-[calc(100vh-200px)]">
             
             {/* Unified Progress Guide */}
             <div className="flex-1 overflow-hidden">
