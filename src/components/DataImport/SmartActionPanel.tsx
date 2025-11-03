@@ -52,20 +52,70 @@ const SmartActionPanel = ({ currentStage, onStageChange }: SmartActionPanelProps
         ];
       
       case 'READY':
-        return [
-          {
-            label: '🚀 开始导入',
-            variant: 'default' as const,
-            icon: Play,
-            onClick: () => onStageChange('IMPORTING')
-          },
-          {
-            label: '🔙 返回调整',
-            variant: 'outline' as const,
-            icon: ArrowLeft,
-            onClick: () => onStageChange('MAPPING')
-          }
-        ];
+        // Mock quality score - in real app, get from quality check result
+        const qualityScore = 85;
+        
+        if (qualityScore >= 95) {
+          // Excellent quality - allow direct import to final table
+          return [
+            {
+              label: '🚀 直接导入正式表',
+              variant: 'default' as const,
+              icon: Play,
+              onClick: () => onStageChange('IMPORTING')
+            },
+            {
+              label: '🔙 返回调整',
+              variant: 'outline' as const,
+              icon: ArrowLeft,
+              onClick: () => onStageChange('MAPPING')
+            }
+          ];
+        } else if (qualityScore >= 70) {
+          // Good/Fixable quality - recommend staging table
+          return [
+            {
+              label: '📥 导入暂存表（推荐）',
+              variant: 'default' as const,
+              icon: Play,
+              onClick: () => {
+                // TODO: Import to staging table, then go to ENHANCEMENT stage
+                onStageChange('IMPORTING');
+              }
+            },
+            {
+              label: '⚠️ 强制导入正式表',
+              variant: 'outline' as const,
+              icon: Play,
+              onClick: () => {
+                // TODO: Show confirmation dialog
+                onStageChange('IMPORTING');
+              }
+            },
+            {
+              label: '🔙 返回调整',
+              variant: 'outline' as const,
+              icon: ArrowLeft,
+              onClick: () => onStageChange('MAPPING')
+            }
+          ];
+        } else {
+          // Poor quality - reject import
+          return [
+            {
+              label: '⛔ 质量不合格，无法导入',
+              variant: 'outline' as const,
+              onClick: () => {}
+            },
+            {
+              label: '🔙 返回修复',
+              variant: 'default' as const,
+              icon: ArrowLeft,
+              onClick: () => onStageChange('MAPPING')
+            }
+          ];
+        }
+      
       
       default:
         return [];
