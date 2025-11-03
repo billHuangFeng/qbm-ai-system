@@ -353,10 +353,10 @@ const UnifiedProgressGuide = ({ currentStage, onStageChange }: UnifiedProgressGu
   const actions = getActions();
 
   return (
-    <div className="flex flex-col h-full gap-4">
+    <div className="flex flex-col h-full gap-4 overflow-y-auto">
       {/* 当前任务信息卡片 */}
       {activeStage && (
-        <div className="border rounded-lg overflow-hidden border-l-4 border-l-primary">
+        <div className="border rounded-lg overflow-hidden border-l-4 border-l-primary flex-shrink-0">
           <div className="flex items-center gap-3 px-4 py-3 bg-primary/5">
             <div className="p-2 rounded-lg bg-primary/10 flex-shrink-0">
               <Bot className="w-5 h-5 text-primary" />
@@ -371,7 +371,7 @@ const UnifiedProgressGuide = ({ currentStage, onStageChange }: UnifiedProgressGu
           </div>
           
           <div className="px-4 py-3 bg-muted/30 border-t">
-            <div className="space-y-2 max-h-[300px] overflow-y-auto">
+            <div className="space-y-2 max-h-[500px] overflow-y-auto">
               {activeStage.messages.map((message) => (
                 <div key={message.id} className="animate-fade-in">
                   <div className="flex gap-2 items-start">
