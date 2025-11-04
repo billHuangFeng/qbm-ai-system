@@ -3,12 +3,7 @@
  * 使用 Supabase Edge Functions
  */
 
-// 延迟导入 supabase client，避免环境变量未加载时初始化失败
-const getSupabaseClient = () => {
-  // 动态导入确保环境变量已加载
-  const { supabase } = require("@/integrations/supabase/client");
-  return supabase;
-};
+import { supabase } from "@/integrations/supabase/client";
 
 export interface UploadFileResponse {
   success: boolean;
@@ -79,7 +74,6 @@ class DataImportApiService {
     const formData = new FormData();
     formData.append('file', file);
 
-    const supabase = getSupabaseClient();
     const { data, error } = await supabase.functions.invoke('data-import-upload', {
       body: formData
     });
@@ -177,7 +171,6 @@ class DataImportApiService {
    * 获取导入历史
    */
   async getImportHistory(limit: number = 20): Promise<ImportHistoryItem[]> {
-    const supabase = getSupabaseClient();
     const { data, error } = await supabase
       .from('data_import_uploads')
       .select('*')
@@ -204,7 +197,6 @@ class DataImportApiService {
    * 获取导入详情
    */
   async getImportDetails(importId: string): Promise<any> {
-    const supabase = getSupabaseClient();
     const { data, error } = await supabase
       .from('data_import_uploads')
       .select('*')
@@ -271,7 +263,6 @@ class DataImportApiService {
     average_quality_score: number;
     recent_imports: ImportHistoryItem[];
   }> {
-    const supabase = getSupabaseClient();
     const { data, error } = await supabase
       .from('data_import_uploads')
       .select('*')
@@ -320,7 +311,6 @@ class DataImportApiService {
   }> {
     // 简单的健康检查 - 测试 Supabase 连接
     try {
-      const supabase = getSupabaseClient();
       const { error } = await supabase.from('data_import_uploads').select('id').limit(1);
       return {
         status: error ? 'unhealthy' : 'healthy',
