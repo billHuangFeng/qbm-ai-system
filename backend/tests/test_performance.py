@@ -9,7 +9,7 @@ import time
 from concurrent.futures import ThreadPoolExecutor
 from typing import List, Dict, Any
 import statistics
-from unittest.mock import patch
+from unittest.mock import patch, Mock
 
 from backend.src.api.endpoints import optimization, monitoring, tasks
 from backend.src.security.auth import User, Permission
