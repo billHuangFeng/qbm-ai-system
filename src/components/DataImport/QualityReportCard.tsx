@@ -1,5 +1,6 @@
 import { Card, CardHeader, CardTitle, CardContent } from '@/components/ui/card';
 import { ShieldCheck, AlertTriangle } from 'lucide-react';
+import type { QualityReport, UploadFileResponse } from '@/services/dataImportApi';
 
 interface QualityIssue {
   severity: 'error' | 'warning';
@@ -11,35 +12,56 @@ interface QualityIssue {
   examples?: string[];
 }
 
-const QualityReportCard = () => {
-  // Mock quality data
-  const qualityScore = 85;
-  const importability = 'good' as 'excellent' | 'good' | 'fixable' | 'rejected';
+interface QualityReportCardProps {
+  qualityReport: QualityReport;
+  uploadResult: UploadFileResponse | null;
+}
+
+const QualityReportCard = ({ qualityReport, uploadResult }: QualityReportCardProps) => {
+  const qualityScore = Math.round(qualityReport.quality_score * 100);
+  const importability = qualityReport.quality_level;
   
-  const blockingIssues: QualityIssue[] = [
-    // 阻塞性问题 - 必须修复才能导入
-  ];
-  
-  const fixableIssues: QualityIssue[] = [
-    { 
-      severity: 'warning', 
-      count: 5,
-      message: '缺失主数据ID',
-      description: '5个往来单位缺少ID，但存在单位名称可用于匹配',
+  // 根据质量报告生成问题列表
+  const blockingIssues: QualityIssue[] = [];
+  const fixableIssues: QualityIssue[] = [];
+
+  // 检查缺失值
+  Object.entries(qualityReport.missing_values).forEach(([field, count]) => {
+    if (count > 0) {
+      fixableIssues.push({
+        severity: 'warning',
+        count,
+        message: '存在缺失值',
+        description: `字段 ${field} 有 ${count} 个缺失值`,
+        autoFixable: false,
+        field,
+      });
+    }
+  });
+
+  // 检查重复行
+  if (qualityReport.duplicate_rows > 0) {
+    fixableIssues.push({
+      severity: 'warning',
+      count: qualityReport.duplicate_rows,
+      message: '存在重复记录',
+      description: `发现 ${qualityReport.duplicate_rows} 行重复数据`,
       autoFixable: true,
-      field: '往来单位ID',
-      examples: ['北京科技有限公司', '上海商贸公司', '...']
-    },
-    { 
-      severity: 'warning', 
-      count: 3,
-      message: '计算字段冲突',
-      description: '数量×单价与金额存在差异，可自动修正',
-      autoFixable: true,
-      field: '订单金额',
-      examples: ['订单#12345 (差异¥0.01)', '订单#12346', '...']
-    },
-  ];
+      field: '全部字段',
+    });
+  }
+
+  // 添加推荐建议作为问题
+  qualityReport.recommendations.forEach((rec, index) => {
+    fixableIssues.push({
+      severity: 'warning',
+      count: 1,
+      message: '数据质量建议',
+      description: rec,
+      autoFixable: false,
+      field: '多个字段',
+    });
+  });
 
   const getImportabilityInfo = () => {
     switch(importability) {
@@ -57,19 +79,19 @@ const QualityReportCard = () => {
           bgColor: 'bg-blue-500/10',
           recommendation: '建议先导入暂存表，完善后再入库' 
         };
-      case 'fixable':
+      case 'fair':
         return { 
-          label: '待完善', 
+          label: '一般', 
           color: 'text-yellow-600', 
           bgColor: 'bg-yellow-500/10',
           recommendation: '存在可修复问题，需要完善处理' 
         };
-      case 'rejected':
+      case 'poor':
         return { 
-          label: '不合格', 
+          label: '较差', 
           color: 'text-red-600', 
           bgColor: 'bg-red-500/10',
-          recommendation: '存在阻塞性问题，必须修复后才能导入' 
+          recommendation: '数据质量较差，建议清理后重新导入' 
         };
       default:
         return { label: '未知', color: 'text-muted-foreground', bgColor: 'bg-muted', recommendation: '' };
