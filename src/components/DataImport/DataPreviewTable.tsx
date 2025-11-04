@@ -1,13 +1,16 @@
 import { Card, CardHeader, CardTitle, CardContent } from '@/components/ui/card';
 import { Table2 } from 'lucide-react';
 
-const DataPreviewTable = () => {
-  // Mock data for skeleton
-  const mockColumns = ['订单号', '日期', '客户名称', '产品SKU', '数量', '单价', '金额'];
-  const mockRows = Array(10).fill(null).map((_, i) => ({
-    id: i,
-    values: mockColumns.map(() => '数据加载中...')
-  }));
+interface DataPreviewTableProps {
+  previewData: {
+    headers: string[];
+    rows: any[][];
+  };
+}
+
+const DataPreviewTable = ({ previewData }: DataPreviewTableProps) => {
+  const { headers, rows } = previewData;
+  const displayRows = rows.slice(0, 10); // 只显示前10行
 
   return (
     <Card>
@@ -16,7 +19,7 @@ const DataPreviewTable = () => {
           <Table2 className="w-5 h-5 text-primary" />
           数据预览
           <span className="text-sm font-normal text-muted-foreground ml-2">
-            (前 10 行)
+            (前 {displayRows.length} 行 / 共 {rows.length} 行)
           </span>
         </CardTitle>
       </CardHeader>
@@ -25,7 +28,7 @@ const DataPreviewTable = () => {
           <table className="w-full border-collapse min-w-max">
             <thead>
               <tr className="border-b bg-accent">
-                {mockColumns.map((col, i) => (
+                {headers.map((col, i) => (
                   <th 
                     key={i}
                     className="px-4 py-3 text-left text-sm font-semibold text-foreground whitespace-nowrap min-w-[120px]"
@@ -36,14 +39,14 @@ const DataPreviewTable = () => {
               </tr>
             </thead>
             <tbody>
-              {mockRows.map((row) => (
-                <tr key={row.id} className="border-b hover:bg-accent/50 transition-colors">
-                  {row.values.map((value, i) => (
+              {displayRows.map((row, rowIndex) => (
+                <tr key={rowIndex} className="border-b hover:bg-accent/50 transition-colors">
+                  {row.map((value, colIndex) => (
                     <td 
-                      key={i}
-                      className="px-4 py-3 text-sm text-muted-foreground whitespace-nowrap min-w-[120px]"
+                      key={colIndex}
+                      className="px-4 py-3 text-sm text-foreground whitespace-nowrap min-w-[120px]"
                     >
-                      {value}
+                      {value !== null && value !== undefined ? String(value) : '-'}
                     </td>
                   ))}
                 </tr>

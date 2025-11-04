@@ -37,10 +37,22 @@ interface TaskStage {
 interface UnifiedProgressGuideProps {
   currentStage: ImportStage;
   onStageChange?: (stage: ImportStage) => void;
-  onFileUpload?: (file: File) => void;
+  onFileUpload?: (file: File | null) => void;
+  uploadResult?: any;
+  qualityReport?: any;
+  isLoading?: boolean;
+  formatDetection?: any;
 }
 
-const UnifiedProgressGuide = ({ currentStage, onStageChange, onFileUpload }: UnifiedProgressGuideProps) => {
+const UnifiedProgressGuide = ({ 
+  currentStage, 
+  onStageChange, 
+  onFileUpload,
+  uploadResult,
+  qualityReport,
+  isLoading = false,
+  formatDetection
+}: UnifiedProgressGuideProps) => {
   const [taskListExpanded, setTaskListExpanded] = useState(false);
   const fileInputRef = useRef<HTMLInputElement>(null);
   const [stages, setStages] = useState<TaskStage[]>([

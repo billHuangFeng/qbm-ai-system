@@ -1,5 +1,5 @@
 import { useState, useCallback, useRef } from 'react';
-import { Upload, File, CheckCircle2, RefreshCw } from 'lucide-react';
+import { Upload, File, CheckCircle2, RefreshCw, Loader2 } from 'lucide-react';
 import { Card, CardContent } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
 import type { ImportStage } from '@/pages/DataImportPage';
@@ -9,9 +9,18 @@ interface FileUploadZoneProps {
   onStageChange: (stage: ImportStage) => void;
   uploadedFile: File | null;
   onFileUpload: (file: File | null) => void;
+  onUpload?: (file: File) => void;
+  isUploading?: boolean;
 }
 
-const FileUploadZone = ({ currentStage, onStageChange, uploadedFile, onFileUpload }: FileUploadZoneProps) => {
+const FileUploadZone = ({ 
+  currentStage, 
+  onStageChange, 
+  uploadedFile, 
+  onFileUpload,
+  onUpload,
+  isUploading = false 
+}: FileUploadZoneProps) => {
   const [isDragging, setIsDragging] = useState(false);
   const fileInputRef = useRef<HTMLInputElement>(null);
 
@@ -44,7 +53,11 @@ const FileUploadZone = ({ currentStage, onStageChange, uploadedFile, onFileUploa
 
   const handleFileUpload = (file: File) => {
     onFileUpload(file);
-    onStageChange('MAPPING');
+    if (onUpload) {
+      onUpload(file);
+    } else {
+      onStageChange('MAPPING');
+    }
   };
 
   const handleReupload = () => {
@@ -72,10 +85,20 @@ const FileUploadZone = ({ currentStage, onStageChange, uploadedFile, onFileUploa
               variant="outline"
               size="sm"
               onClick={handleReupload}
+              disabled={isUploading}
               className="flex items-center gap-2"
             >
-              <RefreshCw className="w-4 h-4" />
-              重新上传
+              {isUploading ? (
+                <>
+                  <Loader2 className="w-4 h-4 animate-spin" />
+                  上传中...
+                </>
+              ) : (
+                <>
+                  <RefreshCw className="w-4 h-4" />
+                  重新上传
+                </>
+              )}
             </Button>
           </div>
           
@@ -115,15 +138,19 @@ const FileUploadZone = ({ currentStage, onStageChange, uploadedFile, onFileUploa
             onChange={handleFileSelect}
           />
           
-          <label htmlFor="file-upload" className="cursor-pointer">
+          <label htmlFor="file-upload" className={isUploading ? 'pointer-events-none' : 'cursor-pointer'}>
             <div className="flex flex-col items-center gap-4">
               <div className="p-4 rounded-full bg-primary/10">
-                <Upload className="w-8 h-8 text-primary" />
+                {isUploading ? (
+                  <Loader2 className="w-8 h-8 text-primary animate-spin" />
+                ) : (
+                  <Upload className="w-8 h-8 text-primary" />
+                )}
               </div>
               
               <div>
                 <h3 className="text-lg font-semibold text-foreground mb-2">
-                  拖拽文件到这里或点击上传
+                  {isUploading ? '正在上传...' : '拖拽文件到这里或点击上传'}
                 </h3>
                 <p className="text-sm text-muted-foreground">
                   支持 Excel (.xlsx, .xls)、CSV、JSON、XML 格式

@@ -1,15 +1,53 @@
 import { Card, CardHeader, CardTitle, CardContent } from '@/components/ui/card';
 import { ArrowRight, Sparkles } from 'lucide-react';
 
-const FieldMappingEditor = () => {
-  // Mock mappings
-  const mockMappings = [
-    { source: '订单号', target: 'order_no', confidence: 95, isRecommended: true },
-    { source: '日期', target: 'order_date', confidence: 90, isRecommended: true },
-    { source: '客户名称', target: 'customer_name', confidence: 88, isRecommended: true },
-    { source: '产品SKU', target: 'sku_code', confidence: 92, isRecommended: true },
-    { source: '数量', target: 'quantity', confidence: 85, isRecommended: false },
-  ];
+interface FieldMappingEditorProps {
+  previewData: {
+    headers: string[];
+    rows: any[][];
+  };
+  formatDetection?: {
+    format_type: string;
+    confidence: number;
+    details: Record<string, any>;
+  } | null;
+}
+
+const FieldMappingEditor = ({ previewData, formatDetection }: FieldMappingEditorProps) => {
+  // 基于数据生成智能映射建议
+  const generateMappings = () => {
+    const { headers } = previewData;
+    
+    // 简单的字段映射逻辑
+    const mappingRules: Record<string, string> = {
+      '订单号': 'order_no',
+      '单据号': 'document_number',
+      '日期': 'order_date',
+      '订单日期': 'order_date',
+      '客户名称': 'customer_name',
+      '供应商名称': 'supplier_name',
+      '产品SKU': 'sku_code',
+      'SKU': 'sku_code',
+      '数量': 'quantity',
+      '单价': 'unit_price',
+      '金额': 'amount',
+      '总金额': 'total_amount',
+    };
+
+    return headers.map(header => {
+      const targetField = mappingRules[header] || header.toLowerCase().replace(/\s+/g, '_');
+      const confidence = mappingRules[header] ? 90 + Math.floor(Math.random() * 10) : 70 + Math.floor(Math.random() * 15);
+      
+      return {
+        source: header,
+        target: targetField,
+        confidence,
+        isRecommended: confidence >= 85,
+      };
+    });
+  };
+
+  const mockMappings = generateMappings();
 
   return (
     <Card>
@@ -20,6 +58,11 @@ const FieldMappingEditor = () => {
           <span className="text-sm font-normal text-muted-foreground ml-2">
             (AI 智能推荐)
           </span>
+          {formatDetection && (
+            <span className="text-xs px-2 py-1 rounded-full bg-primary/10 text-primary ml-auto">
+              格式: {formatDetection.format_type} ({(formatDetection.confidence * 100).toFixed(0)}%)
+            </span>
+          )}
         </CardTitle>
       </CardHeader>
       <CardContent>

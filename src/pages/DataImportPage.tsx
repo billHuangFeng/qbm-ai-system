@@ -6,6 +6,7 @@ import QualityReportCard from '@/components/DataImport/QualityReportCard';
 import DataEnhancementPanel from '@/components/DataImport/DataEnhancementPanel';
 import UnifiedProgressGuide from '@/components/DataImport/UnifiedProgressGuide';
 import { ChevronRight } from 'lucide-react';
+import { useDataImport } from '@/hooks/useDataImport';
 
 export type ImportStage = 
   | 'UPLOAD' 
@@ -20,7 +21,28 @@ export type ImportStage =
 
 const DataImportPage = () => {
   const [currentStage, setCurrentStage] = useState<ImportStage>('UPLOAD');
-  const [uploadedFile, setUploadedFile] = useState<File | null>(null);
+  const {
+    uploadedFile,
+    uploadResult,
+    qualityReport,
+    isUploading,
+    isAnalyzing,
+    isValidating,
+    previewData,
+    formatDetection,
+    handleUpload,
+    handleValidate,
+    resetImport,
+    importHistory,
+    importStats,
+  } = useDataImport();
+
+  const handleFileUpload = (file: File | null) => {
+    if (file) {
+      handleUpload(file);
+      setCurrentStage('ANALYZING');
+    }
+  };
 
   return (
     <div className="min-h-screen bg-background">
@@ -49,22 +71,24 @@ const DataImportPage = () => {
               currentStage={currentStage}
               onStageChange={setCurrentStage}
               uploadedFile={uploadedFile}
-              onFileUpload={setUploadedFile}
+              onFileUpload={handleFileUpload}
+              onUpload={handleUpload}
+              isUploading={isUploading}
             />
             
             {/* Data Preview Table */}
-            {uploadedFile && (
-              <DataPreviewTable />
+            {uploadedFile && previewData && (
+              <DataPreviewTable previewData={previewData} />
             )}
             
             {/* Field Mapping Editor */}
-            {uploadedFile && (currentStage === 'MAPPING' || currentStage === 'ANALYZING' || currentStage === 'QUALITY_CHECK' || currentStage === 'READY') && (
-              <FieldMappingEditor />
+            {uploadedFile && previewData && (currentStage === 'MAPPING' || currentStage === 'ANALYZING' || currentStage === 'QUALITY_CHECK' || currentStage === 'READY') && (
+              <FieldMappingEditor previewData={previewData} formatDetection={formatDetection} />
             )}
             
             {/* Quality Report Card */}
-            {uploadedFile && (currentStage === 'QUALITY_CHECK' || currentStage === 'READY') && (
-              <QualityReportCard />
+            {uploadedFile && qualityReport && (currentStage === 'QUALITY_CHECK' || currentStage === 'READY') && (
+              <QualityReportCard qualityReport={qualityReport} uploadResult={uploadResult} />
             )}
             
             {/* Data Enhancement Panel */}
@@ -79,10 +103,14 @@ const DataImportPage = () => {
             
             {/* Unified Progress Guide with integrated actions */}
             <UnifiedProgressGuide
-                currentStage={currentStage}
-                onStageChange={setCurrentStage}
-                onFileUpload={setUploadedFile}
-              />
+              currentStage={currentStage}
+              onStageChange={setCurrentStage}
+              onFileUpload={handleFileUpload}
+              uploadResult={uploadResult}
+              qualityReport={qualityReport}
+              isLoading={isUploading || isAnalyzing || isValidating}
+              formatDetection={formatDetection}
+            />
           </div>
 
         </div>
