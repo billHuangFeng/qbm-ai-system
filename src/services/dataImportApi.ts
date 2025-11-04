@@ -3,32 +3,7 @@
  * 使用 Supabase Edge Functions
  */
 
-// 延迟初始化 supabase client，确保环境变量已加载
-let _supabaseClient: any = null;
-
-const waitForEnv = async (maxRetries = 10, delay = 100): Promise<boolean> => {
-  for (let i = 0; i < maxRetries; i++) {
-    if (import.meta.env.VITE_SUPABASE_URL && import.meta.env.VITE_SUPABASE_PUBLISHABLE_KEY) {
-      return true;
-    }
-    await new Promise(resolve => setTimeout(resolve, delay));
-  }
-  return false;
-};
-
-const getSupabaseClient = async () => {
-  if (!_supabaseClient) {
-    // 等待环境变量加载
-    const envReady = await waitForEnv();
-    if (!envReady) {
-      throw new Error('环境变量未加载，请刷新页面重试');
-    }
-    
-    const module = await import("@/integrations/supabase/client");
-    _supabaseClient = module.supabase;
-  }
-  return _supabaseClient;
-};
+import { getSupabase } from '@/lib/supabase-wrapper';
 
 export interface UploadFileResponse {
   success: boolean;
@@ -99,7 +74,7 @@ class DataImportApiService {
     const formData = new FormData();
     formData.append('file', file);
 
-    const supabase = await getSupabaseClient();
+    const supabase = getSupabase();
     const { data, error } = await supabase.functions.invoke('data-import-upload', {
       body: formData
     });
@@ -197,7 +172,7 @@ class DataImportApiService {
    * 获取导入历史
    */
   async getImportHistory(limit: number = 20): Promise<ImportHistoryItem[]> {
-    const supabase = await getSupabaseClient();
+    const supabase = getSupabase();
     const { data, error } = await supabase
       .from('data_import_uploads')
       .select('*')
@@ -224,7 +199,7 @@ class DataImportApiService {
    * 获取导入详情
    */
   async getImportDetails(importId: string): Promise<any> {
-    const supabase = await getSupabaseClient();
+    const supabase = getSupabase();
     const { data, error } = await supabase
       .from('data_import_uploads')
       .select('*')
@@ -291,7 +266,7 @@ class DataImportApiService {
     average_quality_score: number;
     recent_imports: ImportHistoryItem[];
   }> {
-    const supabase = await getSupabaseClient();
+    const supabase = getSupabase();
     const { data, error } = await supabase
       .from('data_import_uploads')
       .select('*')
@@ -340,7 +315,7 @@ class DataImportApiService {
   }> {
     // 简单的健康检查 - 测试 Supabase 连接
     try {
-      const supabase = await getSupabaseClient();
+      const supabase = getSupabase();
       const { error } = await supabase.from('data_import_uploads').select('id').limit(1);
       return {
         status: error ? 'unhealthy' : 'healthy',
