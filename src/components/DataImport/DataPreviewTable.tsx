@@ -22,13 +22,13 @@ const DataPreviewTable = () => {
       </CardHeader>
       <CardContent>
         <div className="overflow-x-auto">
-          <table className="w-full border-collapse">
+          <table className="w-full border-collapse min-w-max">
             <thead>
               <tr className="border-b bg-accent">
                 {mockColumns.map((col, i) => (
                   <th 
                     key={i}
-                    className="px-4 py-3 text-left text-sm font-semibold text-foreground"
+                    className="px-4 py-3 text-left text-sm font-semibold text-foreground whitespace-nowrap min-w-[120px]"
                   >
                     {col}
                   </th>
@@ -41,7 +41,7 @@ const DataPreviewTable = () => {
                   {row.values.map((value, i) => (
                     <td 
                       key={i}
-                      className="px-4 py-3 text-sm text-muted-foreground"
+                      className="px-4 py-3 text-sm text-muted-foreground whitespace-nowrap min-w-[120px]"
                     >
                       {value}
                     </td>

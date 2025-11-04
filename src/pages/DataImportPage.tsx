@@ -5,7 +5,6 @@ import FieldMappingEditor from '@/components/DataImport/FieldMappingEditor';
 import QualityReportCard from '@/components/DataImport/QualityReportCard';
 import DataEnhancementPanel from '@/components/DataImport/DataEnhancementPanel';
 import UnifiedProgressGuide from '@/components/DataImport/UnifiedProgressGuide';
-import SmartActionPanel from '@/components/DataImport/SmartActionPanel';
 import { ChevronRight } from 'lucide-react';
 
 export type ImportStage = 
@@ -21,6 +20,7 @@ export type ImportStage =
 
 const DataImportPage = () => {
   const [currentStage, setCurrentStage] = useState<ImportStage>('UPLOAD');
+  const [uploadedFile, setUploadedFile] = useState<File | null>(null);
 
   return (
     <div className="min-h-screen bg-background">
@@ -39,53 +39,50 @@ const DataImportPage = () => {
 
       {/* Main Content: Two-Column Layout */}
       <div className="container mx-auto px-6 py-6">
-        <div className="grid grid-cols-1 lg:grid-cols-[60%_40%] gap-6 h-[calc(100vh-200px)]">
+        <div className="grid grid-cols-1 xl:grid-cols-[60%_40%] gap-6 min-h-[calc(100vh-200px)]">
           
           {/* Left: Data Operations Area */}
-          <div className="flex flex-col gap-6 overflow-y-auto pr-2">
+          <div className="flex flex-col gap-6 overflow-y-auto pr-2 max-h-[calc(100vh-200px)]">
             
             {/* File Upload Zone */}
             <FileUploadZone 
               currentStage={currentStage}
               onStageChange={setCurrentStage}
+              uploadedFile={uploadedFile}
+              onFileUpload={setUploadedFile}
             />
             
             {/* Data Preview Table */}
-            {currentStage !== 'UPLOAD' && (
+            {uploadedFile && (
               <DataPreviewTable />
             )}
             
             {/* Field Mapping Editor */}
-            {(currentStage === 'MAPPING' || currentStage === 'ANALYZING' || currentStage === 'QUALITY_CHECK' || currentStage === 'READY') && (
+            {uploadedFile && (currentStage === 'MAPPING' || currentStage === 'ANALYZING' || currentStage === 'QUALITY_CHECK' || currentStage === 'READY') && (
               <FieldMappingEditor />
             )}
             
             {/* Quality Report Card */}
-            {(currentStage === 'QUALITY_CHECK' || currentStage === 'READY') && (
+            {uploadedFile && (currentStage === 'QUALITY_CHECK' || currentStage === 'READY') && (
               <QualityReportCard />
             )}
             
             {/* Data Enhancement Panel */}
-            {(currentStage === 'ENHANCEMENT' || currentStage === 'CONFIRMING') && (
+            {uploadedFile && (currentStage === 'ENHANCEMENT' || currentStage === 'CONFIRMING') && (
               <DataEnhancementPanel />
             )}
             
           </div>
 
           {/* Right: AI Smart Guide Area */}
-          <div className="flex flex-col gap-4 bg-card border rounded-lg p-6 overflow-hidden">
+          <div className="flex flex-col gap-4 bg-card border rounded-lg p-6 max-h-[calc(100vh-200px)] overflow-y-auto">
             
-            {/* Unified Progress Guide */}
-            <div className="flex-1 overflow-hidden">
-              <UnifiedProgressGuide currentStage={currentStage} />
-            </div>
-            
-            {/* Smart Action Panel */}
-            <SmartActionPanel 
-              currentStage={currentStage}
-              onStageChange={setCurrentStage}
-            />
-            
+            {/* Unified Progress Guide with integrated actions */}
+            <UnifiedProgressGuide
+                currentStage={currentStage}
+                onStageChange={setCurrentStage}
+                onFileUpload={setUploadedFile}
+              />
           </div>
 
         </div>

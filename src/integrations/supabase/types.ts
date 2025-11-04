@@ -987,6 +987,57 @@ export type Database = {
           },
         ]
       }
+      dim_business_entity: {
+        Row: {
+          address: string | null
+          contact_person: string | null
+          contact_phone: string | null
+          created_at: string | null
+          entity_code: string
+          entity_id: string
+          entity_name: string
+          entity_type: string | null
+          is_active: boolean | null
+          legal_name: string | null
+          region: string | null
+          tax_id: string | null
+          tenant_id: string
+          updated_at: string | null
+        }
+        Insert: {
+          address?: string | null
+          contact_person?: string | null
+          contact_phone?: string | null
+          created_at?: string | null
+          entity_code: string
+          entity_id?: string
+          entity_name: string
+          entity_type?: string | null
+          is_active?: boolean | null
+          legal_name?: string | null
+          region?: string | null
+          tax_id?: string | null
+          tenant_id: string
+          updated_at?: string | null
+        }
+        Update: {
+          address?: string | null
+          contact_person?: string | null
+          contact_phone?: string | null
+          created_at?: string | null
+          entity_code?: string
+          entity_id?: string
+          entity_name?: string
+          entity_type?: string | null
+          is_active?: boolean | null
+          legal_name?: string | null
+          region?: string | null
+          tax_id?: string | null
+          tenant_id?: string
+          updated_at?: string | null
+        }
+        Relationships: []
+      }
       dim_channel: {
         Row: {
           channel_code: string
@@ -1098,6 +1149,149 @@ export type Database = {
           },
         ]
       }
+      dim_department: {
+        Row: {
+          cost_center: string | null
+          created_at: string | null
+          department_code: string
+          department_id: string
+          department_level: number | null
+          department_name: string
+          department_type: string | null
+          entity_id: string | null
+          is_active: boolean | null
+          manager_id: string | null
+          parent_department_id: string | null
+          tenant_id: string
+          updated_at: string | null
+        }
+        Insert: {
+          cost_center?: string | null
+          created_at?: string | null
+          department_code: string
+          department_id?: string
+          department_level?: number | null
+          department_name: string
+          department_type?: string | null
+          entity_id?: string | null
+          is_active?: boolean | null
+          manager_id?: string | null
+          parent_department_id?: string | null
+          tenant_id: string
+          updated_at?: string | null
+        }
+        Update: {
+          cost_center?: string | null
+          created_at?: string | null
+          department_code?: string
+          department_id?: string
+          department_level?: number | null
+          department_name?: string
+          department_type?: string | null
+          entity_id?: string | null
+          is_active?: boolean | null
+          manager_id?: string | null
+          parent_department_id?: string | null
+          tenant_id?: string
+          updated_at?: string | null
+        }
+        Relationships: [
+          {
+            foreignKeyName: "dim_department_parent_department_id_fkey"
+            columns: ["parent_department_id"]
+            isOneToOne: false
+            referencedRelation: "dim_department"
+            referencedColumns: ["department_id"]
+          },
+        ]
+      }
+      dim_employee: {
+        Row: {
+          birth_date: string | null
+          created_at: string | null
+          department_id: string | null
+          email: string | null
+          employee_code: string
+          employee_id: string
+          employee_name: string
+          employee_name_en: string | null
+          employment_type: string | null
+          entity_id: string | null
+          gender: string | null
+          hire_date: string | null
+          is_active: boolean | null
+          job_level: string | null
+          leave_date: string | null
+          mobile_phone: string | null
+          position: string | null
+          status: string | null
+          supervisor_id: string | null
+          tenant_id: string
+          updated_at: string | null
+        }
+        Insert: {
+          birth_date?: string | null
+          created_at?: string | null
+          department_id?: string | null
+          email?: string | null
+          employee_code: string
+          employee_id?: string
+          employee_name: string
+          employee_name_en?: string | null
+          employment_type?: string | null
+          entity_id?: string | null
+          gender?: string | null
+          hire_date?: string | null
+          is_active?: boolean | null
+          job_level?: string | null
+          leave_date?: string | null
+          mobile_phone?: string | null
+          position?: string | null
+          status?: string | null
+          supervisor_id?: string | null
+          tenant_id: string
+          updated_at?: string | null
+        }
+        Update: {
+          birth_date?: string | null
+          created_at?: string | null
+          department_id?: string | null
+          email?: string | null
+          employee_code?: string
+          employee_id?: string
+          employee_name?: string
+          employee_name_en?: string | null
+          employment_type?: string | null
+          entity_id?: string | null
+          gender?: string | null
+          hire_date?: string | null
+          is_active?: boolean | null
+          job_level?: string | null
+          leave_date?: string | null
+          mobile_phone?: string | null
+          position?: string | null
+          status?: string | null
+          supervisor_id?: string | null
+          tenant_id?: string
+          updated_at?: string | null
+        }
+        Relationships: [
+          {
+            foreignKeyName: "dim_employee_department_id_fkey"
+            columns: ["department_id"]
+            isOneToOne: false
+            referencedRelation: "dim_department"
+            referencedColumns: ["department_id"]
+          },
+          {
+            foreignKeyName: "dim_employee_supervisor_id_fkey"
+            columns: ["supervisor_id"]
+            isOneToOne: false
+            referencedRelation: "dim_employee"
+            referencedColumns: ["employee_id"]
+          },
+        ]
+      }
       dim_media_channel: {
         Row: {
           channel_code: string
@@ -1171,6 +1365,87 @@ export type Database = {
             isOneToOne: false
             referencedRelation: "tenants"
             referencedColumns: ["tenant_id"]
+          },
+        ]
+      }
+      dim_project: {
+        Row: {
+          actual_budget: number | null
+          created_at: string | null
+          department_id: string | null
+          description: string | null
+          end_date: string | null
+          entity_id: string | null
+          is_active: boolean | null
+          planned_budget: number | null
+          priority: string | null
+          project_code: string
+          project_id: string
+          project_manager_id: string | null
+          project_name: string
+          project_status: string | null
+          project_type: string | null
+          sponsor_id: string | null
+          start_date: string | null
+          tenant_id: string
+          updated_at: string | null
+        }
+        Insert: {
+          actual_budget?: number | null
+          created_at?: string | null
+          department_id?: string | null
+          description?: string | null
+          end_date?: string | null
+          entity_id?: string | null
+          is_active?: boolean | null
+          planned_budget?: number | null
+          priority?: string | null
+          project_code: string
+          project_id?: string
+          project_manager_id?: string | null
+          project_name: string
+          project_status?: string | null
+          project_type?: string | null
+          sponsor_id?: string | null
+          start_date?: string | null
+          tenant_id: string
+          updated_at?: string | null
+        }
+        Update: {
+          actual_budget?: number | null
+          created_at?: string | null
+          department_id?: string | null
+          description?: string | null
+          end_date?: string | null
+          entity_id?: string | null
+          is_active?: boolean | null
+          planned_budget?: number | null
+          priority?: string | null
+          project_code?: string
+          project_id?: string
+          project_manager_id?: string | null
+          project_name?: string
+          project_status?: string | null
+          project_type?: string | null
+          sponsor_id?: string | null
+          start_date?: string | null
+          tenant_id?: string
+          updated_at?: string | null
+        }
+        Relationships: [
+          {
+            foreignKeyName: "dim_project_department_id_fkey"
+            columns: ["department_id"]
+            isOneToOne: false
+            referencedRelation: "dim_department"
+            referencedColumns: ["department_id"]
+          },
+          {
+            foreignKeyName: "dim_project_project_manager_id_fkey"
+            columns: ["project_manager_id"]
+            isOneToOne: false
+            referencedRelation: "dim_employee"
+            referencedColumns: ["employee_id"]
           },
         ]
       }
@@ -1287,6 +1562,48 @@ export type Database = {
             referencedColumns: ["tenant_id"]
           },
         ]
+      }
+      document_relation: {
+        Row: {
+          created_at: string | null
+          related_quantity: number | null
+          relation_id: string
+          relation_type: string | null
+          source_doc_id: string
+          source_doc_line_id: string | null
+          source_doc_type: string
+          target_doc_id: string
+          target_doc_line_id: string | null
+          target_doc_type: string
+          tenant_id: string | null
+        }
+        Insert: {
+          created_at?: string | null
+          related_quantity?: number | null
+          relation_id?: string
+          relation_type?: string | null
+          source_doc_id: string
+          source_doc_line_id?: string | null
+          source_doc_type: string
+          target_doc_id: string
+          target_doc_line_id?: string | null
+          target_doc_type: string
+          tenant_id?: string | null
+        }
+        Update: {
+          created_at?: string | null
+          related_quantity?: number | null
+          relation_id?: string
+          relation_type?: string | null
+          source_doc_id?: string
+          source_doc_line_id?: string | null
+          source_doc_type?: string
+          target_doc_id?: string
+          target_doc_line_id?: string | null
+          target_doc_type?: string
+          tenant_id?: string | null
+        }
+        Relationships: []
       }
       external_business_facts: {
         Row: {
@@ -2568,6 +2885,368 @@ export type Database = {
           },
         ]
       }
+      purchase_invoice_header: {
+        Row: {
+          created_at: string | null
+          created_by: string | null
+          currency_code: string | null
+          discount_amount: number | null
+          due_date: string | null
+          invoice_date: string
+          invoice_id: string
+          invoice_number: string
+          invoice_status: string | null
+          invoice_type: string | null
+          net_amount: number | null
+          paid_amount: number | null
+          payment_status: string | null
+          payment_term: string | null
+          remark: string | null
+          supplier_id: string | null
+          tax_amount: number | null
+          tenant_id: string | null
+          total_amount: number | null
+          updated_at: string | null
+        }
+        Insert: {
+          created_at?: string | null
+          created_by?: string | null
+          currency_code?: string | null
+          discount_amount?: number | null
+          due_date?: string | null
+          invoice_date: string
+          invoice_id?: string
+          invoice_number: string
+          invoice_status?: string | null
+          invoice_type?: string | null
+          net_amount?: number | null
+          paid_amount?: number | null
+          payment_status?: string | null
+          payment_term?: string | null
+          remark?: string | null
+          supplier_id?: string | null
+          tax_amount?: number | null
+          tenant_id?: string | null
+          total_amount?: number | null
+          updated_at?: string | null
+        }
+        Update: {
+          created_at?: string | null
+          created_by?: string | null
+          currency_code?: string | null
+          discount_amount?: number | null
+          due_date?: string | null
+          invoice_date?: string
+          invoice_id?: string
+          invoice_number?: string
+          invoice_status?: string | null
+          invoice_type?: string | null
+          net_amount?: number | null
+          paid_amount?: number | null
+          payment_status?: string | null
+          payment_term?: string | null
+          remark?: string | null
+          supplier_id?: string | null
+          tax_amount?: number | null
+          tenant_id?: string | null
+          total_amount?: number | null
+          updated_at?: string | null
+        }
+        Relationships: [
+          {
+            foreignKeyName: "purchase_invoice_header_supplier_id_fkey"
+            columns: ["supplier_id"]
+            isOneToOne: false
+            referencedRelation: "dim_supplier"
+            referencedColumns: ["supplier_id"]
+          },
+        ]
+      }
+      purchase_invoice_line: {
+        Row: {
+          created_at: string | null
+          discount_amount: number | null
+          invoice_id: string
+          line_amount: number
+          line_id: string
+          line_number: number
+          net_amount: number
+          quantity: number
+          remark: string | null
+          sku_code: string | null
+          sku_id: string | null
+          sku_name: string | null
+          source_po_id: string | null
+          source_po_line_id: string | null
+          source_receipt_id: string | null
+          source_receipt_line_id: string | null
+          tax_amount: number | null
+          tax_rate: number | null
+          tenant_id: string | null
+          unit_price: number
+          updated_at: string | null
+        }
+        Insert: {
+          created_at?: string | null
+          discount_amount?: number | null
+          invoice_id: string
+          line_amount: number
+          line_id?: string
+          line_number: number
+          net_amount: number
+          quantity: number
+          remark?: string | null
+          sku_code?: string | null
+          sku_id?: string | null
+          sku_name?: string | null
+          source_po_id?: string | null
+          source_po_line_id?: string | null
+          source_receipt_id?: string | null
+          source_receipt_line_id?: string | null
+          tax_amount?: number | null
+          tax_rate?: number | null
+          tenant_id?: string | null
+          unit_price: number
+          updated_at?: string | null
+        }
+        Update: {
+          created_at?: string | null
+          discount_amount?: number | null
+          invoice_id?: string
+          line_amount?: number
+          line_id?: string
+          line_number?: number
+          net_amount?: number
+          quantity?: number
+          remark?: string | null
+          sku_code?: string | null
+          sku_id?: string | null
+          sku_name?: string | null
+          source_po_id?: string | null
+          source_po_line_id?: string | null
+          source_receipt_id?: string | null
+          source_receipt_line_id?: string | null
+          tax_amount?: number | null
+          tax_rate?: number | null
+          tenant_id?: string | null
+          unit_price?: number
+          updated_at?: string | null
+        }
+        Relationships: [
+          {
+            foreignKeyName: "purchase_invoice_line_invoice_id_fkey"
+            columns: ["invoice_id"]
+            isOneToOne: false
+            referencedRelation: "purchase_invoice_header"
+            referencedColumns: ["invoice_id"]
+          },
+          {
+            foreignKeyName: "purchase_invoice_line_sku_id_fkey"
+            columns: ["sku_id"]
+            isOneToOne: false
+            referencedRelation: "dim_sku"
+            referencedColumns: ["sku_id"]
+          },
+          {
+            foreignKeyName: "purchase_invoice_line_source_po_id_fkey"
+            columns: ["source_po_id"]
+            isOneToOne: false
+            referencedRelation: "purchase_order_header"
+            referencedColumns: ["po_id"]
+          },
+          {
+            foreignKeyName: "purchase_invoice_line_source_po_line_id_fkey"
+            columns: ["source_po_line_id"]
+            isOneToOne: false
+            referencedRelation: "purchase_order_line"
+            referencedColumns: ["line_id"]
+          },
+          {
+            foreignKeyName: "purchase_invoice_line_source_receipt_id_fkey"
+            columns: ["source_receipt_id"]
+            isOneToOne: false
+            referencedRelation: "receipt_header"
+            referencedColumns: ["receipt_id"]
+          },
+          {
+            foreignKeyName: "purchase_invoice_line_source_receipt_line_id_fkey"
+            columns: ["source_receipt_line_id"]
+            isOneToOne: false
+            referencedRelation: "receipt_line"
+            referencedColumns: ["line_id"]
+          },
+        ]
+      }
+      purchase_order_header: {
+        Row: {
+          approved_at: string | null
+          approved_by: string | null
+          contact_person: string | null
+          contact_phone: string | null
+          created_at: string | null
+          created_by: string | null
+          currency_code: string | null
+          delivery_address: string | null
+          discount_amount: number | null
+          net_amount: number | null
+          payment_term: string | null
+          po_date: string
+          po_id: string
+          po_number: string
+          po_status: string | null
+          remark: string | null
+          supplier_id: string | null
+          tax_amount: number | null
+          tenant_id: string | null
+          total_amount: number | null
+          updated_at: string | null
+        }
+        Insert: {
+          approved_at?: string | null
+          approved_by?: string | null
+          contact_person?: string | null
+          contact_phone?: string | null
+          created_at?: string | null
+          created_by?: string | null
+          currency_code?: string | null
+          delivery_address?: string | null
+          discount_amount?: number | null
+          net_amount?: number | null
+          payment_term?: string | null
+          po_date: string
+          po_id?: string
+          po_number: string
+          po_status?: string | null
+          remark?: string | null
+          supplier_id?: string | null
+          tax_amount?: number | null
+          tenant_id?: string | null
+          total_amount?: number | null
+          updated_at?: string | null
+        }
+        Update: {
+          approved_at?: string | null
+          approved_by?: string | null
+          contact_person?: string | null
+          contact_phone?: string | null
+          created_at?: string | null
+          created_by?: string | null
+          currency_code?: string | null
+          delivery_address?: string | null
+          discount_amount?: number | null
+          net_amount?: number | null
+          payment_term?: string | null
+          po_date?: string
+          po_id?: string
+          po_number?: string
+          po_status?: string | null
+          remark?: string | null
+          supplier_id?: string | null
+          tax_amount?: number | null
+          tenant_id?: string | null
+          total_amount?: number | null
+          updated_at?: string | null
+        }
+        Relationships: [
+          {
+            foreignKeyName: "purchase_order_header_supplier_id_fkey"
+            columns: ["supplier_id"]
+            isOneToOne: false
+            referencedRelation: "dim_supplier"
+            referencedColumns: ["supplier_id"]
+          },
+        ]
+      }
+      purchase_order_line: {
+        Row: {
+          created_at: string | null
+          discount_amount: number | null
+          invoiced_quantity: number | null
+          line_amount: number
+          line_id: string
+          line_number: number
+          line_status: string | null
+          net_amount: number
+          po_id: string
+          promised_delivery_date: string | null
+          quantity: number
+          received_quantity: number | null
+          remark: string | null
+          requested_delivery_date: string | null
+          sku_code: string | null
+          sku_id: string | null
+          sku_name: string | null
+          tax_amount: number | null
+          tax_rate: number | null
+          tenant_id: string | null
+          unit_price: number
+          updated_at: string | null
+        }
+        Insert: {
+          created_at?: string | null
+          discount_amount?: number | null
+          invoiced_quantity?: number | null
+          line_amount: number
+          line_id?: string
+          line_number: number
+          line_status?: string | null
+          net_amount: number
+          po_id: string
+          promised_delivery_date?: string | null
+          quantity: number
+          received_quantity?: number | null
+          remark?: string | null
+          requested_delivery_date?: string | null
+          sku_code?: string | null
+          sku_id?: string | null
+          sku_name?: string | null
+          tax_amount?: number | null
+          tax_rate?: number | null
+          tenant_id?: string | null
+          unit_price: number
+          updated_at?: string | null
+        }
+        Update: {
+          created_at?: string | null
+          discount_amount?: number | null
+          invoiced_quantity?: number | null
+          line_amount?: number
+          line_id?: string
+          line_number?: number
+          line_status?: string | null
+          net_amount?: number
+          po_id?: string
+          promised_delivery_date?: string | null
+          quantity?: number
+          received_quantity?: number | null
+          remark?: string | null
+          requested_delivery_date?: string | null
+          sku_code?: string | null
+          sku_id?: string | null
+          sku_name?: string | null
+          tax_amount?: number | null
+          tax_rate?: number | null
+          tenant_id?: string | null
+          unit_price?: number
+          updated_at?: string | null
+        }
+        Relationships: [
+          {
+            foreignKeyName: "purchase_order_line_po_id_fkey"
+            columns: ["po_id"]
+            isOneToOne: false
+            referencedRelation: "purchase_order_header"
+            referencedColumns: ["po_id"]
+          },
+          {
+            foreignKeyName: "purchase_order_line_sku_id_fkey"
+            columns: ["sku_id"]
+            isOneToOne: false
+            referencedRelation: "dim_sku"
+            referencedColumns: ["sku_id"]
+          },
+        ]
+      }
       raw_data_staging: {
         Row: {
           column_count: number | null
@@ -2651,6 +3330,163 @@ export type Database = {
           },
         ]
       }
+      receipt_header: {
+        Row: {
+          carrier: string | null
+          created_at: string | null
+          created_by: string | null
+          inspection_date: string | null
+          inspection_status: string | null
+          inspector: string | null
+          receipt_date: string
+          receipt_id: string
+          receipt_number: string
+          receipt_status: string | null
+          remark: string | null
+          supplier_id: string | null
+          tenant_id: string | null
+          tracking_number: string | null
+          updated_at: string | null
+        }
+        Insert: {
+          carrier?: string | null
+          created_at?: string | null
+          created_by?: string | null
+          inspection_date?: string | null
+          inspection_status?: string | null
+          inspector?: string | null
+          receipt_date: string
+          receipt_id?: string
+          receipt_number: string
+          receipt_status?: string | null
+          remark?: string | null
+          supplier_id?: string | null
+          tenant_id?: string | null
+          tracking_number?: string | null
+          updated_at?: string | null
+        }
+        Update: {
+          carrier?: string | null
+          created_at?: string | null
+          created_by?: string | null
+          inspection_date?: string | null
+          inspection_status?: string | null
+          inspector?: string | null
+          receipt_date?: string
+          receipt_id?: string
+          receipt_number?: string
+          receipt_status?: string | null
+          remark?: string | null
+          supplier_id?: string | null
+          tenant_id?: string | null
+          tracking_number?: string | null
+          updated_at?: string | null
+        }
+        Relationships: [
+          {
+            foreignKeyName: "receipt_header_supplier_id_fkey"
+            columns: ["supplier_id"]
+            isOneToOne: false
+            referencedRelation: "dim_supplier"
+            referencedColumns: ["supplier_id"]
+          },
+        ]
+      }
+      receipt_line: {
+        Row: {
+          accepted_quantity: number | null
+          created_at: string | null
+          line_id: string
+          line_number: number
+          line_status: string | null
+          quality_remark: string | null
+          quality_status: string | null
+          receipt_id: string
+          received_quantity: number
+          rejected_quantity: number | null
+          remark: string | null
+          sku_code: string | null
+          sku_id: string | null
+          sku_name: string | null
+          source_po_id: string | null
+          source_po_line_id: string | null
+          tenant_id: string | null
+          unit_price: number | null
+          updated_at: string | null
+        }
+        Insert: {
+          accepted_quantity?: number | null
+          created_at?: string | null
+          line_id?: string
+          line_number: number
+          line_status?: string | null
+          quality_remark?: string | null
+          quality_status?: string | null
+          receipt_id: string
+          received_quantity: number
+          rejected_quantity?: number | null
+          remark?: string | null
+          sku_code?: string | null
+          sku_id?: string | null
+          sku_name?: string | null
+          source_po_id?: string | null
+          source_po_line_id?: string | null
+          tenant_id?: string | null
+          unit_price?: number | null
+          updated_at?: string | null
+        }
+        Update: {
+          accepted_quantity?: number | null
+          created_at?: string | null
+          line_id?: string
+          line_number?: number
+          line_status?: string | null
+          quality_remark?: string | null
+          quality_status?: string | null
+          receipt_id?: string
+          received_quantity?: number
+          rejected_quantity?: number | null
+          remark?: string | null
+          sku_code?: string | null
+          sku_id?: string | null
+          sku_name?: string | null
+          source_po_id?: string | null
+          source_po_line_id?: string | null
+          tenant_id?: string | null
+          unit_price?: number | null
+          updated_at?: string | null
+        }
+        Relationships: [
+          {
+            foreignKeyName: "receipt_line_receipt_id_fkey"
+            columns: ["receipt_id"]
+            isOneToOne: false
+            referencedRelation: "receipt_header"
+            referencedColumns: ["receipt_id"]
+          },
+          {
+            foreignKeyName: "receipt_line_sku_id_fkey"
+            columns: ["sku_id"]
+            isOneToOne: false
+            referencedRelation: "dim_sku"
+            referencedColumns: ["sku_id"]
+          },
+          {
+            foreignKeyName: "receipt_line_source_po_id_fkey"
+            columns: ["source_po_id"]
+            isOneToOne: false
+            referencedRelation: "purchase_order_header"
+            referencedColumns: ["po_id"]
+          },
+          {
+            foreignKeyName: "receipt_line_source_po_line_id_fkey"
+            columns: ["source_po_line_id"]
+            isOneToOne: false
+            referencedRelation: "purchase_order_line"
+            referencedColumns: ["line_id"]
+          },
+        ]
+      }
       report_instances: {
         Row: {
           config_id: string | null
@@ -2717,6 +3553,535 @@ export type Database = {
             isOneToOne: false
             referencedRelation: "tenants"
             referencedColumns: ["tenant_id"]
+          },
+        ]
+      }
+      sales_invoice_header: {
+        Row: {
+          created_at: string | null
+          created_by: string | null
+          currency_code: string | null
+          customer_id: string | null
+          discount_amount: number | null
+          due_date: string | null
+          invoice_date: string
+          invoice_id: string
+          invoice_number: string
+          invoice_status: string | null
+          invoice_type: string | null
+          net_amount: number | null
+          paid_amount: number | null
+          payment_status: string | null
+          payment_term: string | null
+          remark: string | null
+          tax_amount: number | null
+          tenant_id: string | null
+          total_amount: number | null
+          updated_at: string | null
+        }
+        Insert: {
+          created_at?: string | null
+          created_by?: string | null
+          currency_code?: string | null
+          customer_id?: string | null
+          discount_amount?: number | null
+          due_date?: string | null
+          invoice_date: string
+          invoice_id?: string
+          invoice_number: string
+          invoice_status?: string | null
+          invoice_type?: string | null
+          net_amount?: number | null
+          paid_amount?: number | null
+          payment_status?: string | null
+          payment_term?: string | null
+          remark?: string | null
+          tax_amount?: number | null
+          tenant_id?: string | null
+          total_amount?: number | null
+          updated_at?: string | null
+        }
+        Update: {
+          created_at?: string | null
+          created_by?: string | null
+          currency_code?: string | null
+          customer_id?: string | null
+          discount_amount?: number | null
+          due_date?: string | null
+          invoice_date?: string
+          invoice_id?: string
+          invoice_number?: string
+          invoice_status?: string | null
+          invoice_type?: string | null
+          net_amount?: number | null
+          paid_amount?: number | null
+          payment_status?: string | null
+          payment_term?: string | null
+          remark?: string | null
+          tax_amount?: number | null
+          tenant_id?: string | null
+          total_amount?: number | null
+          updated_at?: string | null
+        }
+        Relationships: [
+          {
+            foreignKeyName: "sales_invoice_header_customer_id_fkey"
+            columns: ["customer_id"]
+            isOneToOne: false
+            referencedRelation: "dim_customer"
+            referencedColumns: ["customer_id"]
+          },
+        ]
+      }
+      sales_invoice_line: {
+        Row: {
+          created_at: string | null
+          discount_amount: number | null
+          invoice_id: string
+          line_amount: number
+          line_id: string
+          line_number: number
+          net_amount: number
+          quantity: number
+          remark: string | null
+          sku_code: string | null
+          sku_id: string | null
+          sku_name: string | null
+          source_order_id: string | null
+          source_order_line_id: string | null
+          source_shipment_id: string | null
+          source_shipment_line_id: string | null
+          tax_amount: number | null
+          tax_rate: number | null
+          tenant_id: string | null
+          unit_price: number
+          updated_at: string | null
+        }
+        Insert: {
+          created_at?: string | null
+          discount_amount?: number | null
+          invoice_id: string
+          line_amount: number
+          line_id?: string
+          line_number: number
+          net_amount: number
+          quantity: number
+          remark?: string | null
+          sku_code?: string | null
+          sku_id?: string | null
+          sku_name?: string | null
+          source_order_id?: string | null
+          source_order_line_id?: string | null
+          source_shipment_id?: string | null
+          source_shipment_line_id?: string | null
+          tax_amount?: number | null
+          tax_rate?: number | null
+          tenant_id?: string | null
+          unit_price: number
+          updated_at?: string | null
+        }
+        Update: {
+          created_at?: string | null
+          discount_amount?: number | null
+          invoice_id?: string
+          line_amount?: number
+          line_id?: string
+          line_number?: number
+          net_amount?: number
+          quantity?: number
+          remark?: string | null
+          sku_code?: string | null
+          sku_id?: string | null
+          sku_name?: string | null
+          source_order_id?: string | null
+          source_order_line_id?: string | null
+          source_shipment_id?: string | null
+          source_shipment_line_id?: string | null
+          tax_amount?: number | null
+          tax_rate?: number | null
+          tenant_id?: string | null
+          unit_price?: number
+          updated_at?: string | null
+        }
+        Relationships: [
+          {
+            foreignKeyName: "sales_invoice_line_invoice_id_fkey"
+            columns: ["invoice_id"]
+            isOneToOne: false
+            referencedRelation: "sales_invoice_header"
+            referencedColumns: ["invoice_id"]
+          },
+          {
+            foreignKeyName: "sales_invoice_line_sku_id_fkey"
+            columns: ["sku_id"]
+            isOneToOne: false
+            referencedRelation: "dim_sku"
+            referencedColumns: ["sku_id"]
+          },
+          {
+            foreignKeyName: "sales_invoice_line_source_order_id_fkey"
+            columns: ["source_order_id"]
+            isOneToOne: false
+            referencedRelation: "sales_order_header"
+            referencedColumns: ["order_id"]
+          },
+          {
+            foreignKeyName: "sales_invoice_line_source_order_line_id_fkey"
+            columns: ["source_order_line_id"]
+            isOneToOne: false
+            referencedRelation: "sales_order_line"
+            referencedColumns: ["line_id"]
+          },
+          {
+            foreignKeyName: "sales_invoice_line_source_shipment_id_fkey"
+            columns: ["source_shipment_id"]
+            isOneToOne: false
+            referencedRelation: "shipment_header"
+            referencedColumns: ["shipment_id"]
+          },
+          {
+            foreignKeyName: "sales_invoice_line_source_shipment_line_id_fkey"
+            columns: ["source_shipment_line_id"]
+            isOneToOne: false
+            referencedRelation: "shipment_line"
+            referencedColumns: ["line_id"]
+          },
+        ]
+      }
+      sales_order_header: {
+        Row: {
+          approved_at: string | null
+          approved_by: string | null
+          channel_id: string | null
+          contact_person: string | null
+          contact_phone: string | null
+          created_at: string | null
+          created_by: string | null
+          currency_code: string | null
+          customer_id: string | null
+          delivery_address: string | null
+          discount_amount: number | null
+          net_amount: number | null
+          order_date: string
+          order_id: string
+          order_number: string
+          order_status: string | null
+          payment_term: string | null
+          remark: string | null
+          tax_amount: number | null
+          tenant_id: string | null
+          total_amount: number | null
+          updated_at: string | null
+        }
+        Insert: {
+          approved_at?: string | null
+          approved_by?: string | null
+          channel_id?: string | null
+          contact_person?: string | null
+          contact_phone?: string | null
+          created_at?: string | null
+          created_by?: string | null
+          currency_code?: string | null
+          customer_id?: string | null
+          delivery_address?: string | null
+          discount_amount?: number | null
+          net_amount?: number | null
+          order_date: string
+          order_id?: string
+          order_number: string
+          order_status?: string | null
+          payment_term?: string | null
+          remark?: string | null
+          tax_amount?: number | null
+          tenant_id?: string | null
+          total_amount?: number | null
+          updated_at?: string | null
+        }
+        Update: {
+          approved_at?: string | null
+          approved_by?: string | null
+          channel_id?: string | null
+          contact_person?: string | null
+          contact_phone?: string | null
+          created_at?: string | null
+          created_by?: string | null
+          currency_code?: string | null
+          customer_id?: string | null
+          delivery_address?: string | null
+          discount_amount?: number | null
+          net_amount?: number | null
+          order_date?: string
+          order_id?: string
+          order_number?: string
+          order_status?: string | null
+          payment_term?: string | null
+          remark?: string | null
+          tax_amount?: number | null
+          tenant_id?: string | null
+          total_amount?: number | null
+          updated_at?: string | null
+        }
+        Relationships: [
+          {
+            foreignKeyName: "sales_order_header_channel_id_fkey"
+            columns: ["channel_id"]
+            isOneToOne: false
+            referencedRelation: "dim_channel"
+            referencedColumns: ["channel_id"]
+          },
+          {
+            foreignKeyName: "sales_order_header_customer_id_fkey"
+            columns: ["customer_id"]
+            isOneToOne: false
+            referencedRelation: "dim_customer"
+            referencedColumns: ["customer_id"]
+          },
+        ]
+      }
+      sales_order_line: {
+        Row: {
+          created_at: string | null
+          discount_amount: number | null
+          discount_rate: number | null
+          invoiced_quantity: number | null
+          line_amount: number
+          line_id: string
+          line_number: number
+          line_status: string | null
+          net_amount: number
+          order_id: string
+          promised_delivery_date: string | null
+          quantity: number
+          remark: string | null
+          requested_delivery_date: string | null
+          shipped_quantity: number | null
+          sku_code: string | null
+          sku_id: string | null
+          sku_name: string | null
+          tax_amount: number | null
+          tax_rate: number | null
+          tenant_id: string | null
+          unit_price: number
+          updated_at: string | null
+        }
+        Insert: {
+          created_at?: string | null
+          discount_amount?: number | null
+          discount_rate?: number | null
+          invoiced_quantity?: number | null
+          line_amount: number
+          line_id?: string
+          line_number: number
+          line_status?: string | null
+          net_amount: number
+          order_id: string
+          promised_delivery_date?: string | null
+          quantity: number
+          remark?: string | null
+          requested_delivery_date?: string | null
+          shipped_quantity?: number | null
+          sku_code?: string | null
+          sku_id?: string | null
+          sku_name?: string | null
+          tax_amount?: number | null
+          tax_rate?: number | null
+          tenant_id?: string | null
+          unit_price: number
+          updated_at?: string | null
+        }
+        Update: {
+          created_at?: string | null
+          discount_amount?: number | null
+          discount_rate?: number | null
+          invoiced_quantity?: number | null
+          line_amount?: number
+          line_id?: string
+          line_number?: number
+          line_status?: string | null
+          net_amount?: number
+          order_id?: string
+          promised_delivery_date?: string | null
+          quantity?: number
+          remark?: string | null
+          requested_delivery_date?: string | null
+          shipped_quantity?: number | null
+          sku_code?: string | null
+          sku_id?: string | null
+          sku_name?: string | null
+          tax_amount?: number | null
+          tax_rate?: number | null
+          tenant_id?: string | null
+          unit_price?: number
+          updated_at?: string | null
+        }
+        Relationships: [
+          {
+            foreignKeyName: "sales_order_line_order_id_fkey"
+            columns: ["order_id"]
+            isOneToOne: false
+            referencedRelation: "sales_order_header"
+            referencedColumns: ["order_id"]
+          },
+          {
+            foreignKeyName: "sales_order_line_sku_id_fkey"
+            columns: ["sku_id"]
+            isOneToOne: false
+            referencedRelation: "dim_sku"
+            referencedColumns: ["sku_id"]
+          },
+        ]
+      }
+      shipment_header: {
+        Row: {
+          actual_delivery_date: string | null
+          carrier: string | null
+          contact_person: string | null
+          contact_phone: string | null
+          created_at: string | null
+          created_by: string | null
+          customer_id: string | null
+          delivery_address: string | null
+          planned_delivery_date: string | null
+          remark: string | null
+          shipment_date: string
+          shipment_id: string
+          shipment_number: string
+          shipment_status: string | null
+          shipping_method: string | null
+          tenant_id: string | null
+          tracking_number: string | null
+          updated_at: string | null
+        }
+        Insert: {
+          actual_delivery_date?: string | null
+          carrier?: string | null
+          contact_person?: string | null
+          contact_phone?: string | null
+          created_at?: string | null
+          created_by?: string | null
+          customer_id?: string | null
+          delivery_address?: string | null
+          planned_delivery_date?: string | null
+          remark?: string | null
+          shipment_date: string
+          shipment_id?: string
+          shipment_number: string
+          shipment_status?: string | null
+          shipping_method?: string | null
+          tenant_id?: string | null
+          tracking_number?: string | null
+          updated_at?: string | null
+        }
+        Update: {
+          actual_delivery_date?: string | null
+          carrier?: string | null
+          contact_person?: string | null
+          contact_phone?: string | null
+          created_at?: string | null
+          created_by?: string | null
+          customer_id?: string | null
+          delivery_address?: string | null
+          planned_delivery_date?: string | null
+          remark?: string | null
+          shipment_date?: string
+          shipment_id?: string
+          shipment_number?: string
+          shipment_status?: string | null
+          shipping_method?: string | null
+          tenant_id?: string | null
+          tracking_number?: string | null
+          updated_at?: string | null
+        }
+        Relationships: [
+          {
+            foreignKeyName: "shipment_header_customer_id_fkey"
+            columns: ["customer_id"]
+            isOneToOne: false
+            referencedRelation: "dim_customer"
+            referencedColumns: ["customer_id"]
+          },
+        ]
+      }
+      shipment_line: {
+        Row: {
+          created_at: string | null
+          line_id: string
+          line_number: number
+          line_status: string | null
+          remark: string | null
+          shipment_id: string
+          shipped_quantity: number
+          sku_code: string | null
+          sku_id: string | null
+          sku_name: string | null
+          source_order_id: string | null
+          source_order_line_id: string | null
+          tenant_id: string | null
+          unit_price: number | null
+          updated_at: string | null
+        }
+        Insert: {
+          created_at?: string | null
+          line_id?: string
+          line_number: number
+          line_status?: string | null
+          remark?: string | null
+          shipment_id: string
+          shipped_quantity: number
+          sku_code?: string | null
+          sku_id?: string | null
+          sku_name?: string | null
+          source_order_id?: string | null
+          source_order_line_id?: string | null
+          tenant_id?: string | null
+          unit_price?: number | null
+          updated_at?: string | null
+        }
+        Update: {
+          created_at?: string | null
+          line_id?: string
+          line_number?: number
+          line_status?: string | null
+          remark?: string | null
+          shipment_id?: string
+          shipped_quantity?: number
+          sku_code?: string | null
+          sku_id?: string | null
+          sku_name?: string | null
+          source_order_id?: string | null
+          source_order_line_id?: string | null
+          tenant_id?: string | null
+          unit_price?: number | null
+          updated_at?: string | null
+        }
+        Relationships: [
+          {
+            foreignKeyName: "shipment_line_shipment_id_fkey"
+            columns: ["shipment_id"]
+            isOneToOne: false
+            referencedRelation: "shipment_header"
+            referencedColumns: ["shipment_id"]
+          },
+          {
+            foreignKeyName: "shipment_line_sku_id_fkey"
+            columns: ["sku_id"]
+            isOneToOne: false
+            referencedRelation: "dim_sku"
+            referencedColumns: ["sku_id"]
+          },
+          {
+            foreignKeyName: "shipment_line_source_order_id_fkey"
+            columns: ["source_order_id"]
+            isOneToOne: false
+            referencedRelation: "sales_order_header"
+            referencedColumns: ["order_id"]
+          },
+          {
+            foreignKeyName: "shipment_line_source_order_line_id_fkey"
+            columns: ["source_order_line_id"]
+            isOneToOne: false
+            referencedRelation: "sales_order_line"
+            referencedColumns: ["line_id"]
           },
         ]
       }

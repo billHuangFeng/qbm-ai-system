@@ -1,16 +1,19 @@
-import { useState, useCallback } from 'react';
-import { Upload, File, CheckCircle2 } from 'lucide-react';
+import { useState, useCallback, useRef } from 'react';
+import { Upload, File, CheckCircle2, RefreshCw } from 'lucide-react';
 import { Card, CardContent } from '@/components/ui/card';
+import { Button } from '@/components/ui/button';
 import type { ImportStage } from '@/pages/DataImportPage';
 
 interface FileUploadZoneProps {
   currentStage: ImportStage;
   onStageChange: (stage: ImportStage) => void;
+  uploadedFile: File | null;
+  onFileUpload: (file: File | null) => void;
 }
 
-const FileUploadZone = ({ currentStage, onStageChange }: FileUploadZoneProps) => {
+const FileUploadZone = ({ currentStage, onStageChange, uploadedFile, onFileUpload }: FileUploadZoneProps) => {
   const [isDragging, setIsDragging] = useState(false);
-  const [uploadedFile, setUploadedFile] = useState<File | null>(null);
+  const fileInputRef = useRef<HTMLInputElement>(null);
 
   const handleDragOver = useCallback((e: React.DragEvent) => {
     e.preventDefault();
@@ -40,8 +43,12 @@ const FileUploadZone = ({ currentStage, onStageChange }: FileUploadZoneProps) =>
   }, []);
 
   const handleFileUpload = (file: File) => {
-    setUploadedFile(file);
+    onFileUpload(file);
     onStageChange('MAPPING');
+  };
+
+  const handleReupload = () => {
+    fileInputRef.current?.click();
   };
 
   if (currentStage !== 'UPLOAD' && uploadedFile) {
@@ -61,7 +68,25 @@ const FileUploadZone = ({ currentStage, onStageChange }: FileUploadZoneProps) =>
                 {(uploadedFile.size / 1024).toFixed(2)} KB
               </p>
             </div>
+            <Button
+              variant="outline"
+              size="sm"
+              onClick={handleReupload}
+              className="flex items-center gap-2"
+            >
+              <RefreshCw className="w-4 h-4" />
+              重新上传
+            </Button>
           </div>
+          
+          {/* 隐藏的文件输入 */}
+          <input
+            ref={fileInputRef}
+            type="file"
+            className="hidden"
+            accept=".xlsx,.xls,.csv,.json,.xml"
+            onChange={handleFileSelect}
+          />
         </CardContent>
       </Card>
     );

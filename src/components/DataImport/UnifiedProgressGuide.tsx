@@ -9,8 +9,14 @@ import {
   ChevronRight,
   Info,
   AlertCircle,
-  Bot
+  Bot,
+  Sparkles,
+  Play,
+  Settings,
+  ArrowLeft,
+  Upload
 } from 'lucide-react';
+import { Button } from '@/components/ui/button';
 import type { ImportStage } from '@/pages/DataImportPage';
 
 interface TaskMessage {
@@ -26,25 +32,181 @@ interface TaskStage {
   description: string;
   status: 'pending' | 'active' | 'completed' | 'warning' | 'error';
   messages: TaskMessage[];
-  isExpanded: boolean;
 }
 
 interface UnifiedProgressGuideProps {
   currentStage: ImportStage;
+  onStageChange?: (stage: ImportStage) => void;
+  onFileUpload?: (file: File) => void;
 }
 
-const UnifiedProgressGuide = ({ currentStage }: UnifiedProgressGuideProps) => {
+const UnifiedProgressGuide = ({ currentStage, onStageChange, onFileUpload }: UnifiedProgressGuideProps) => {
+  const [taskListExpanded, setTaskListExpanded] = useState(false);
+  const fileInputRef = useRef<HTMLInputElement>(null);
   const [stages, setStages] = useState<TaskStage[]>([
-    { key: 'UPLOAD', label: '上传文件', description: '选择数据文件', status: 'pending', messages: [], isExpanded: false },
-    { key: 'MAPPING', label: '字段映射', description: '智能字段匹配', status: 'pending', messages: [], isExpanded: false },
-    { key: 'ANALYZING', label: '格式识别', description: '基于映射识别格式', status: 'pending', messages: [], isExpanded: false },
-    { key: 'QUALITY_CHECK', label: '质量检查', description: '7维度分析', status: 'pending', messages: [], isExpanded: false },
-    { key: 'READY', label: '准备导入', description: '确认并导入', status: 'pending', messages: [], isExpanded: false },
-    { key: 'ENHANCEMENT', label: '数据完善', description: '第二阶段处理', status: 'pending', messages: [], isExpanded: false },
-    { key: 'CONFIRMING', label: '确认入库', description: '最终确认', status: 'pending', messages: [], isExpanded: false },
+    { key: 'UPLOAD', label: '上传文件', description: '选择数据文件', status: 'pending', messages: [] },
+    { key: 'MAPPING', label: '字段映射', description: '智能字段匹配', status: 'pending', messages: [] },
+    { key: 'ANALYZING', label: '格式识别', description: '基于映射识别格式', status: 'pending', messages: [] },
+    { key: 'QUALITY_CHECK', label: '质量检查', description: '7维度分析', status: 'pending', messages: [] },
+    { key: 'READY', label: '准备导入', description: '确认并导入', status: 'pending', messages: [] },
+    { key: 'ENHANCEMENT', label: '数据完善', description: '第二阶段处理', status: 'pending', messages: [] },
+    { key: 'CONFIRMING', label: '确认入库', description: '最终确认', status: 'pending', messages: [] },
   ]);
 
-  const messagesEndRef = useRef<{ [key: string]: HTMLDivElement | null }>({});
+  const messagesEndRef = useRef<HTMLDivElement | null>(null);
+
+  const getActions = (): Array<{
+    label: string;
+    variant: 'default' | 'outline';
+    icon?: typeof Sparkles;
+    position?: 'left' | 'right';
+    onClick: () => void;
+  }> => {
+    if (!onStageChange) return [];
+
+    switch(currentStage) {
+      case 'UPLOAD':
+        return [
+          {
+            label: '📤 上传文件',
+            variant: 'default' as const,
+            icon: Upload,
+            position: 'right' as const,
+            onClick: () => fileInputRef.current?.click()
+          }
+        ];
+      
+      case 'MAPPING':
+        return [
+          {
+            label: '🛠️ 手动配置',
+            variant: 'outline' as const,
+            icon: Settings,
+            position: 'left' as const,
+            onClick: () => {}
+          },
+          {
+            label: '✨ 应用 AI 推荐',
+            variant: 'default' as const,
+            icon: Sparkles,
+            position: 'right' as const,
+            onClick: () => onStageChange('ANALYZING')
+          }
+        ];
+      
+      case 'ANALYZING':
+        return [];
+      
+      case 'QUALITY_CHECK':
+        return [
+          {
+            label: '⏭️ 继续导入',
+            variant: 'default' as const,
+            position: 'right' as const,
+            onClick: () => onStageChange('READY')
+          }
+        ];
+      
+      case 'READY':
+        const qualityScore = 85;
+        
+        if (qualityScore >= 95) {
+          return [
+            {
+              label: '🔙 返回调整',
+              variant: 'outline' as const,
+              icon: ArrowLeft,
+              position: 'left' as const,
+              onClick: () => onStageChange('MAPPING')
+            },
+            {
+              label: '🚀 直接导入正式表',
+              variant: 'default' as const,
+              icon: Play,
+              position: 'right' as const,
+              onClick: () => onStageChange('IMPORTING')
+            }
+          ];
+        } else if (qualityScore >= 70) {
+          return [
+            {
+              label: '🔙 返回调整',
+              variant: 'outline' as const,
+              icon: ArrowLeft,
+              position: 'left' as const,
+              onClick: () => onStageChange('MAPPING')
+            },
+            {
+              label: '⚠️ 强制导入正式表',
+              variant: 'outline' as const,
+              icon: Play,
+              position: 'right' as const,
+              onClick: () => onStageChange('IMPORTING')
+            },
+            {
+              label: '📥 导入暂存表（推荐）',
+              variant: 'default' as const,
+              icon: Play,
+              position: 'right' as const,
+              onClick: () => onStageChange('ENHANCEMENT')
+            }
+          ];
+        } else {
+          return [
+            {
+              label: '⛔ 质量不合格，无法导入',
+              variant: 'outline' as const,
+              position: 'left' as const,
+              onClick: () => {}
+            },
+            {
+              label: '🔙 返回修复',
+              variant: 'default' as const,
+              icon: ArrowLeft,
+              position: 'right' as const,
+              onClick: () => onStageChange('MAPPING')
+            }
+          ];
+        }
+      
+      case 'ENHANCEMENT':
+        return [
+          {
+            label: '✅ 完成并确认',
+            variant: 'outline' as const,
+            position: 'left' as const,
+            onClick: () => onStageChange('CONFIRMING')
+          },
+          {
+            label: '🤖 全部自动修复',
+            variant: 'default' as const,
+            position: 'right' as const,
+            onClick: () => onStageChange('CONFIRMING')
+          }
+        ];
+      
+      case 'CONFIRMING':
+        return [
+          {
+            label: '🔙 返回调整',
+            variant: 'outline' as const,
+            icon: ArrowLeft,
+            position: 'left' as const,
+            onClick: () => onStageChange('ENHANCEMENT')
+          },
+          {
+            label: '🚀 导入正式表',
+            variant: 'default' as const,
+            icon: Play,
+            position: 'right' as const,
+            onClick: () => onStageChange('COMPLETED')
+          }
+        ];
+      
+      default:
+        return [];
+    }
+  };
 
   const generateMessagesForStage = (stage: ImportStage): TaskMessage[] => {
     const timestamp = new Date();
@@ -147,36 +309,26 @@ const UnifiedProgressGuide = ({ currentStage }: UnifiedProgressGuideProps) => {
     
     setStages(prev => prev.map((stage, index) => {
       if (index < currentIndex) {
-        return { ...stage, status: 'completed' as const, isExpanded: false };
+        return { ...stage, status: 'completed' as const };
       } else if (index === currentIndex) {
         const newMessages = stage.messages.length === 0 ? generateMessagesForStage(currentStage) : stage.messages;
         const newStatus = currentStage === 'QUALITY_CHECK' ? 'warning' : 'active';
         return { 
           ...stage, 
           status: newStatus,
-          isExpanded: true,
           messages: newMessages
         };
       } else {
-        return { ...stage, status: 'pending' as const, isExpanded: false };
+        return { ...stage, status: 'pending' as const };
       }
     }));
   }, [currentStage]);
 
   useEffect(() => {
-    const activeStage = stages.find(s => s.isExpanded);
-    if (activeStage && messagesEndRef.current[activeStage.key]) {
-      messagesEndRef.current[activeStage.key]?.scrollIntoView({ behavior: 'smooth' });
+    if (messagesEndRef.current) {
+      messagesEndRef.current.scrollIntoView({ behavior: 'smooth' });
     }
   }, [stages]);
-
-  const toggleStage = (stageKey: ImportStage) => {
-    setStages(prev => prev.map(stage => 
-      stage.key === stageKey 
-        ? { ...stage, isExpanded: !stage.isExpanded }
-        : stage
-    ));
-  };
 
   const getStatusIcon = (status: TaskStage['status']) => {
     switch(status) {
@@ -206,79 +358,151 @@ const UnifiedProgressGuide = ({ currentStage }: UnifiedProgressGuideProps) => {
     }
   };
 
+  const activeStage = stages.find(s => s.status === 'active' || s.status === 'warning');
+  const completedCount = stages.filter(s => s.status === 'completed').length;
+  const totalCount = stages.length;
+  const actions = getActions();
+
+  const handleFileSelect = (e: React.ChangeEvent<HTMLInputElement>) => {
+    const files = e.target.files;
+    if (files && files.length > 0 && onFileUpload) {
+      onFileUpload(files[0]);
+      if (onStageChange) {
+        onStageChange('MAPPING');
+      }
+    }
+  };
+
   return (
-    <div className="flex flex-col h-full">
-      <div className="flex items-center gap-2 mb-4 pb-4 border-b">
-        <div className="p-2 rounded-lg bg-primary/10">
-          <Bot className="w-5 h-5 text-primary" />
-        </div>
-        <div>
-          <h3 className="font-semibold text-foreground">AI 智能导入引导</h3>
-          <p className="text-xs text-muted-foreground">实时进度与反馈</p>
-        </div>
-      </div>
-
-      <div className="flex-1 overflow-y-auto space-y-2 pr-2">
-        {stages.map((stage) => (
-          <div key={stage.key} className="border rounded-lg overflow-hidden">
-            <div
-              className={`
-                flex items-center gap-3 px-4 py-3 cursor-pointer transition-all
-                hover:bg-accent/50
-                ${stage.status === 'active' ? 'bg-primary/5 border-l-4 border-l-primary' : ''}
-                ${stage.status === 'completed' ? 'opacity-70' : ''}
-              `}
-              onClick={() => toggleStage(stage.key)}
-            >
-              <div className="flex-shrink-0">
-                {getStatusIcon(stage.status)}
-              </div>
-              
-              <div className="flex-1 min-w-0">
-                <div className="text-sm font-medium text-foreground">
-                  {stage.label}
-                </div>
-                <div className="text-xs text-muted-foreground">
-                  {stage.description}
-                </div>
-              </div>
-
-              <div className="flex-shrink-0">
-                {stage.isExpanded ? (
-                  <ChevronDown className="w-4 h-4 text-muted-foreground" />
-                ) : (
-                  <ChevronRight className="w-4 h-4 text-muted-foreground" />
-                )}
-              </div>
+    <div className="flex flex-col gap-4">
+      {/* 隐藏的文件输入 */}
+      <input
+        ref={fileInputRef}
+        type="file"
+        className="hidden"
+        accept=".xlsx,.xls,.csv,.json,.xml"
+        onChange={handleFileSelect}
+      />
+      
+      {/* 当前任务信息卡片 */}
+      {activeStage && (
+        <div className="border rounded-lg overflow-hidden border-l-4 border-l-primary flex-shrink-0">
+          <div className="flex items-center gap-3 px-4 py-3 bg-primary/5">
+            <div className="p-2 rounded-lg bg-primary/10 flex-shrink-0">
+              <Bot className="w-5 h-5 text-primary" />
             </div>
-
-            {stage.isExpanded && (
-              <div className="px-4 py-3 bg-muted/30 border-t animate-accordion-down">
-                <div className="space-y-2 max-h-[400px] overflow-y-auto">
-                  {stage.messages.map((message) => (
-                    <div key={message.id} className="animate-fade-in">
-                      <div className="flex gap-2 items-start">
-                        {getMessageIcon(message.type)}
-                        <div className="flex-1 min-w-0">
-                          <div className="text-sm text-foreground leading-relaxed whitespace-pre-wrap">
-                            {message.content}
-                          </div>
-                        </div>
-                      </div>
-                      <div className="text-xs text-muted-foreground/70 mt-0.5 ml-6">
-                        {message.timestamp.toLocaleTimeString('zh-CN', { 
-                          hour: '2-digit', 
-                          minute: '2-digit' 
-                        })}
+            <div className="flex-1 min-w-0">
+              <div className="flex items-center gap-2">
+                {getStatusIcon(activeStage.status)}
+                <h3 className="font-semibold text-foreground">当前任务：{activeStage.label}</h3>
+              </div>
+              <p className="text-xs text-muted-foreground mt-0.5">{activeStage.description}</p>
+            </div>
+          </div>
+          
+          <div className="px-4 py-3 bg-muted/30 border-t">
+            <div className="space-y-2 max-h-[500px] overflow-y-auto">
+              {activeStage.messages.map((message) => (
+                <div key={message.id} className="animate-fade-in">
+                  <div className="flex gap-2 items-start">
+                    {getMessageIcon(message.type)}
+                    <div className="flex-1 min-w-0">
+                      <div className="text-sm text-foreground leading-relaxed whitespace-pre-wrap">
+                        {message.content}
                       </div>
                     </div>
-                  ))}
-                  <div ref={(el) => { messagesEndRef.current[stage.key] = el; }} />
+                  </div>
+                  <div className="text-xs text-muted-foreground/70 mt-0.5 ml-6">
+                    {message.timestamp.toLocaleTimeString('zh-CN', { 
+                      hour: '2-digit', 
+                      minute: '2-digit' 
+                    })}
+                  </div>
                 </div>
-              </div>
-            )}
+              ))}
+              <div ref={messagesEndRef} />
+            </div>
           </div>
-        ))}
+
+          {/* 操作按钮区域 - 水平左右分布 */}
+          {actions.length > 0 && (
+            <div className="px-4 py-3 bg-card border-t flex items-center justify-between gap-3">
+              {/* 左侧按钮组 */}
+              <div className="flex gap-2">
+                {actions
+                  .filter(action => action.position === 'left')
+                  .map((action, index) => {
+                    const Icon = action.icon;
+                    return (
+                      <Button
+                        key={index}
+                        variant={action.variant}
+                        size="sm"
+                        onClick={action.onClick}
+                      >
+                        {Icon && <Icon className="w-3.5 h-3.5 mr-1.5" />}
+                        {action.label}
+                      </Button>
+                    );
+                  })}
+              </div>
+
+              {/* 右侧按钮组 */}
+              <div className="flex gap-2">
+                {actions
+                  .filter(action => action.position !== 'left')
+                  .map((action, index) => {
+                    const Icon = action.icon;
+                    return (
+                      <Button
+                        key={index}
+                        variant={action.variant}
+                        size="sm"
+                        onClick={action.onClick}
+                      >
+                        {Icon && <Icon className="w-3.5 h-3.5 mr-1.5" />}
+                        {action.label}
+                      </Button>
+                    );
+                  })}
+              </div>
+            </div>
+          )}
+        </div>
+      )}
+
+      {/* 任务清单卡片 */}
+      <div className="border rounded-lg overflow-hidden">
+        <div
+          className="flex items-center justify-between px-4 py-2 cursor-pointer hover:bg-accent/50 transition-colors"
+          onClick={() => setTaskListExpanded(!taskListExpanded)}
+        >
+          <div className="flex items-center gap-2">
+            {taskListExpanded ? (
+              <ChevronDown className="w-4 h-4 text-muted-foreground" />
+            ) : (
+              <ChevronRight className="w-4 h-4 text-muted-foreground" />
+            )}
+            <span className="font-medium text-foreground">
+              {completedCount} / {totalCount} 任务
+            </span>
+          </div>
+        </div>
+
+        {taskListExpanded && (
+          <div className="px-4 py-2 space-y-1 border-t bg-muted/30 animate-accordion-down">
+            {stages.map((stage) => (
+              <div key={stage.key} className="flex items-center gap-2 py-1">
+                <div className="flex-shrink-0">
+                  {getStatusIcon(stage.status)}
+                </div>
+                <span className={`text-sm ${stage.status === 'completed' ? 'line-through opacity-60' : ''}`}>
+                  {stage.label}
+                </span>
+              </div>
+            ))}
+          </div>
+        )}
       </div>
     </div>
   );
