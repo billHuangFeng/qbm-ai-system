@@ -3,11 +3,27 @@
  * 使用 Supabase Edge Functions
  */
 
-// 延迟初始化 supabase client，只在实际使用时才导入
+// 延迟初始化 supabase client，确保环境变量已加载
 let _supabaseClient: any = null;
+
+const waitForEnv = async (maxRetries = 10, delay = 100): Promise<boolean> => {
+  for (let i = 0; i < maxRetries; i++) {
+    if (import.meta.env.VITE_SUPABASE_URL && import.meta.env.VITE_SUPABASE_PUBLISHABLE_KEY) {
+      return true;
+    }
+    await new Promise(resolve => setTimeout(resolve, delay));
+  }
+  return false;
+};
 
 const getSupabaseClient = async () => {
   if (!_supabaseClient) {
+    // 等待环境变量加载
+    const envReady = await waitForEnv();
+    if (!envReady) {
+      throw new Error('环境变量未加载，请刷新页面重试');
+    }
+    
     const module = await import("@/integrations/supabase/client");
     _supabaseClient = module.supabase;
   }
