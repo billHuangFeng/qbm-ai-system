@@ -1,1 +1,4 @@
 project_id = "fmpnelntcmvjvhsavkmv"
+
+[functions.data-import-upload]
+verify_jwt = true

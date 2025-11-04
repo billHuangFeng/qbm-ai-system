@@ -504,6 +504,63 @@ export type Database = {
           },
         ]
       }
+      data_import_uploads: {
+        Row: {
+          column_count: number | null
+          created_at: string
+          document_type: string | null
+          file_name: string
+          file_size: number
+          format_confidence: number | null
+          format_type: string | null
+          id: string
+          row_count: number | null
+          source_system: string | null
+          status: string
+          storage_path: string
+          tenant_id: string
+          updated_at: string
+          uploaded_at: string
+          user_id: string | null
+        }
+        Insert: {
+          column_count?: number | null
+          created_at?: string
+          document_type?: string | null
+          file_name: string
+          file_size: number
+          format_confidence?: number | null
+          format_type?: string | null
+          id?: string
+          row_count?: number | null
+          source_system?: string | null
+          status?: string
+          storage_path: string
+          tenant_id: string
+          updated_at?: string
+          uploaded_at?: string
+          user_id?: string | null
+        }
+        Update: {
+          column_count?: number | null
+          created_at?: string
+          document_type?: string | null
+          file_name?: string
+          file_size?: number
+          format_confidence?: number | null
+          format_type?: string | null
+          id?: string
+          row_count?: number | null
+          source_system?: string | null
+          status?: string
+          storage_path?: string
+          tenant_id?: string
+          updated_at?: string
+          uploaded_at?: string
+          user_id?: string | null
+        }
+        Relationships: []
+      }
       data_quality_report: {
         Row: {
           accuracy_score: number | null
@@ -1931,6 +1988,48 @@ export type Database = {
             referencedColumns: ["tenant_id"]
           },
         ]
+      }
+      field_mapping_history: {
+        Row: {
+          created_at: string
+          document_type: string | null
+          id: string
+          last_used_at: string
+          source_field: string
+          source_system: string
+          target_field: string
+          tenant_id: string
+          updated_at: string
+          usage_count: number | null
+          user_id: string | null
+        }
+        Insert: {
+          created_at?: string
+          document_type?: string | null
+          id?: string
+          last_used_at?: string
+          source_field: string
+          source_system: string
+          target_field: string
+          tenant_id: string
+          updated_at?: string
+          usage_count?: number | null
+          user_id?: string | null
+        }
+        Update: {
+          created_at?: string
+          document_type?: string | null
+          id?: string
+          last_used_at?: string
+          source_field?: string
+          source_system?: string
+          target_field?: string
+          tenant_id?: string
+          updated_at?: string
+          usage_count?: number | null
+          user_id?: string | null
+        }
+        Relationships: []
       }
       manager_evaluation: {
         Row: {
@@ -4085,6 +4184,56 @@ export type Database = {
           },
         ]
       }
+      staging_document_import: {
+        Row: {
+          created_at: string
+          id: string
+          mapped_data: Json | null
+          match_results: Json | null
+          raw_data: Json
+          row_index: number
+          tenant_id: string
+          updated_at: string
+          upload_id: string
+          validation_errors: Json | null
+          validation_status: string | null
+        }
+        Insert: {
+          created_at?: string
+          id?: string
+          mapped_data?: Json | null
+          match_results?: Json | null
+          raw_data: Json
+          row_index: number
+          tenant_id: string
+          updated_at?: string
+          upload_id: string
+          validation_errors?: Json | null
+          validation_status?: string | null
+        }
+        Update: {
+          created_at?: string
+          id?: string
+          mapped_data?: Json | null
+          match_results?: Json | null
+          raw_data?: Json
+          row_index?: number
+          tenant_id?: string
+          updated_at?: string
+          upload_id?: string
+          validation_errors?: Json | null
+          validation_status?: string | null
+        }
+        Relationships: [
+          {
+            foreignKeyName: "staging_document_import_upload_id_fkey"
+            columns: ["upload_id"]
+            isOneToOne: false
+            referencedRelation: "data_import_uploads"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
       tenants: {
         Row: {
           created_at: string | null
@@ -4211,6 +4360,8 @@ export type Database = {
         }
         Returns: boolean
       }
+      show_limit: { Args: never; Returns: number }
+      show_trgm: { Args: { "": string }; Returns: string[] }
     }
     Enums: {
       app_role: "admin" | "analyst" | "manager" | "operator"
