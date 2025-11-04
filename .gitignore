@@ -88,6 +88,9 @@ coverage.xml
 .hypothesis/
 .pytest_cache/
 
+# Spec-kit (embedded repository, should not be tracked)
+spec-kit/
+
 
 
 
