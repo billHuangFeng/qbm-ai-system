@@ -156,18 +156,18 @@ class IntelligentFieldMapper(BaseService):
         candidates = []
         
         try:
-            # 构建查询SQL
+            # 构建查询SQL（兼容新旧字段名）
             query_sql = """
                 SELECT 
-                    target_field_name,
+                    COALESCE(target_field_name, target_field) as target_field_name,
                     usage_count,
-                    match_confidence,
-                    match_method
+                    COALESCE(match_confidence, confidence_score::numeric) as match_confidence,
+                    COALESCE(match_method, mapping_method) as match_method
                 FROM field_mapping_history
-                WHERE source_field_name = :source_field
+                WHERE COALESCE(source_field_name, source_field) = :source_field
                   AND source_system = :source_system
-                  AND is_confirmed = TRUE
-                  AND is_rejected = FALSE
+                  AND COALESCE(is_confirmed, TRUE) = TRUE
+                  AND COALESCE(is_rejected, FALSE) = FALSE
             """
             params = {
                 'source_field': source_field,
@@ -965,24 +965,46 @@ class IntelligentFieldMapper(BaseService):
                     'match_method': match_method
                 })
             else:
-                # 创建新记录
+                # 创建新记录（兼容新旧字段名）
                 insert_sql = """
                     INSERT INTO field_mapping_history (
-                        source_system, document_type, user_id,
-                        source_field_name, target_field_name,
-                        match_confidence, match_method,
-                        usage_count, is_confirmed, is_rejected,
-                        created_at, updated_at
+                        tenant_id,
+                        source_system, 
+                        target_table,
+                        document_type, 
+                        user_id,
+                        source_field, source_field_name,
+                        target_field, target_field_name,
+                        confidence_score, match_confidence,
+                        mapping_method, match_method,
+                        usage_count, 
+                        is_confirmed, 
+                        is_rejected,
+                        created_by,
+                        created_at, 
+                        updated_at
                     ) VALUES (
-                        :source_system, :document_type, :user_id,
-                        :source_field, :target_field,
-                        :confidence, :match_method,
-                        1, :is_confirmed, FALSE,
-                        CURRENT_TIMESTAMP, CURRENT_TIMESTAMP
+                        :tenant_id,
+                        :source_system, 
+                        :target_table,
+                        :document_type, 
+                        :user_id,
+                        :source_field, :source_field,
+                        :target_field, :target_field,
+                        :confidence, :confidence,
+                        :match_method, :match_method,
+                        1, 
+                        COALESCE(:is_confirmed, TRUE), 
+                        FALSE,
+                        :user_id,
+                        CURRENT_TIMESTAMP, 
+                        CURRENT_TIMESTAMP
                     )
                 """
                 await self.db_service.execute_query(insert_sql, {
+                    'tenant_id': tenant_id,
                     'source_system': source_system,
+                    'target_table': target_table,
                     'document_type': document_type,
                     'user_id': user_id,
                     'source_field': source_field,
