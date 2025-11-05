@@ -17,5 +17,3 @@ def test_root():
     assert resp.status_code == 200
     data = resp.json()
     assert data.get("message") == "BMOS API Service"
-
-

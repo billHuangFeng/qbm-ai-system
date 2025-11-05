@@ -11,9 +11,9 @@ import io
 from pathlib import Path
 
 # 修复Windows控制台编码问题
-if sys.platform == 'win32':
-    sys.stdout = io.TextIOWrapper(sys.stdout.buffer, encoding='utf-8', errors='replace')
-    sys.stderr = io.TextIOWrapper(sys.stderr.buffer, encoding='utf-8', errors='replace')
+if sys.platform == "win32":
+    sys.stdout = io.TextIOWrapper(sys.stdout.buffer, encoding="utf-8", errors="replace")
+    sys.stderr = io.TextIOWrapper(sys.stderr.buffer, encoding="utf-8", errors="replace")
 
 # 添加项目根目录到路径
 project_root = Path(__file__).parent.parent
@@ -21,7 +21,10 @@ backend_dir = Path(__file__).parent
 sys.path.insert(0, str(backend_dir))
 
 # 设置环境变量
-os.environ.setdefault("JWT_SECRET_KEY", "bmos-development-secret-key-minimum-32-characters-long-for-testing-only")
+os.environ.setdefault(
+    "JWT_SECRET_KEY",
+    "bmos-development-secret-key-minimum-32-characters-long-for-testing-only",
+)
 os.environ.setdefault("API_HOST", "0.0.0.0")
 os.environ.setdefault("API_PORT", "8000")
 os.environ.setdefault("ENVIRONMENT", "development")
@@ -60,14 +63,14 @@ print()
 
 try:
     import uvicorn
-    
+
     # 使用简单启动脚本
     uvicorn.run(
         "start_simple:app",
         host=os.environ.get("API_HOST", "0.0.0.0"),
         port=int(os.environ.get("API_PORT", "8000")),
         reload=True,
-        log_level="info"
+        log_level="info",
     )
 except KeyboardInterrupt:
     print()
@@ -75,6 +78,6 @@ except KeyboardInterrupt:
 except Exception as e:
     print(f"启动失败: {e}")
     import traceback
+
     traceback.print_exc()
     sys.exit(1)
-

@@ -4,16 +4,18 @@ BMOS系统 - 主应用（已废弃）
 """
 
 import warnings
+
 warnings.warn(
     "src/main.py 已废弃，请使用 main_optimized.py 作为主应用入口",
     DeprecationWarning,
-    stacklevel=2
+    stacklevel=2,
 )
 
 # 重定向到优化后的主应用
 from main_optimized import app
 
-__all__ = ['app']
+__all__ = ["app"]
+
 
 @app.get("/")
 async def root():
@@ -21,8 +23,9 @@ async def root():
     return {
         "message": "QBM历史数据拟合优化系统",
         "version": "0.1.0",
-        "status": "running"
+        "status": "running",
     }
+
 
 @app.get("/health")
 async def health_check():
@@ -30,8 +33,9 @@ async def health_check():
     return {
         "status": "healthy",
         "service": "qbm-historical-data-fitting",
-        "version": "0.1.0"
+        "version": "0.1.0",
     }
+
 
 @app.get("/api/v1/status")
 async def api_status():
@@ -41,19 +45,15 @@ async def api_status():
         "status": "operational",
         "features": [
             "data_preprocessing",
-            "model_training", 
+            "model_training",
             "prediction",
             "optimization",
-            "monitoring"
-        ]
+            "monitoring",
+        ],
     }
+
 
 if __name__ == "__main__":
     import uvicorn
-    uvicorn.run(
-        "main:app",
-        host="0.0.0.0",
-        port=8000,
-        reload=True,
-        log_level="info"
-    )
+
+    uvicorn.run("main:app", host="0.0.0.0", port=8000, reload=True, log_level="info")

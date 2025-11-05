@@ -53,7 +53,7 @@ class AIInfluenceOptimizer:
                 "success": True,
                 "objective": objective,
                 "selected_paths": selected,
-                "total_score": float(sum(s for s, _ in scored[:10]))
+                "total_score": float(sum(s for s, _ in scored[:10])),
             }
         except Exception as e:
             logger.error(f"影响路径优化失败: {e}")
@@ -77,12 +77,15 @@ class AIInfluenceOptimizer:
             allocations = []
             for d, w in zip(decisions, weights):
                 amount = total_budget * (w / weight_sum)
-                allocations.append({
-                    "decision_id": d.get("id"),
-                    "allocated_budget": round(amount, 2)
-                })
+                allocations.append(
+                    {"decision_id": d.get("id"), "allocated_budget": round(amount, 2)}
+                )
 
-            return {"success": True, "allocations": allocations, "total_budget": total_budget}
+            return {
+                "success": True,
+                "allocations": allocations,
+                "total_budget": total_budget,
+            }
         except Exception as e:
             logger.error(f"资源分配失败: {e}")
             return {"success": False, "error": str(e)}
@@ -97,38 +100,47 @@ class AIInfluenceOptimizer:
             for c in conflicts:
                 ctype = c.get("type")
                 if ctype == "resource_conflict":
-                    suggestions.append({
-                        "action": "stagger_schedule",
-                        "reason": "资源超配，建议错峰排期或增加产能",
-                        "priority": "high"
-                    })
+                    suggestions.append(
+                        {
+                            "action": "stagger_schedule",
+                            "reason": "资源超配，建议错峰排期或增加产能",
+                            "priority": "high",
+                        }
+                    )
                 elif ctype == "timeline_conflict":
-                    suggestions.append({
-                        "action": "adjust_milestones",
-                        "reason": "时间重叠，建议调整里程碑避免瓶颈",
-                        "priority": "medium"
-                    })
+                    suggestions.append(
+                        {
+                            "action": "adjust_milestones",
+                            "reason": "时间重叠，建议调整里程碑避免瓶颈",
+                            "priority": "medium",
+                        }
+                    )
                 elif ctype == "goal_conflict":
-                    suggestions.append({
-                        "action": "clarify_goal_priority",
-                        "reason": "目标过度聚集，建议明确优先级与分工",
-                        "priority": "high"
-                    })
+                    suggestions.append(
+                        {
+                            "action": "clarify_goal_priority",
+                            "reason": "目标过度聚集，建议明确优先级与分工",
+                            "priority": "high",
+                        }
+                    )
                 else:
-                    suggestions.append({
-                        "action": "workshop_alignment",
-                        "reason": "组织对齐研讨，降低不确定性",
-                        "priority": "low"
-                    })
+                    suggestions.append(
+                        {
+                            "action": "workshop_alignment",
+                            "reason": "组织对齐研讨，降低不确定性",
+                            "priority": "low",
+                        }
+                    )
 
             priority_order = {"high": 2, "medium": 1, "low": 0}
-            uniq = { (s["action"], s["reason"]): s for s in suggestions }
-            ordered = sorted(uniq.values(), key=lambda x: priority_order.get(x.get("priority", "medium"), 1), reverse=True)
+            uniq = {(s["action"], s["reason"]): s for s in suggestions}
+            ordered = sorted(
+                uniq.values(),
+                key=lambda x: priority_order.get(x.get("priority", "medium"), 1),
+                reverse=True,
+            )
 
             return {"success": True, "remediation_actions": ordered[:10]}
         except Exception as e:
             logger.error(f"冲突缓解建议失败: {e}")
             return {"success": False, "error": str(e)}
-
-
-

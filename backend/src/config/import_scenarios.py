@@ -10,6 +10,7 @@ from pydantic import BaseModel, Field
 
 class TargetTableConfig(BaseModel):
     """目标表配置"""
+
     table_name: str
     display_name: str
     has_lines: bool = False
@@ -19,6 +20,7 @@ class TargetTableConfig(BaseModel):
 
 class MasterDataMatchingConfig(BaseModel):
     """主数据匹配配置"""
+
     enabled: bool = True
     field_name: str
     master_data_type: str  # customer/supplier/sku/channel
@@ -27,6 +29,7 @@ class MasterDataMatchingConfig(BaseModel):
 
 class ValidationRuleConfig(BaseModel):
     """验证规则配置"""
+
     rule_type: str  # required/type/range/pattern/custom
     field: str
     level: str = "error"  # error/warning/info
@@ -36,6 +39,7 @@ class ValidationRuleConfig(BaseModel):
 
 class ImportScenarioConfig(BaseModel):
     """导入场景配置"""
+
     scenario_id: str
     scenario_name: str
     target_tables: Dict[str, TargetTableConfig]  # header/lines配置
@@ -58,13 +62,13 @@ SALES_ORDER_SCENARIO = ImportScenarioConfig(
             display_name="销售订单头表",
             has_lines=True,
             line_table="sales_order_line",
-            header_ref_field="header_id"
+            header_ref_field="header_id",
         ),
         "lines": TargetTableConfig(
             table_name="sales_order_line",
             display_name="销售订单明细表",
-            has_lines=False
-        )
+            has_lines=False,
+        ),
     },
     document_type="header_detail",
     master_data_matching={
@@ -72,47 +76,47 @@ SALES_ORDER_SCENARIO = ImportScenarioConfig(
             enabled=True,
             field_name="customer_code",
             master_data_type="customer",
-            matching_strategy="combined"
+            matching_strategy="combined",
         ),
         "sku": MasterDataMatchingConfig(
             enabled=True,
             field_name="sku_code",
             master_data_type="sku",
-            matching_strategy="combined"
+            matching_strategy="combined",
         ),
         "channel": MasterDataMatchingConfig(
             enabled=False,
             field_name="channel_code",
             master_data_type="channel",
-            matching_strategy="fuzzy"
-        )
+            matching_strategy="fuzzy",
+        ),
     },
     validation_rules=[
         ValidationRuleConfig(
             rule_type="required",
             field="order_date",
             level="error",
-            message="订单日期不能为空"
+            message="订单日期不能为空",
         ),
         ValidationRuleConfig(
             rule_type="required",
             field="customer_id",
             level="error",
-            message="客户ID不能为空，请先匹配客户主数据"
+            message="客户ID不能为空，请先匹配客户主数据",
         ),
         ValidationRuleConfig(
             rule_type="consistency",
             field="total_amount",
             level="error",
-            message="Header总额必须等于Line金额之和"
-        )
+            message="Header总额必须等于Line金额之和",
+        ),
     ],
     import_strategy={
         "format_type": "repeated_header",  # 支持的格式类型
         "batch_size": 1000,  # 批量导入大小
         "enable_auto_match": True,  # 是否启用自动匹配
-        "require_confirmation": True  # 是否需要用户确认
-    }
+        "require_confirmation": True,  # 是否需要用户确认
+    },
 )
 
 
@@ -129,13 +133,11 @@ SHIPMENT_SCENARIO = ImportScenarioConfig(
             display_name="发货单头表",
             has_lines=True,
             line_table="shipment_line",
-            header_ref_field="header_id"
+            header_ref_field="header_id",
         ),
         "lines": TargetTableConfig(
-            table_name="shipment_line",
-            display_name="发货单明细表",
-            has_lines=False
-        )
+            table_name="shipment_line", display_name="发货单明细表", has_lines=False
+        ),
     },
     document_type="header_detail",
     master_data_matching={
@@ -143,29 +145,29 @@ SHIPMENT_SCENARIO = ImportScenarioConfig(
             enabled=True,
             field_name="customer_code",
             master_data_type="customer",
-            matching_strategy="combined"
+            matching_strategy="combined",
         ),
         "sku": MasterDataMatchingConfig(
             enabled=True,
             field_name="sku_code",
             master_data_type="sku",
-            matching_strategy="combined"
-        )
+            matching_strategy="combined",
+        ),
     },
     validation_rules=[
         ValidationRuleConfig(
             rule_type="required",
             field="shipment_date",
             level="error",
-            message="发货日期不能为空"
+            message="发货日期不能为空",
         )
     ],
     import_strategy={
         "format_type": "repeated_header",
         "batch_size": 1000,
         "enable_auto_match": True,
-        "require_confirmation": True
-    }
+        "require_confirmation": True,
+    },
 )
 
 
@@ -182,13 +184,13 @@ SALES_INVOICE_SCENARIO = ImportScenarioConfig(
             display_name="销售发票头表",
             has_lines=True,
             line_table="sales_invoice_line",
-            header_ref_field="header_id"
+            header_ref_field="header_id",
         ),
         "lines": TargetTableConfig(
             table_name="sales_invoice_line",
             display_name="销售发票明细表",
-            has_lines=False
-        )
+            has_lines=False,
+        ),
     },
     document_type="header_detail",
     master_data_matching={
@@ -196,29 +198,29 @@ SALES_INVOICE_SCENARIO = ImportScenarioConfig(
             enabled=True,
             field_name="customer_code",
             master_data_type="customer",
-            matching_strategy="combined"
+            matching_strategy="combined",
         ),
         "sku": MasterDataMatchingConfig(
             enabled=True,
             field_name="sku_code",
             master_data_type="sku",
-            matching_strategy="combined"
-        )
+            matching_strategy="combined",
+        ),
     },
     validation_rules=[
         ValidationRuleConfig(
             rule_type="required",
             field="invoice_date",
             level="error",
-            message="发票日期不能为空"
+            message="发票日期不能为空",
         )
     ],
     import_strategy={
         "format_type": "repeated_header",
         "batch_size": 1000,
         "enable_auto_match": True,
-        "require_confirmation": True
-    }
+        "require_confirmation": True,
+    },
 )
 
 
@@ -235,13 +237,13 @@ PURCHASE_ORDER_SCENARIO = ImportScenarioConfig(
             display_name="采购订单头表",
             has_lines=True,
             line_table="purchase_order_line",
-            header_ref_field="header_id"
+            header_ref_field="header_id",
         ),
         "lines": TargetTableConfig(
             table_name="purchase_order_line",
             display_name="采购订单明细表",
-            has_lines=False
-        )
+            has_lines=False,
+        ),
     },
     document_type="header_detail",
     master_data_matching={
@@ -249,35 +251,35 @@ PURCHASE_ORDER_SCENARIO = ImportScenarioConfig(
             enabled=True,
             field_name="supplier_code",
             master_data_type="supplier",
-            matching_strategy="combined"
+            matching_strategy="combined",
         ),
         "sku": MasterDataMatchingConfig(
             enabled=True,
             field_name="sku_code",
             master_data_type="sku",
-            matching_strategy="combined"
-        )
+            matching_strategy="combined",
+        ),
     },
     validation_rules=[
         ValidationRuleConfig(
             rule_type="required",
             field="po_date",
             level="error",
-            message="采购订单日期不能为空"
+            message="采购订单日期不能为空",
         ),
         ValidationRuleConfig(
             rule_type="required",
             field="supplier_id",
             level="error",
-            message="供应商ID不能为空，请先匹配供应商主数据"
-        )
+            message="供应商ID不能为空，请先匹配供应商主数据",
+        ),
     ],
     import_strategy={
         "format_type": "repeated_header",
         "batch_size": 1000,
         "enable_auto_match": True,
-        "require_confirmation": True
-    }
+        "require_confirmation": True,
+    },
 )
 
 
@@ -294,13 +296,11 @@ RECEIPT_SCENARIO = ImportScenarioConfig(
             display_name="收货单头表",
             has_lines=True,
             line_table="receipt_line",
-            header_ref_field="header_id"
+            header_ref_field="header_id",
         ),
         "lines": TargetTableConfig(
-            table_name="receipt_line",
-            display_name="收货单明细表",
-            has_lines=False
-        )
+            table_name="receipt_line", display_name="收货单明细表", has_lines=False
+        ),
     },
     document_type="header_detail",
     master_data_matching={
@@ -308,29 +308,29 @@ RECEIPT_SCENARIO = ImportScenarioConfig(
             enabled=True,
             field_name="supplier_code",
             master_data_type="supplier",
-            matching_strategy="combined"
+            matching_strategy="combined",
         ),
         "sku": MasterDataMatchingConfig(
             enabled=True,
             field_name="sku_code",
             master_data_type="sku",
-            matching_strategy="combined"
-        )
+            matching_strategy="combined",
+        ),
     },
     validation_rules=[
         ValidationRuleConfig(
             rule_type="required",
             field="receipt_date",
             level="error",
-            message="收货日期不能为空"
+            message="收货日期不能为空",
         )
     ],
     import_strategy={
         "format_type": "repeated_header",
         "batch_size": 1000,
         "enable_auto_match": True,
-        "require_confirmation": True
-    }
+        "require_confirmation": True,
+    },
 )
 
 
@@ -347,13 +347,13 @@ PURCHASE_INVOICE_SCENARIO = ImportScenarioConfig(
             display_name="采购发票头表",
             has_lines=True,
             line_table="purchase_invoice_line",
-            header_ref_field="header_id"
+            header_ref_field="header_id",
         ),
         "lines": TargetTableConfig(
             table_name="purchase_invoice_line",
             display_name="采购发票明细表",
-            has_lines=False
-        )
+            has_lines=False,
+        ),
     },
     document_type="header_detail",
     master_data_matching={
@@ -361,29 +361,29 @@ PURCHASE_INVOICE_SCENARIO = ImportScenarioConfig(
             enabled=True,
             field_name="supplier_code",
             master_data_type="supplier",
-            matching_strategy="combined"
+            matching_strategy="combined",
         ),
         "sku": MasterDataMatchingConfig(
             enabled=True,
             field_name="sku_code",
             master_data_type="sku",
-            matching_strategy="combined"
-        )
+            matching_strategy="combined",
+        ),
     },
     validation_rules=[
         ValidationRuleConfig(
             rule_type="required",
             field="invoice_date",
             level="error",
-            message="发票日期不能为空"
+            message="发票日期不能为空",
         )
     ],
     import_strategy={
         "format_type": "repeated_header",
         "batch_size": 1000,
         "enable_auto_match": True,
-        "require_confirmation": True
-    }
+        "require_confirmation": True,
+    },
 )
 
 
@@ -396,9 +396,7 @@ CUSTOMER_MASTER_SCENARIO = ImportScenarioConfig(
     scenario_name="客户主数据导入",
     target_tables={
         "master": TargetTableConfig(
-            table_name="dim_customer",
-            display_name="客户主数据表",
-            has_lines=False
+            table_name="dim_customer", display_name="客户主数据表", has_lines=False
         )
     },
     document_type="master_data",
@@ -408,21 +406,21 @@ CUSTOMER_MASTER_SCENARIO = ImportScenarioConfig(
             rule_type="required",
             field="customer_name",
             level="error",
-            message="客户名称不能为空"
+            message="客户名称不能为空",
         ),
         ValidationRuleConfig(
             rule_type="unique",
             field="customer_code",
             level="error",
-            message="客户代码必须唯一"
-        )
+            message="客户代码必须唯一",
+        ),
     ],
     import_strategy={
         "format_type": "first_row_header",
         "batch_size": 5000,
         "enable_auto_match": False,
-        "require_confirmation": False
-    }
+        "require_confirmation": False,
+    },
 )
 
 
@@ -435,9 +433,7 @@ SUPPLIER_MASTER_SCENARIO = ImportScenarioConfig(
     scenario_name="供应商主数据导入",
     target_tables={
         "master": TargetTableConfig(
-            table_name="dim_supplier",
-            display_name="供应商主数据表",
-            has_lines=False
+            table_name="dim_supplier", display_name="供应商主数据表", has_lines=False
         )
     },
     document_type="master_data",
@@ -447,15 +443,15 @@ SUPPLIER_MASTER_SCENARIO = ImportScenarioConfig(
             rule_type="required",
             field="supplier_name",
             level="error",
-            message="供应商名称不能为空"
+            message="供应商名称不能为空",
         )
     ],
     import_strategy={
         "format_type": "first_row_header",
         "batch_size": 5000,
         "enable_auto_match": False,
-        "require_confirmation": False
-    }
+        "require_confirmation": False,
+    },
 )
 
 
@@ -468,9 +464,7 @@ SKU_MASTER_SCENARIO = ImportScenarioConfig(
     scenario_name="SKU主数据导入",
     target_tables={
         "master": TargetTableConfig(
-            table_name="dim_sku",
-            display_name="SKU主数据表",
-            has_lines=False
+            table_name="dim_sku", display_name="SKU主数据表", has_lines=False
         )
     },
     document_type="master_data",
@@ -480,15 +474,15 @@ SKU_MASTER_SCENARIO = ImportScenarioConfig(
             rule_type="required",
             field="sku_name",
             level="error",
-            message="SKU名称不能为空"
+            message="SKU名称不能为空",
         )
     ],
     import_strategy={
         "format_type": "first_row_header",
         "batch_size": 5000,
         "enable_auto_match": False,
-        "require_confirmation": False
-    }
+        "require_confirmation": False,
+    },
 )
 
 
@@ -505,13 +499,14 @@ IMPORT_SCENARIOS: Dict[str, ImportScenarioConfig] = {
     "purchase_invoice": PURCHASE_INVOICE_SCENARIO,
     "customer_master": CUSTOMER_MASTER_SCENARIO,
     "supplier_master": SUPPLIER_MASTER_SCENARIO,
-    "sku_master": SKU_MASTER_SCENARIO
+    "sku_master": SKU_MASTER_SCENARIO,
 }
 
 
 # ============================================
 # 辅助函数
 # ============================================
+
 
 def get_scenario(scenario_id: str) -> Optional[ImportScenarioConfig]:
     """根据场景ID获取场景配置"""
@@ -527,13 +522,13 @@ def get_scenario_by_document_type(document_type: str) -> Optional[ImportScenario
         "SI": "sales_invoice",
         "PO": "purchase_order",
         "RC": "receipt",
-        "PI": "purchase_invoice"
+        "PI": "purchase_invoice",
     }
-    
+
     scenario_id = doc_type_to_scenario.get(document_type)
     if scenario_id:
         return IMPORT_SCENARIOS.get(scenario_id)
-    
+
     return None
 
 
@@ -548,9 +543,8 @@ def get_scenarios_by_category(category: str) -> List[ImportScenarioConfig]:
     categories = {
         "销售流程": ["sales_order", "shipment", "sales_invoice"],
         "采购流程": ["purchase_order", "receipt", "purchase_invoice"],
-        "主数据": ["customer_master", "supplier_master", "sku_master"]
+        "主数据": ["customer_master", "supplier_master", "sku_master"],
     }
-    
+
     scenario_ids = categories.get(category, [])
     return [IMPORT_SCENARIOS[sid] for sid in scenario_ids if sid in IMPORT_SCENARIOS]
-

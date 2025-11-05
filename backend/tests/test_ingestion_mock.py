@@ -7,7 +7,9 @@ client = TestClient(app)
 
 def test_start_batch_and_list_issues():
     # start batch
-    resp = client.post("/ingestion/batches:start", json={"source_system": "ERP", "files": ["s.csv"]})
+    resp = client.post(
+        "/ingestion/batches:start", json={"source_system": "ERP", "files": ["s.csv"]}
+    )
     assert resp.status_code == 200
     batch_id = resp.json()["batch_id"]
 
@@ -22,5 +24,3 @@ def test_ingestion_rules_get():
     assert resp.status_code == 200
     data = resp.json()
     assert isinstance(data, list)
-
-

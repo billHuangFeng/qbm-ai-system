@@ -19,8 +19,10 @@ router = APIRouter(prefix="/learning", tags=["学习模块"])
 
 # Pydantic 模型
 
+
 class CreateCourseRequest(BaseModel):
     """创建课程请求"""
+
     title: str = Field(..., min_length=1, max_length=500)
     description: Optional[str] = None
     knowledge_ids: Optional[List[str]] = []
@@ -33,6 +35,7 @@ class CreateCourseRequest(BaseModel):
 
 class CreateLearningPathRequest(BaseModel):
     """创建学习路径请求"""
+
     title: str = Field(..., min_length=1, max_length=500)
     description: Optional[str] = None
     objective: Optional[str] = None
@@ -43,6 +46,7 @@ class CreateLearningPathRequest(BaseModel):
 
 class UpdateProgressRequest(BaseModel):
     """更新学习进度请求"""
+
     progress_percentage: Optional[float] = Field(None, ge=0, le=100)
     time_spent_minutes: Optional[int] = Field(None, ge=0)
     notes: Optional[str] = None
@@ -50,19 +54,22 @@ class UpdateProgressRequest(BaseModel):
 
 class SubmitExerciseRequest(BaseModel):
     """提交练习答案请求"""
+
     answer: Any = Field(..., description="答案（格式取决于题型）")
 
 
 class SubmitTestRequest(BaseModel):
     """提交测试请求"""
+
     answers: Dict[str, Any] = Field(..., description="答案字典 {exercise_id: answer}")
     time_spent_minutes: int = Field(..., ge=0)
 
 
 # 依赖注入
 
+
 async def get_learning_service(
-    db: DatabaseService = Depends(get_database_service)
+    db: DatabaseService = Depends(get_database_service),
 ) -> LearningService:
     """获取学习服务"""
     return LearningService(db_service=db)
@@ -70,19 +77,15 @@ async def get_learning_service(
 
 def get_current_user_mock() -> Dict[str, Any]:
     """模拟获取当前用户"""
-    return {
-        "user_id": "test_user",
-        "tenant_id": "test_tenant",
-        "role": "admin"
-    }
+    return {"user_id": "test_user", "tenant_id": "test_tenant", "role": "admin"}
 
 
 # ========== 文档浏览端点 ==========
 
+
 @router.get("/knowledge/{knowledge_id}")
 async def browse_knowledge(
-    knowledge_id: str,
-    current_user: Dict[str, Any] = Depends(get_current_user_mock)
+    knowledge_id: str, current_user: Dict[str, Any] = Depends(get_current_user_mock)
 ):
     """浏览知识文档"""
     try:
@@ -90,23 +93,24 @@ async def browse_knowledge(
         return {
             "success": True,
             "message": "浏览知识文档功能，需要集成 ExpertKnowledgeService",
-            "knowledge_id": knowledge_id
+            "knowledge_id": knowledge_id,
         }
     except Exception as e:
         logger.error(f"浏览知识文档失败: {e}")
         raise HTTPException(
             status_code=status.HTTP_500_INTERNAL_SERVER_ERROR,
-            detail=f"浏览知识文档失败: {str(e)}"
+            detail=f"浏览知识文档失败: {str(e)}",
         )
 
 
 # ========== 课程体系端点 ==========
 
+
 @router.post("/courses/", status_code=status.HTTP_201_CREATED)
 async def create_course(
     request: CreateCourseRequest,
     current_user: Dict[str, Any] = Depends(get_current_user_mock),
-    service: LearningService = Depends(get_learning_service)
+    service: LearningService = Depends(get_learning_service),
 ):
     """创建课程"""
     try:
@@ -120,20 +124,16 @@ async def create_course(
             difficulty_level=request.difficulty_level,
             prerequisites=request.prerequisites,
             cover_image_url=request.cover_image_url,
-            created_by=current_user["user_id"]
+            created_by=current_user["user_id"],
         )
-        
-        return {
-            "success": True,
-            "message": "课程创建成功",
-            **result
-        }
-        
+
+        return {"success": True, "message": "课程创建成功", **result}
+
     except Exception as e:
         logger.error(f"创建课程失败: {e}")
         raise HTTPException(
             status_code=status.HTTP_500_INTERNAL_SERVER_ERROR,
-            detail=f"创建课程失败: {str(e)}"
+            detail=f"创建课程失败: {str(e)}",
         )
 
 
@@ -144,7 +144,7 @@ async def list_courses(
     limit: int = 20,
     offset: int = 0,
     current_user: Dict[str, Any] = Depends(get_current_user_mock),
-    service: LearningService = Depends(get_learning_service)
+    service: LearningService = Depends(get_learning_service),
 ):
     """获取课程列表"""
     try:
@@ -153,19 +153,16 @@ async def list_courses(
             is_published=is_published,
             difficulty_level=difficulty_level,
             limit=limit,
-            offset=offset
+            offset=offset,
         )
-        
-        return {
-            "success": True,
-            **result
-        }
-        
+
+        return {"success": True, **result}
+
     except Exception as e:
         logger.error(f"获取课程列表失败: {e}")
         raise HTTPException(
             status_code=status.HTTP_500_INTERNAL_SERVER_ERROR,
-            detail=f"获取课程列表失败: {str(e)}"
+            detail=f"获取课程列表失败: {str(e)}",
         )
 
 
@@ -173,30 +170,26 @@ async def list_courses(
 async def get_course(
     course_id: str,
     current_user: Dict[str, Any] = Depends(get_current_user_mock),
-    service: LearningService = Depends(get_learning_service)
+    service: LearningService = Depends(get_learning_service),
 ):
     """获取课程详情"""
     try:
         course = await service.get_course_by_id(course_id, current_user["tenant_id"])
-        
+
         if not course:
             raise HTTPException(
-                status_code=status.HTTP_404_NOT_FOUND,
-                detail="课程不存在"
+                status_code=status.HTTP_404_NOT_FOUND, detail="课程不存在"
             )
-        
-        return {
-            "success": True,
-            "course": course
-        }
-        
+
+        return {"success": True, "course": course}
+
     except HTTPException:
         raise
     except Exception as e:
         logger.error(f"获取课程详情失败: {e}")
         raise HTTPException(
             status_code=status.HTTP_500_INTERNAL_SERVER_ERROR,
-            detail=f"获取课程详情失败: {str(e)}"
+            detail=f"获取课程详情失败: {str(e)}",
         )
 
 
@@ -204,27 +197,23 @@ async def get_course(
 async def enroll_course(
     course_id: str,
     current_user: Dict[str, Any] = Depends(get_current_user_mock),
-    service: LearningService = Depends(get_learning_service)
+    service: LearningService = Depends(get_learning_service),
 ):
     """注册课程"""
     try:
         result = await service.start_learning(
             user_id=current_user["user_id"],
             tenant_id=current_user["tenant_id"],
-            course_id=course_id
+            course_id=course_id,
         )
-        
-        return {
-            "success": True,
-            "message": "课程注册成功",
-            **result
-        }
-        
+
+        return {"success": True, "message": "课程注册成功", **result}
+
     except Exception as e:
         logger.error(f"注册课程失败: {e}")
         raise HTTPException(
             status_code=status.HTTP_500_INTERNAL_SERVER_ERROR,
-            detail=f"注册课程失败: {str(e)}"
+            detail=f"注册课程失败: {str(e)}",
         )
 
 
@@ -232,43 +221,39 @@ async def enroll_course(
 async def get_course_progress(
     course_id: str,
     current_user: Dict[str, Any] = Depends(get_current_user_mock),
-    service: LearningService = Depends(get_learning_service)
+    service: LearningService = Depends(get_learning_service),
 ):
     """获取学习进度"""
     try:
         progress = await service.get_learning_progress(
-            user_id=current_user["user_id"],
-            course_id=course_id
+            user_id=current_user["user_id"], course_id=course_id
         )
-        
+
         if not progress:
             raise HTTPException(
-                status_code=status.HTTP_404_NOT_FOUND,
-                detail="学习记录不存在"
+                status_code=status.HTTP_404_NOT_FOUND, detail="学习记录不存在"
             )
-        
-        return {
-            "success": True,
-            "progress": progress
-        }
-        
+
+        return {"success": True, "progress": progress}
+
     except HTTPException:
         raise
     except Exception as e:
         logger.error(f"获取学习进度失败: {e}")
         raise HTTPException(
             status_code=status.HTTP_500_INTERNAL_SERVER_ERROR,
-            detail=f"获取学习进度失败: {str(e)}"
+            detail=f"获取学习进度失败: {str(e)}",
         )
 
 
 # ========== 学习路径端点 ==========
 
+
 @router.post("/paths/", status_code=status.HTTP_201_CREATED)
 async def create_learning_path(
     request: CreateLearningPathRequest,
     current_user: Dict[str, Any] = Depends(get_current_user_mock),
-    service: LearningService = Depends(get_learning_service)
+    service: LearningService = Depends(get_learning_service),
 ):
     """创建学习路径"""
     try:
@@ -280,20 +265,16 @@ async def create_learning_path(
             course_ids=request.course_ids,
             target_audience=request.target_audience,
             estimated_total_hours=request.estimated_total_hours,
-            created_by=current_user["user_id"]
+            created_by=current_user["user_id"],
         )
-        
-        return {
-            "success": True,
-            "message": "学习路径创建成功",
-            **result
-        }
-        
+
+        return {"success": True, "message": "学习路径创建成功", **result}
+
     except Exception as e:
         logger.error(f"创建学习路径失败: {e}")
         raise HTTPException(
             status_code=status.HTTP_500_INTERNAL_SERVER_ERROR,
-            detail=f"创建学习路径失败: {str(e)}"
+            detail=f"创建学习路径失败: {str(e)}",
         )
 
 
@@ -303,21 +284,17 @@ async def list_learning_paths(
     limit: int = 20,
     offset: int = 0,
     current_user: Dict[str, Any] = Depends(get_current_user_mock),
-    service: LearningService = Depends(get_learning_service)
+    service: LearningService = Depends(get_learning_service),
 ):
     """获取学习路径列表"""
     try:
         # 这里应该实现列表查询，暂时简化
-        return {
-            "success": True,
-            "message": "学习路径列表功能待完善",
-            "paths": []
-        }
+        return {"success": True, "message": "学习路径列表功能待完善", "paths": []}
     except Exception as e:
         logger.error(f"获取学习路径列表失败: {e}")
         raise HTTPException(
             status_code=status.HTTP_500_INTERNAL_SERVER_ERROR,
-            detail=f"获取学习路径列表失败: {str(e)}"
+            detail=f"获取学习路径列表失败: {str(e)}",
         )
 
 
@@ -325,30 +302,26 @@ async def list_learning_paths(
 async def get_learning_path(
     path_id: str,
     current_user: Dict[str, Any] = Depends(get_current_user_mock),
-    service: LearningService = Depends(get_learning_service)
+    service: LearningService = Depends(get_learning_service),
 ):
     """获取学习路径详情"""
     try:
         path = await service.get_learning_path_by_id(path_id, current_user["tenant_id"])
-        
+
         if not path:
             raise HTTPException(
-                status_code=status.HTTP_404_NOT_FOUND,
-                detail="学习路径不存在"
+                status_code=status.HTTP_404_NOT_FOUND, detail="学习路径不存在"
             )
-        
-        return {
-            "success": True,
-            "path": path
-        }
-        
+
+        return {"success": True, "path": path}
+
     except HTTPException:
         raise
     except Exception as e:
         logger.error(f"获取学习路径详情失败: {e}")
         raise HTTPException(
             status_code=status.HTTP_500_INTERNAL_SERVER_ERROR,
-            detail=f"获取学习路径详情失败: {str(e)}"
+            detail=f"获取学习路径详情失败: {str(e)}",
         )
 
 
@@ -356,54 +329,53 @@ async def get_learning_path(
 async def start_learning_path(
     path_id: str,
     current_user: Dict[str, Any] = Depends(get_current_user_mock),
-    service: LearningService = Depends(get_learning_service)
+    service: LearningService = Depends(get_learning_service),
 ):
     """开始学习路径"""
     try:
         # 获取路径信息
         path = await service.get_learning_path_by_id(path_id, current_user["tenant_id"])
-        
+
         if not path:
             raise HTTPException(
-                status_code=status.HTTP_404_NOT_FOUND,
-                detail="学习路径不存在"
+                status_code=status.HTTP_404_NOT_FOUND, detail="学习路径不存在"
             )
-        
+
         # 注册第一个课程
-        course_ids = path.get('course_ids', [])
+        course_ids = path.get("course_ids", [])
         if not course_ids:
             raise HTTPException(
-                status_code=status.HTTP_400_BAD_REQUEST,
-                detail="学习路径中没有课程"
+                status_code=status.HTTP_400_BAD_REQUEST, detail="学习路径中没有课程"
             )
-        
+
         # 注册第一个课程
         first_course_id = course_ids[0]
         result = await service.start_learning(
             user_id=current_user["user_id"],
             tenant_id=current_user["tenant_id"],
-            course_id=first_course_id
+            course_id=first_course_id,
         )
-        
+
         return {
             "success": True,
             "message": "学习路径开始成功",
             "path_id": path_id,
             "first_course_id": first_course_id,
-            **result
+            **result,
         }
-        
+
     except HTTPException:
         raise
     except Exception as e:
         logger.error(f"开始学习路径失败: {e}")
         raise HTTPException(
             status_code=status.HTTP_500_INTERNAL_SERVER_ERROR,
-            detail=f"开始学习路径失败: {str(e)}"
+            detail=f"开始学习路径失败: {str(e)}",
         )
 
 
 # ========== 交互式学习端点 ==========
+
 
 @router.get("/courses/{course_id}/exercises")
 async def get_exercises(
@@ -411,27 +383,21 @@ async def get_exercises(
     knowledge_id: Optional[str] = None,
     exercise_type: Optional[str] = None,
     current_user: Dict[str, Any] = Depends(get_current_user_mock),
-    service: LearningService = Depends(get_learning_service)
+    service: LearningService = Depends(get_learning_service),
 ):
     """获取练习题"""
     try:
         exercises = await service.get_exercises(
-            course_id=course_id,
-            knowledge_id=knowledge_id,
-            exercise_type=exercise_type
+            course_id=course_id, knowledge_id=knowledge_id, exercise_type=exercise_type
         )
-        
-        return {
-            "success": True,
-            "exercises": exercises,
-            "count": len(exercises)
-        }
-        
+
+        return {"success": True, "exercises": exercises, "count": len(exercises)}
+
     except Exception as e:
         logger.error(f"获取练习题失败: {e}")
         raise HTTPException(
             status_code=status.HTTP_500_INTERNAL_SERVER_ERROR,
-            detail=f"获取练习题失败: {str(e)}"
+            detail=f"获取练习题失败: {str(e)}",
         )
 
 
@@ -440,27 +406,23 @@ async def submit_exercise(
     exercise_id: str,
     request: SubmitExerciseRequest,
     current_user: Dict[str, Any] = Depends(get_current_user_mock),
-    service: LearningService = Depends(get_learning_service)
+    service: LearningService = Depends(get_learning_service),
 ):
     """提交练习答案"""
     try:
         result = await service.submit_exercise_answer(
             exercise_id=exercise_id,
             user_id=current_user["user_id"],
-            answer=request.answer
+            answer=request.answer,
         )
-        
-        return {
-            "success": True,
-            "message": "答案提交成功",
-            **result
-        }
-        
+
+        return {"success": True, "message": "答案提交成功", **result}
+
     except Exception as e:
         logger.error(f"提交练习答案失败: {e}")
         raise HTTPException(
             status_code=status.HTTP_500_INTERNAL_SERVER_ERROR,
-            detail=f"提交练习答案失败: {str(e)}"
+            detail=f"提交练习答案失败: {str(e)}",
         )
 
 
@@ -468,30 +430,26 @@ async def submit_exercise(
 async def get_test(
     course_id: str,
     current_user: Dict[str, Any] = Depends(get_current_user_mock),
-    service: LearningService = Depends(get_learning_service)
+    service: LearningService = Depends(get_learning_service),
 ):
     """获取测试"""
     try:
         test = await service.get_test_by_course(course_id)
-        
+
         if not test:
             raise HTTPException(
-                status_code=status.HTTP_404_NOT_FOUND,
-                detail="测试不存在"
+                status_code=status.HTTP_404_NOT_FOUND, detail="测试不存在"
             )
-        
-        return {
-            "success": True,
-            "test": test
-        }
-        
+
+        return {"success": True, "test": test}
+
     except HTTPException:
         raise
     except Exception as e:
         logger.error(f"获取测试失败: {e}")
         raise HTTPException(
             status_code=status.HTTP_500_INTERNAL_SERVER_ERROR,
-            detail=f"获取测试失败: {str(e)}"
+            detail=f"获取测试失败: {str(e)}",
         )
 
 
@@ -500,7 +458,7 @@ async def submit_test(
     test_id: str,
     request: SubmitTestRequest,
     current_user: Dict[str, Any] = Depends(get_current_user_mock),
-    service: LearningService = Depends(get_learning_service)
+    service: LearningService = Depends(get_learning_service),
 ):
     """提交测试"""
     try:
@@ -509,20 +467,16 @@ async def submit_test(
             user_id=current_user["user_id"],
             tenant_id=current_user["tenant_id"],
             answers=request.answers,
-            time_spent_minutes=request.time_spent_minutes
+            time_spent_minutes=request.time_spent_minutes,
         )
-        
-        return {
-            "success": True,
-            "message": "测试提交成功",
-            **result
-        }
-        
+
+        return {"success": True, "message": "测试提交成功", **result}
+
     except Exception as e:
         logger.error(f"提交测试失败: {e}")
         raise HTTPException(
             status_code=status.HTTP_500_INTERNAL_SERVER_ERROR,
-            detail=f"提交测试失败: {str(e)}"
+            detail=f"提交测试失败: {str(e)}",
         )
 
 
@@ -531,7 +485,7 @@ async def update_learning_progress(
     course_id: str,
     request: UpdateProgressRequest,
     current_user: Dict[str, Any] = Depends(get_current_user_mock),
-    service: LearningService = Depends(get_learning_service)
+    service: LearningService = Depends(get_learning_service),
 ):
     """更新学习进度"""
     try:
@@ -540,20 +494,14 @@ async def update_learning_progress(
             course_id=course_id,
             progress_percentage=request.progress_percentage,
             time_spent_minutes=request.time_spent_minutes,
-            notes=request.notes
+            notes=request.notes,
         )
-        
-        return {
-            "success": True,
-            "message": "学习进度更新成功",
-            **result
-        }
-        
+
+        return {"success": True, "message": "学习进度更新成功", **result}
+
     except Exception as e:
         logger.error(f"更新学习进度失败: {e}")
         raise HTTPException(
             status_code=status.HTTP_500_INTERNAL_SERVER_ERROR,
-            detail=f"更新学习进度失败: {str(e)}"
+            detail=f"更新学习进度失败: {str(e)}",
         )
-
-

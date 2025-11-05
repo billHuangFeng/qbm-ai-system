@@ -2,8 +2,18 @@
 核心算法包
 """
 
-from .linear_models import LinearRegressionModel, RidgeModel, LassoModel, ElasticNetModel
-from .ensemble_models import RandomForestModel, XGBoostModel, LightGBMModel, GradientBoostingModel
+from .linear_models import (
+    LinearRegressionModel,
+    RidgeModel,
+    LassoModel,
+    ElasticNetModel,
+)
+from .ensemble_models import (
+    RandomForestModel,
+    XGBoostModel,
+    LightGBMModel,
+    GradientBoostingModel,
+)
 from .neural_networks import MLPModel, DeepMLPModel, WideMLPModel
 from .time_series import ARIMAModel, VARModel
 from .synergy_analysis import SynergyAnalysis
@@ -19,10 +29,10 @@ __all__ = [
     # 线性模型
     "LinearRegressionModel",
     "RidgeModel",
-    "LassoModel", 
+    "LassoModel",
     "ElasticNetModel",
     # 集成模型
-    "RandomForestModel", 
+    "RandomForestModel",
     "XGBoostModel",
     "LightGBMModel",
     "GradientBoostingModel",
@@ -35,12 +45,12 @@ __all__ = [
     "VARModel",
     # 高级分析
     "SynergyAnalysis",
-    "ThresholdAnalysis", 
+    "ThresholdAnalysis",
     "LagAnalysis",
     "AdvancedRelationships",
     # 动态权重
     "DynamicWeightCalculator",
     "WeightOptimization",
     "WeightValidation",
-    "WeightMonitoring"
+    "WeightMonitoring",
 ]

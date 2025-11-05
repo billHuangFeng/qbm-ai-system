@@ -23,4 +23,3 @@ def test_influence_analyze_propagation():
     resp = client.post("/ai-influence/analyze-propagation", json=payload)
     assert resp.status_code == 200
     assert resp.json() is not None
-

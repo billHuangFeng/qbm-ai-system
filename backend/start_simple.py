@@ -8,7 +8,10 @@ import sys
 from pathlib import Path
 
 # 设置环境变量
-os.environ.setdefault("JWT_SECRET_KEY", "bmos-super-secure-jwt-secret-key-minimum-32-characters-long-for-development")
+os.environ.setdefault(
+    "JWT_SECRET_KEY",
+    "bmos-super-secure-jwt-secret-key-minimum-32-characters-long-for-development",
+)
 os.environ.setdefault("POSTGRES_HOST", "localhost")
 os.environ.setdefault("POSTGRES_PORT", "5432")
 os.environ.setdefault("POSTGRES_USER", "bmos_user")
@@ -32,9 +35,7 @@ import uvicorn
 
 # 创建FastAPI应用
 app = FastAPI(
-    title="BMOS系统",
-    description="基于机器学习的企业决策优化系统",
-    version="1.0.0"
+    title="BMOS系统", description="基于机器学习的企业决策优化系统", version="1.0.0"
 )
 
 # 添加CORS中间件
@@ -46,10 +47,12 @@ app.add_middleware(
     allow_headers=["*"],
 )
 
+
 # 添加基本路由
 @app.get("/")
 async def root():
     return {"message": "BMOS系统API服务正在运行", "status": "healthy"}
+
 
 @app.get("/health")
 async def health_check():
@@ -57,12 +60,9 @@ async def health_check():
         "status": "healthy",
         "timestamp": "2025-10-28T08:00:00Z",
         "version": "1.0.0",
-        "services": {
-            "api": "running",
-            "database": "connected",
-            "cache": "connected"
-        }
+        "services": {"api": "running", "database": "connected", "cache": "connected"},
     }
+
 
 @app.get("/api/v1/status")
 async def api_status():
@@ -76,29 +76,27 @@ async def api_status():
             "/api/v1/models/",
             "/api/v1/predictions/",
             "/api/v1/memories/",
-            "/api/v1/data-import/"
-        ]
+            "/api/v1/data-import/",
+        ],
     }
+
 
 if __name__ == "__main__":
     import sys
     import io
+
     # 修复Windows控制台编码问题
-    if sys.platform == 'win32':
-        sys.stdout = io.TextIOWrapper(sys.stdout.buffer, encoding='utf-8', errors='replace')
-        sys.stderr = io.TextIOWrapper(sys.stderr.buffer, encoding='utf-8', errors='replace')
-    
+    if sys.platform == "win32":
+        sys.stdout = io.TextIOWrapper(
+            sys.stdout.buffer, encoding="utf-8", errors="replace"
+        )
+        sys.stderr = io.TextIOWrapper(
+            sys.stderr.buffer, encoding="utf-8", errors="replace"
+        )
+
     print("启动BMOS系统API服务...")
     print("服务地址: http://localhost:8000")
     print("API文档: http://localhost:8000/docs")
     print("健康检查: http://localhost:8000/health")
-    
-    uvicorn.run(
-        app,
-        host="0.0.0.0",
-        port=8000,
-        reload=True,
-        log_level="info"
-    )
 
-
+    uvicorn.run(app, host="0.0.0.0", port=8000, reload=True, log_level="info")

@@ -71,7 +71,9 @@ async def get_optimizer(
 
 
 @router.post("/analyze-propagation")
-async def analyze_propagation(req: AnalyzePropagationRequest, svc: AIInfluencePropagator = Depends(get_propagator)):
+async def analyze_propagation(
+    req: AnalyzePropagationRequest, svc: AIInfluencePropagator = Depends(get_propagator)
+):
     try:
         result = await svc.analyze_influence_propagation(
             source_decision=req.source_decision.dict(),
@@ -81,11 +83,15 @@ async def analyze_propagation(req: AnalyzePropagationRequest, svc: AIInfluencePr
         return result
     except Exception as e:
         logger.error(f"影响传播分析失败: {e}")
-        raise HTTPException(status_code=status.HTTP_500_INTERNAL_SERVER_ERROR, detail=str(e))
+        raise HTTPException(
+            status_code=status.HTTP_500_INTERNAL_SERVER_ERROR, detail=str(e)
+        )
 
 
 @router.post("/impact")
-async def calculate_impact(req: ImpactRequest, svc: AIInfluencePropagator = Depends(get_propagator)):
+async def calculate_impact(
+    req: ImpactRequest, svc: AIInfluencePropagator = Depends(get_propagator)
+):
     try:
         result = await svc.calculate_influence_impact(
             decision_id=req.decision_id,
@@ -95,21 +101,29 @@ async def calculate_impact(req: ImpactRequest, svc: AIInfluencePropagator = Depe
         return result
     except Exception as e:
         logger.error(f"影响冲击计算失败: {e}")
-        raise HTTPException(status_code=status.HTTP_500_INTERNAL_SERVER_ERROR, detail=str(e))
+        raise HTTPException(
+            status_code=status.HTTP_500_INTERNAL_SERVER_ERROR, detail=str(e)
+        )
 
 
 @router.post("/detect-conflicts")
-async def detect_conflicts(req: ConflictDetectRequest, svc: AIInfluencePropagator = Depends(get_propagator)):
+async def detect_conflicts(
+    req: ConflictDetectRequest, svc: AIInfluencePropagator = Depends(get_propagator)
+):
     try:
         result = await svc.detect_influence_conflicts(decisions=req.decisions)
         return result
     except Exception as e:
         logger.error(f"影响冲突检测失败: {e}")
-        raise HTTPException(status_code=status.HTTP_500_INTERNAL_SERVER_ERROR, detail=str(e))
+        raise HTTPException(
+            status_code=status.HTTP_500_INTERNAL_SERVER_ERROR, detail=str(e)
+        )
 
 
 @router.post("/optimize-paths")
-async def optimize_paths(req: OptimizePathsRequest, optimizer: AIInfluenceOptimizer = Depends(get_optimizer)):
+async def optimize_paths(
+    req: OptimizePathsRequest, optimizer: AIInfluenceOptimizer = Depends(get_optimizer)
+):
     try:
         result = await optimizer.optimize_influence_paths(
             influence_report=req.influence_report,
@@ -119,11 +133,16 @@ async def optimize_paths(req: OptimizePathsRequest, optimizer: AIInfluenceOptimi
         return result
     except Exception as e:
         logger.error(f"影响路径优化失败: {e}")
-        raise HTTPException(status_code=status.HTTP_500_INTERNAL_SERVER_ERROR, detail=str(e))
+        raise HTTPException(
+            status_code=status.HTTP_500_INTERNAL_SERVER_ERROR, detail=str(e)
+        )
 
 
 @router.post("/allocate-resources")
-async def allocate_resources(req: AllocateResourcesRequest, optimizer: AIInfluenceOptimizer = Depends(get_optimizer)):
+async def allocate_resources(
+    req: AllocateResourcesRequest,
+    optimizer: AIInfluenceOptimizer = Depends(get_optimizer),
+):
     try:
         result = await optimizer.allocate_resources_for_max_impact(
             decisions=req.decisions,
@@ -132,17 +151,21 @@ async def allocate_resources(req: AllocateResourcesRequest, optimizer: AIInfluen
         return result
     except Exception as e:
         logger.error(f"资源分配失败: {e}")
-        raise HTTPException(status_code=status.HTTP_500_INTERNAL_SERVER_ERROR, detail=str(e))
+        raise HTTPException(
+            status_code=status.HTTP_500_INTERNAL_SERVER_ERROR, detail=str(e)
+        )
 
 
 @router.post("/mitigate-conflicts")
-async def mitigate_conflicts(req: MitigateConflictsRequest, optimizer: AIInfluenceOptimizer = Depends(get_optimizer)):
+async def mitigate_conflicts(
+    req: MitigateConflictsRequest,
+    optimizer: AIInfluenceOptimizer = Depends(get_optimizer),
+):
     try:
         result = await optimizer.mitigate_conflicts(conflicts=req.conflicts)
         return result
     except Exception as e:
         logger.error(f"冲突缓解失败: {e}")
-        raise HTTPException(status_code=status.HTTP_500_INTERNAL_SERVER_ERROR, detail=str(e))
-
-
-
+        raise HTTPException(
+            status_code=status.HTTP_500_INTERNAL_SERVER_ERROR, detail=str(e)
+        )

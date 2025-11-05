@@ -74,32 +74,38 @@ class AIDecisionConsistencyChecker:
                 # 资源冲突
                 for rtype, amount in cur_resources.items():
                     if amount and rd.get("resources", {}).get(rtype):
-                        conflicts.append({
-                            "type": "resource_conflict",
-                            "resource": rtype,
-                            "current": amount,
-                            "related": rd["resources"][rtype],
-                        })
+                        conflicts.append(
+                            {
+                                "type": "resource_conflict",
+                                "resource": rtype,
+                                "current": amount,
+                                "related": rd["resources"][rtype],
+                            }
+                        )
                         conflict_score += 0.1
 
                 # 目标方向矛盾
                 rd_goals = set(rd.get("goals", []))
                 if cur_goals and rd_goals and cur_goals.isdisjoint(rd_goals):
-                    conflicts.append({
-                        "type": "goal_divergence",
-                        "current_goals": list(cur_goals),
-                        "related_goals": list(rd_goals),
-                    })
+                    conflicts.append(
+                        {
+                            "type": "goal_divergence",
+                            "current_goals": list(cur_goals),
+                            "related_goals": list(rd_goals),
+                        }
+                    )
                     conflict_score += 0.2
 
                 # 时序冲突
                 if cur_timeline and rd.get("timeline"):
                     if self._overlap_timeline(cur_timeline, rd["timeline"]):
-                        conflicts.append({
-                            "type": "timeline_overlap",
-                            "current_timeline": cur_timeline,
-                            "related_timeline": rd["timeline"],
-                        })
+                        conflicts.append(
+                            {
+                                "type": "timeline_overlap",
+                                "current_timeline": cur_timeline,
+                                "related_timeline": rd["timeline"],
+                            }
+                        )
                         conflict_score += 0.1
 
             return {
@@ -123,47 +129,63 @@ class AIDecisionConsistencyChecker:
         for c in findings.get("conflicts", []):
             ctype = c.get("type")
             if ctype == "resource_conflict":
-                suggestions.append({
-                    "type": "reallocate_resources",
-                    "title": "调整资源分配",
-                    "content": f"资源 {c.get('resource')} 出现并发占用，建议协同排期或增补资源。",
-                    "priority": "high",
-                })
+                suggestions.append(
+                    {
+                        "type": "reallocate_resources",
+                        "title": "调整资源分配",
+                        "content": f"资源 {c.get('resource')} 出现并发占用，建议协同排期或增补资源。",
+                        "priority": "high",
+                    }
+                )
             elif ctype == "goal_divergence":
-                suggestions.append({
-                    "type": "align_goals",
-                    "title": "目标对齐会议",
-                    "content": "与相关团队组织快速对齐会，统一目标方向或拆分阶段性目标。",
-                    "priority": "high",
-                })
+                suggestions.append(
+                    {
+                        "type": "align_goals",
+                        "title": "目标对齐会议",
+                        "content": "与相关团队组织快速对齐会，统一目标方向或拆分阶段性目标。",
+                        "priority": "high",
+                    }
+                )
             elif ctype == "timeline_overlap":
-                suggestions.append({
-                    "type": "reschedule",
-                    "title": "调整时序",
-                    "content": "存在时间重叠，建议调整里程碑或采用并行可行的交付策略。",
-                    "priority": "medium",
-                })
+                suggestions.append(
+                    {
+                        "type": "reschedule",
+                        "title": "调整时序",
+                        "content": "存在时间重叠，建议调整里程碑或采用并行可行的交付策略。",
+                        "priority": "medium",
+                    }
+                )
 
         # 引用企业记忆中的协同策略
         if self.memory_service:
             try:
                 query = f"决策一致性 纠偏建议 {decision.get('decision_name', '')}"
-                patterns = await self.memory_service.search_similar_patterns(query, limit=3)
+                patterns = await self.memory_service.search_similar_patterns(
+                    query, limit=3
+                )
                 for p in patterns:
                     p_dict = p.dict() if hasattr(p, "dict") else p
-                    suggestions.append({
-                        "type": "memory_based",
-                        "title": "历史经验建议",
-                        "content": p_dict.get("description", ""),
-                        "priority": "medium",
-                    })
+                    suggestions.append(
+                        {
+                            "type": "memory_based",
+                            "title": "历史经验建议",
+                            "content": p_dict.get("description", ""),
+                            "priority": "medium",
+                        }
+                    )
             except Exception as e:
                 logger.warning(f"获取企业记忆建议失败: {e}")
 
         # 去重并按优先级排序
         priority_order = {"critical": 3, "high": 2, "medium": 1, "low": 0}
-        dedup = { (s.get("type"), s.get("title"), s.get("content")): s for s in suggestions }
-        ordered = sorted(dedup.values(), key=lambda s: priority_order.get(s.get("priority", "medium"), 1), reverse=True)
+        dedup = {
+            (s.get("type"), s.get("title"), s.get("content")): s for s in suggestions
+        }
+        ordered = sorted(
+            dedup.values(),
+            key=lambda s: priority_order.get(s.get("priority", "medium"), 1),
+            reverse=True,
+        )
         return ordered[:10]
 
     # ----------------- 内部方法 -----------------
@@ -182,17 +204,21 @@ class AIDecisionConsistencyChecker:
             policies: List[Dict[str, Any]] = []
             for r in rows or []:
                 definition = r.get("rule_definition") or {}
-                policies.append({
-                    "id": r.get("rule_id"),
-                    "name": r.get("rule_name"),
-                    "definition": definition,
-                })
+                policies.append(
+                    {
+                        "id": r.get("rule_id"),
+                        "name": r.get("rule_name"),
+                        "definition": definition,
+                    }
+                )
             return policies
         except Exception as e:
             logger.warning(f"加载策略失败，使用空规则集: {e}")
             return []
 
-    async def _load_related_decisions(self, decision: Dict[str, Any]) -> List[Dict[str, Any]]:
+    async def _load_related_decisions(
+        self, decision: Dict[str, Any]
+    ) -> List[Dict[str, Any]]:
         """根据上下文加载相关决策（同目标、同资源或同周期）"""
         if not self.db_service:
             return []
@@ -211,25 +237,48 @@ class AIDecisionConsistencyChecker:
             logger.warning(f"加载相关决策失败: {e}")
             return []
 
-    def _evaluate_rule(self, decision: Dict[str, Any], rule: Dict[str, Any]) -> Optional[Dict[str, Any]]:
+    def _evaluate_rule(
+        self, decision: Dict[str, Any], rule: Dict[str, Any]
+    ) -> Optional[Dict[str, Any]]:
         """简单规则引擎：基于JSON定义校验一两个条件"""
         try:
-            definition = rule.get("definition") or rule.get("definition") or rule.get("rule") or {}
+            definition = (
+                rule.get("definition")
+                or rule.get("definition")
+                or rule.get("rule")
+                or {}
+            )
             constraints = definition.get("constraints", [])
             for c in constraints:
                 field = c.get("field")
                 op = c.get("op")
                 value = c.get("value")
                 cur = decision
-                for part in (field or '').split('.'):
+                for part in (field or "").split("."):
                     if part:
                         cur = (cur or {}).get(part)
                 if op == "max" and isinstance(cur, (int, float)) and cur > value:
-                    return {"rule": rule.get("name"), "field": field, "type": "max_violation", "current": cur, "limit": value}
+                    return {
+                        "rule": rule.get("name"),
+                        "field": field,
+                        "type": "max_violation",
+                        "current": cur,
+                        "limit": value,
+                    }
                 if op == "min" and isinstance(cur, (int, float)) and cur < value:
-                    return {"rule": rule.get("name"), "field": field, "type": "min_violation", "current": cur, "limit": value}
+                    return {
+                        "rule": rule.get("name"),
+                        "field": field,
+                        "type": "min_violation",
+                        "current": cur,
+                        "limit": value,
+                    }
                 if op == "required" and (cur is None or cur == ""):
-                    return {"rule": rule.get("name"), "field": field, "type": "required_missing"}
+                    return {
+                        "rule": rule.get("name"),
+                        "field": field,
+                        "type": "required_missing",
+                    }
         except Exception as e:
             logger.debug(f"规则评估异常: {e}")
         return None
@@ -243,6 +292,3 @@ class AIDecisionConsistencyChecker:
             return max(s1, s2) <= min(e1, e2)
         except Exception:
             return False
-
-
-

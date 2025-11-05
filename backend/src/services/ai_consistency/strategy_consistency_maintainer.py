@@ -80,7 +80,9 @@ class AIStrategyConsistencyMaintainer:
 
     # ---------------- 内部方法 ----------------
 
-    def _evaluate_alignment(self, objectives: List[Dict[str, Any]], decisions: List[Dict[str, Any]]) -> Dict[str, Any]:
+    def _evaluate_alignment(
+        self, objectives: List[Dict[str, Any]], decisions: List[Dict[str, Any]]
+    ) -> Dict[str, Any]:
         """粗粒度对齐评估：目标覆盖度、优先级一致性、里程碑匹配度"""
         try:
             obj_goals = set()
@@ -95,10 +97,12 @@ class AIStrategyConsistencyMaintainer:
                 if dgoals & obj_goals:
                     covered += 1
                 else:
-                    mismatches.append({
-                        "decision": d.get("decision_name", d.get("id")),
-                        "issue": "no_objective_coverage",
-                    })
+                    mismatches.append(
+                        {
+                            "decision": d.get("decision_name", d.get("id")),
+                            "issue": "no_objective_coverage",
+                        }
+                    )
 
             coverage_ratio = covered / max(1, len(decisions))
             score = 0.6 + 0.4 * coverage_ratio
@@ -106,7 +110,9 @@ class AIStrategyConsistencyMaintainer:
         except Exception:
             return {"score": 0.7, "mismatches": []}
 
-    def _detect_strategy_drift(self, objectives: List[Dict[str, Any]], decisions: List[Dict[str, Any]]) -> Dict[str, Any]:
+    def _detect_strategy_drift(
+        self, objectives: List[Dict[str, Any]], decisions: List[Dict[str, Any]]
+    ) -> Dict[str, Any]:
         """基于目标与执行之间的差距粗测漂移"""
         try:
             planned = sum(o.get("planned_value", 1) for o in objectives)
@@ -117,7 +123,9 @@ class AIStrategyConsistencyMaintainer:
         except Exception:
             return {"has_drift": False, "executed_to_planned": 1.0}
 
-    def _simple_drift_check(self, objectives: List[Dict[str, Any]], metrics: List[Dict[str, Any]]) -> Dict[str, Any]:
+    def _simple_drift_check(
+        self, objectives: List[Dict[str, Any]], metrics: List[Dict[str, Any]]
+    ) -> Dict[str, Any]:
         """基于关键指标的简单漂移检测"""
         metric_map = {m.get("name"): m for m in metrics}
         drift_items: List[Dict[str, Any]] = []
@@ -126,33 +134,43 @@ class AIStrategyConsistencyMaintainer:
             target = o.get("target")
             if key and key in metric_map and isinstance(target, (int, float)):
                 val = metric_map[key].get("value")
-                if isinstance(val, (int, float)) and (val < 0.8 * target or val > 1.2 * target):
-                    drift_items.append({
-                        "objective": o.get("name", "unknown"),
-                        "metric": key,
-                        "target": target,
-                        "current": val,
-                    })
+                if isinstance(val, (int, float)) and (
+                    val < 0.8 * target or val > 1.2 * target
+                ):
+                    drift_items.append(
+                        {
+                            "objective": o.get("name", "unknown"),
+                            "metric": key,
+                            "target": target,
+                            "current": val,
+                        }
+                    )
         return {"has_drift": len(drift_items) > 0, "items": drift_items}
 
-    async def _generate_alignment_actions(self, alignment: Dict[str, Any], drift: Dict[str, Any]) -> List[Dict[str, Any]]:
+    async def _generate_alignment_actions(
+        self, alignment: Dict[str, Any], drift: Dict[str, Any]
+    ) -> List[Dict[str, Any]]:
         actions: List[Dict[str, Any]] = []
 
         for m in alignment.get("mismatches", []):
-            actions.append({
-                "type": "objective_mapping",
-                "title": "为决策补充目标映射",
-                "content": f"决策 {m.get('decision')} 尚未覆盖任何战略目标，建议补齐目标映射。",
-                "priority": "high",
-            })
+            actions.append(
+                {
+                    "type": "objective_mapping",
+                    "title": "为决策补充目标映射",
+                    "content": f"决策 {m.get('decision')} 尚未覆盖任何战略目标，建议补齐目标映射。",
+                    "priority": "high",
+                }
+            )
 
         for item in drift.get("items", []):
-            actions.append({
-                "type": "metric_correction",
-                "title": "关键指标纠偏",
-                "content": f"目标 {item.get('objective')} 的关键指标 {item.get('metric')} 偏离目标，建议制定纠偏计划。",
-                "priority": "high",
-            })
+            actions.append(
+                {
+                    "type": "metric_correction",
+                    "title": "关键指标纠偏",
+                    "content": f"目标 {item.get('objective')} 的关键指标 {item.get('metric')} 偏离目标，建议制定纠偏计划。",
+                    "priority": "high",
+                }
+            )
 
         # 引用企业记忆补充行动
         if self.memory_service:
@@ -160,20 +178,23 @@ class AIStrategyConsistencyMaintainer:
                 patterns = await self.memory_service.get_patterns("trend")
                 for p in patterns[:3]:
                     pdict = p.dict() if hasattr(p, "dict") else p
-                    actions.append({
-                        "type": "memory_reference",
-                        "title": "参考历史趋势建议",
-                        "content": pdict.get("description", ""),
-                        "priority": "medium",
-                    })
+                    actions.append(
+                        {
+                            "type": "memory_reference",
+                            "title": "参考历史趋势建议",
+                            "content": pdict.get("description", ""),
+                            "priority": "medium",
+                        }
+                    )
             except Exception as e:
                 logger.debug(f"加载企业记忆失败（可忽略）: {e}")
 
         # 去重+排序
         priority_order = {"critical": 3, "high": 2, "medium": 1, "low": 0}
-        uniq = { (a.get("type"), a.get("title"), a.get("content")): a for a in actions }
-        ordered = sorted(uniq.values(), key=lambda a: priority_order.get(a.get("priority", "medium"), 1), reverse=True)
+        uniq = {(a.get("type"), a.get("title"), a.get("content")): a for a in actions}
+        ordered = sorted(
+            uniq.values(),
+            key=lambda a: priority_order.get(a.get("priority", "medium"), 1),
+            reverse=True,
+        )
         return ordered
-
-
-

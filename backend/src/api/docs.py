@@ -9,13 +9,14 @@ from fastapi.openapi.utils import get_openapi
 from fastapi.middleware.cors import CORSMiddleware
 import os
 
+
 def create_openapi_schema(app: FastAPI) -> dict:
     """创建OpenAPI规范"""
-    
+
     def custom_openapi():
         if app.openapi_schema:
             return app.openapi_schema
-        
+
         openapi_schema = get_openapi(
             title="BMOS API",
             version="1.0.0",
@@ -154,67 +155,50 @@ def create_openapi_schema(app: FastAPI) -> dict:
             """,
             routes=app.routes,
         )
-        
+
         # 添加自定义标签
         openapi_schema["tags"] = [
-            {
-                "name": "模型训练",
-                "description": "机器学习模型的训练、重训练和管理"
-            },
-            {
-                "name": "企业记忆",
-                "description": "企业记忆的提取、搜索、应用和追踪"
-            },
-            {
-                "name": "预测服务",
-                "description": "基于训练模型的预测和反馈"
-            },
-            {
-                "name": "系统管理",
-                "description": "系统健康检查、配置和监控"
-            }
+            {"name": "模型训练", "description": "机器学习模型的训练、重训练和管理"},
+            {"name": "企业记忆", "description": "企业记忆的提取、搜索、应用和追踪"},
+            {"name": "预测服务", "description": "基于训练模型的预测和反馈"},
+            {"name": "系统管理", "description": "系统健康检查、配置和监控"},
         ]
-        
+
         # 添加服务器信息
         openapi_schema["servers"] = [
-            {
-                "url": "http://localhost:8000",
-                "description": "开发环境"
-            },
-            {
-                "url": "https://api.bmos.ai",
-                "description": "生产环境"
-            }
+            {"url": "http://localhost:8000", "description": "开发环境"},
+            {"url": "https://api.bmos.ai", "description": "生产环境"},
         ]
-        
+
         # 添加安全方案
         openapi_schema["components"]["securitySchemes"] = {
             "BearerAuth": {
                 "type": "http",
                 "scheme": "bearer",
                 "bearerFormat": "JWT",
-                "description": "JWT Token认证"
+                "description": "JWT Token认证",
             }
         }
-        
+
         # 添加全局安全要求
         openapi_schema["security"] = [{"BearerAuth": []}]
-        
+
         app.openapi_schema = openapi_schema
         return app.openapi_schema
-    
+
     return custom_openapi
+
 
 def configure_api_docs(app: FastAPI):
     """配置API文档"""
-    
+
     # 设置自定义OpenAPI
     app.openapi = create_openapi_schema(app)
-    
+
     # 配置Swagger UI
     app.docs_url = "/docs"
     app.redoc_url = "/redoc"
-    
+
     # 添加CORS支持文档访问
     app.add_middleware(
         CORSMiddleware,
@@ -223,8 +207,9 @@ def configure_api_docs(app: FastAPI):
         allow_methods=["*"],
         allow_headers=["*"],
     )
-    
+
     return app
+
 
 # API文档元数据
 API_METADATA = {
@@ -234,17 +219,11 @@ API_METADATA = {
     "contact": {
         "name": "BMOS技术支持",
         "email": "support@bmos.ai",
-        "url": "https://docs.bmos.ai"
+        "url": "https://docs.bmos.ai",
     },
-    "license": {
-        "name": "MIT License",
-        "url": "https://opensource.org/licenses/MIT"
-    },
+    "license": {"name": "MIT License", "url": "https://opensource.org/licenses/MIT"},
     "termsOfService": "https://bmos.ai/terms",
-    "externalDocs": {
-        "description": "BMOS系统文档",
-        "url": "https://docs.bmos.ai"
-    }
+    "externalDocs": {"description": "BMOS系统文档", "url": "https://docs.bmos.ai"},
 }
 
 # API端点分组
@@ -254,33 +233,33 @@ API_TAGS = [
         "description": "机器学习模型的训练、重训练和管理功能",
         "externalDocs": {
             "description": "模型训练指南",
-            "url": "https://docs.bmos.ai/models"
-        }
+            "url": "https://docs.bmos.ai/models",
+        },
     },
     {
         "name": "企业记忆",
         "description": "企业记忆的提取、搜索、应用和追踪功能",
         "externalDocs": {
             "description": "企业记忆指南",
-            "url": "https://docs.bmos.ai/memories"
-        }
+            "url": "https://docs.bmos.ai/memories",
+        },
     },
     {
         "name": "预测服务",
         "description": "基于训练模型的预测和反馈功能",
         "externalDocs": {
             "description": "预测服务指南",
-            "url": "https://docs.bmos.ai/predictions"
-        }
+            "url": "https://docs.bmos.ai/predictions",
+        },
     },
     {
         "name": "系统管理",
         "description": "系统健康检查、配置和监控功能",
         "externalDocs": {
             "description": "系统管理指南",
-            "url": "https://docs.bmos.ai/admin"
-        }
-    }
+            "url": "https://docs.bmos.ai/admin",
+        },
+    },
 ]
 
 # 示例请求和响应
@@ -291,12 +270,9 @@ EXAMPLE_REQUESTS = {
             "model_type": "marginal_analysis",
             "target_variable": "revenue",
             "features": ["asset_investment", "capability_improvement"],
-            "hyperparameters": {
-                "rf_n_estimators": 100,
-                "rf_max_depth": 10
-            },
-            "training_data_period": "2024-01-01 to 2024-12-31"
-        }
+            "hyperparameters": {"rf_n_estimators": 100, "rf_max_depth": 10},
+            "training_data_period": "2024-01-01 to 2024-12-31",
+        },
     },
     "make_prediction": {
         "summary": "执行预测",
@@ -305,12 +281,12 @@ EXAMPLE_REQUESTS = {
             "input_data": {
                 "asset_investment": 1000000,
                 "capability_improvement": 0.15,
-                "market_condition": "good"
+                "market_condition": "good",
             },
             "prediction_type": "single",
             "include_confidence": True,
-            "apply_memory": True
-        }
+            "apply_memory": True,
+        },
     },
     "extract_memory": {
         "summary": "提取企业记忆",
@@ -318,16 +294,13 @@ EXAMPLE_REQUESTS = {
             "evaluation_data": {
                 "evaluationType": "adjust",
                 "metricAdjustments": [
-                    {
-                        "metricName": "revenue",
-                        "adjustmentReason": "市场环境变化"
-                    }
+                    {"metricName": "revenue", "adjustmentReason": "市场环境变化"}
                 ],
-                "evaluationContent": "需要根据市场环境调整预测模型"
+                "evaluationContent": "需要根据市场环境调整预测模型",
             },
-            "historical_evaluations": []
-        }
-    }
+            "historical_evaluations": [],
+        },
+    },
 }
 
 EXAMPLE_RESPONSES = {
@@ -337,8 +310,8 @@ EXAMPLE_RESPONSES = {
             "task_id": "task_123",
             "status": "queued",
             "estimated_time": "10-15分钟",
-            "message": "模型训练任务已提交"
-        }
+            "message": "模型训练任务已提交",
+        },
     },
     "prediction_success": {
         "summary": "预测成功",
@@ -350,14 +323,14 @@ EXAMPLE_RESPONSES = {
                 "confidence": 0.85,
                 "features_importance": {
                     "asset_investment": 0.6,
-                    "capability_improvement": 0.4
-                }
+                    "capability_improvement": 0.4,
+                },
             },
             "confidence_score": 0.85,
             "applied_memories": ["memory_123"],
             "prediction_time": "2024-01-01T00:00:00",
-            "processing_time_ms": 150
-        }
+            "processing_time_ms": 150,
+        },
     },
     "memory_extraction_success": {
         "summary": "记忆提取成功",
@@ -369,13 +342,11 @@ EXAMPLE_RESPONSES = {
                     "memory_type": "pattern",
                     "memory_title": "市场环境调整规则",
                     "memory_description": "当市场环境变化时，需要调整预测模型",
-                    "confidence_score": 0.9
+                    "confidence_score": 0.9,
                 }
             ],
             "memory_count": 1,
-            "message": "成功提取 1 条企业记忆"
-        }
-    }
+            "message": "成功提取 1 条企业记忆",
+        },
+    },
 }
-
-

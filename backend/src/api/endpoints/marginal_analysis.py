@@ -90,7 +90,10 @@ async def list_feedback_config_mock():
             {
                 "config_name": "profit_reinvest_rule",
                 "trigger_conditions": {"profit_delta_gt": 100000},
-                "feedback_actions": {"reinvest_to": ["assets:production", "capability:rd"], "ratio": 0.2},
+                "feedback_actions": {
+                    "reinvest_to": ["assets:production", "capability:rd"],
+                    "ratio": 0.2,
+                },
             }
         ],
         "mock": True,
@@ -114,6 +117,3 @@ async def list_model_parameters_mock():
         ],
         "mock": True,
     }
-
-
-

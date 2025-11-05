@@ -34,14 +34,15 @@ memory_service = None
 db_service = None
 cache_service = None
 
+
 @asynccontextmanager
 async def lifespan(app: FastAPI):
     """应用生命周期管理"""
     global model_training_service, memory_service, db_service, cache_service
-    
+
     # 启动时初始化服务
     logger.info("Initializing BMOS services...")
-    
+
     # 初始化数据库服务（允许降级）
     try:
         db_service = DatabaseService()
@@ -69,21 +70,21 @@ async def lifespan(app: FastAPI):
         model_training_service = None
         memory_service = None
         logger.error(f"Failed to initialize core services: {e}")
-    
+
     # 设置全局服务实例供依赖注入使用
     try:
         set_services(
             model_training_service=model_training_service,
             memory_service=memory_service,
             db_service=db_service,
-            cache_service=cache_service
+            cache_service=cache_service,
         )
         logger.info("Global services registered for dependency injection")
     except Exception as e:
         logger.error(f"Failed to register global services: {e}")
-    
+
     yield
-    
+
     # 关闭时清理资源
     logger.info("Shutting down BMOS services...")
     if db_service:
@@ -91,12 +92,13 @@ async def lifespan(app: FastAPI):
     if cache_service:
         await cache_service.close()
 
+
 # 创建FastAPI应用
 app = FastAPI(
     title="BMOS API",
     description="BMOS边际分析系统API服务\n\n注意: 当前环境支持无数据库(Mock)模式运行，用于端到端验收。",
     version="1.0.0",
-    lifespan=lifespan
+    lifespan=lifespan,
 )
 
 # CORS配置
@@ -111,15 +113,15 @@ app.add_middleware(
 # 安全配置
 security = HTTPBearer()
 
-async def get_current_user(credentials: HTTPAuthorizationCredentials = Depends(security)):
+
+async def get_current_user(
+    credentials: HTTPAuthorizationCredentials = Depends(security),
+):
     """获取当前用户信息"""
     # TODO: 实现JWT token验证
     # 暂时返回模拟用户
-    return {
-        "user_id": "test_user",
-        "tenant_id": "test_tenant",
-        "role": "admin"
-    }
+    return {"user_id": "test_user", "tenant_id": "test_tenant", "role": "admin"}
+
 
 # 请求ID中间件（简易）
 @app.middleware("http")
@@ -129,30 +131,45 @@ async def add_request_id_header(request, call_next):
     response = await call_next(request)
     duration_ms = (datetime.now() - start).total_seconds() * 1000
     try:
-        logging.info("%s %s - %d ms - rid=%s", request.method, request.url.path, int(duration_ms), request_id)
+        logging.info(
+            "%s %s - %d ms - rid=%s",
+            request.method,
+            request.url.path,
+            int(duration_ms),
+            request_id,
+        )
     except Exception:
         pass
     response.headers["X-Request-ID"] = request_id
     response.headers["X-Response-Time-ms"] = str(int(duration_ms))
     return response
 
+
 # 全局异常处理（统一JSON响应）
 @app.exception_handler(Exception)
 async def global_exception_handler(_, exc: Exception):
     logging.exception("Unhandled exception: %s", exc)
-    return JSONResponse(status_code=500, content={
-        "error": {"code": "internal_error", "message": "Internal server error"},
-        "request_id": str(uuid.uuid4()),
-        "timestamp": datetime.now().isoformat(),
-    })
+    return JSONResponse(
+        status_code=500,
+        content={
+            "error": {"code": "internal_error", "message": "Internal server error"},
+            "request_id": str(uuid.uuid4()),
+            "timestamp": datetime.now().isoformat(),
+        },
+    )
+
 
 @app.exception_handler(HTTPException)
 async def http_exception_handler(_, exc: HTTPException):
-    return JSONResponse(status_code=exc.status_code, content={
-        "error": {"code": "http_error", "message": exc.detail},
-        "request_id": str(uuid.uuid4()),
-        "timestamp": datetime.now().isoformat(),
-    })
+    return JSONResponse(
+        status_code=exc.status_code,
+        content={
+            "error": {"code": "http_error", "message": exc.detail},
+            "request_id": str(uuid.uuid4()),
+            "timestamp": datetime.now().isoformat(),
+        },
+    )
+
 
 # 健康检查端点
 @app.get("/health")
@@ -161,20 +178,19 @@ async def health_check():
     return {
         "status": "healthy",
         "timestamp": datetime.now().isoformat(),
-        "mock_mode": {
-            "database": db_service is None,
-            "cache": cache_service is None
-        },
+        "mock_mode": {"database": db_service is None, "cache": cache_service is None},
         "services": {
             "database": "connected" if db_service else "disconnected",
             "cache": "connected" if cache_service else "disconnected",
             "model_training": "ready" if model_training_service else "not_ready",
-            "memory_service": "ready" if memory_service else "not_ready"
-        }
+            "memory_service": "ready" if memory_service else "not_ready",
+        },
     }
+
 
 # 注册API总路由（已在 src/api/router.py 内部选择性加载必要端点）
 app.include_router(api_router)
+
 
 # 根路径
 @app.get("/")
@@ -185,10 +201,7 @@ async def root():
         "version": "1.0.0",
         "docs": "/docs",
         "health": "/health",
-        "mock_mode": {
-            "database": db_service is None,
-            "cache": cache_service is None
-        },
+        "mock_mode": {"database": db_service is None, "cache": cache_service is None},
         "endpoints": {
             "model_training": "/model-training",
             "enterprise_memory": "/enterprise-memory",
@@ -202,15 +215,10 @@ async def root():
             "optimization": "/optimization",
             "models": "/models",
             "ai_strategic": "/ai-strategic",
-            "ai_planning": "/ai-planning"
-        }
+            "ai_planning": "/ai-planning",
+        },
     }
 
+
 if __name__ == "__main__":
-    uvicorn.run(
-        "main:app",
-        host="0.0.0.0",
-        port=8000,
-        reload=True,
-        log_level="info"
-    )
+    uvicorn.run("main:app", host="0.0.0.0", port=8000, reload=True, log_level="info")

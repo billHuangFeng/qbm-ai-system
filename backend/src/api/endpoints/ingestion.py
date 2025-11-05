@@ -11,11 +11,16 @@ router = APIRouter()
 
 # ---- Pydantic models (Mock) ----
 
+
 class StartBatchRequest(BaseModel):
-    source_system: str = Field(..., description="数据来源系统名称或渠道，如 ERP/CRM/SFTP/API")
+    source_system: str = Field(
+        ..., description="数据来源系统名称或渠道，如 ERP/CRM/SFTP/API"
+    )
     time_window_start: Optional[datetime] = None
     time_window_end: Optional[datetime] = None
-    files: Optional[List[str]] = Field(default=None, description="当为文件导入时的文件名列表")
+    files: Optional[List[str]] = Field(
+        default=None, description="当为文件导入时的文件名列表"
+    )
 
 
 class StartBatchResponse(BaseModel):
@@ -77,6 +82,7 @@ class QualityCheck(BaseModel):
 
 
 # ---- Endpoints (Mock implementations) ----
+
 
 @router.post("/batches:start", response_model=StartBatchResponse)
 async def start_batch(payload: StartBatchRequest) -> StartBatchResponse:
@@ -170,7 +176,12 @@ async def apply_issue_fix(
         raise HTTPException(status_code=401, detail="invalid api key")
     if payload.action not in {"apply", "ignore", "custom"}:
         raise HTTPException(status_code=400, detail="invalid action")
-    return {"issue_id": issue_id, "result": "ok", "action": payload.action, "mock_mode": True}
+    return {
+        "issue_id": issue_id,
+        "result": "ok",
+        "action": payload.action,
+        "mock_mode": True,
+    }
 
 
 @router.post("/issues/bulk-apply")
@@ -206,14 +217,27 @@ async def upsert_rule(
     expected = os.getenv("INGESTION_API_KEY")
     if expected and x_api_key != expected:
         raise HTTPException(status_code=401, detail="invalid api key")
-    return Rule(rule_id="r-new", name=payload.name, params=payload.params, version=1, enabled=payload.enabled)
+    return Rule(
+        rule_id="r-new",
+        name=payload.name,
+        params=payload.params,
+        version=1,
+        enabled=payload.enabled,
+    )
 
 
 @router.get("/alias-dictionary", response_model=List[AliasEntry])
 async def get_alias_dictionary(dict_type: str = Query(...)) -> List[AliasEntry]:
     return [
-        AliasEntry(dict_type=dict_type, src_value="Apple Inc.", std_value="APPLE", confidence=0.97),
-        AliasEntry(dict_type=dict_type, src_value="Aplle", std_value="APPLE", confidence=0.88),
+        AliasEntry(
+            dict_type=dict_type,
+            src_value="Apple Inc.",
+            std_value="APPLE",
+            confidence=0.97,
+        ),
+        AliasEntry(
+            dict_type=dict_type, src_value="Aplle", std_value="APPLE", confidence=0.88
+        ),
     ]
 
 
@@ -244,8 +268,12 @@ async def get_reconcile_report(batch_id: str = Query(...)) -> ReconcileReport:
 @router.get("/../data-quality/checks", response_model=List[QualityCheck])
 async def get_quality_checks(batch_id: str = Query(...)) -> List[QualityCheck]:
     return [
-        QualityCheck(batch_id=batch_id, rule_id="Q-duplicate", passed=True, failed_cnt=0),
-        QualityCheck(batch_id=batch_id, rule_id="Q-foreign-key", passed=True, failed_cnt=0),
+        QualityCheck(
+            batch_id=batch_id, rule_id="Q-duplicate", passed=True, failed_cnt=0
+        ),
+        QualityCheck(
+            batch_id=batch_id, rule_id="Q-foreign-key", passed=True, failed_cnt=0
+        ),
     ]
 
 
@@ -254,8 +282,18 @@ async def get_actions(batch_id: str = Query(...)) -> Dict[str, Any]:
     return {
         "batch_id": batch_id,
         "actions": [
-            {"action_id": "a-1", "issue_id": "iss-1", "operator": "admin", "ts": datetime.utcnow().isoformat()},
-            {"action_id": "a-2", "issue_id": "iss-2", "operator": "qa", "ts": datetime.utcnow().isoformat()},
+            {
+                "action_id": "a-1",
+                "issue_id": "iss-1",
+                "operator": "admin",
+                "ts": datetime.utcnow().isoformat(),
+            },
+            {
+                "action_id": "a-2",
+                "issue_id": "iss-2",
+                "operator": "qa",
+                "ts": datetime.utcnow().isoformat(),
+            },
         ],
     }
 
@@ -263,5 +301,3 @@ async def get_actions(batch_id: str = Query(...)) -> Dict[str, Any]:
 @router.post("/batches/{batch_id}:replay")
 async def replay_batch(batch_id: str) -> Dict[str, Any]:
     return {"batch_id": batch_id, "result": "queued"}
-
-
