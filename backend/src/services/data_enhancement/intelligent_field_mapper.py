@@ -914,10 +914,12 @@ class IntelligentFieldMapper(BaseService):
         source_field: str,
         target_field: str,
         source_system: str,
-        document_type: Optional[str],
-        user_id: Optional[str],
-        match_method: str,
-        confidence: float,
+        target_table: str,
+        tenant_id: Optional[str] = None,
+        document_type: Optional[str] = None,
+        user_id: Optional[str] = None,
+        match_method: str = 'manual',
+        confidence: float = 1.0,
         is_confirmed: bool = True
     ):
         """保存映射历史记录"""
@@ -925,14 +927,15 @@ class IntelligentFieldMapper(BaseService):
             return
         
         try:
-            # 检查是否已存在
+            # 检查是否已存在（兼容新旧字段名）
             check_sql = """
                 SELECT id, usage_count
                 FROM field_mapping_history
                 WHERE source_system = :source_system
-                  AND document_type = :document_type
-                  AND source_field_name = :source_field
-                  AND target_field_name = :target_field
+                  AND COALESCE(document_type, '') = COALESCE(:document_type, '')
+                  AND COALESCE(source_field_name, source_field) = :source_field
+                  AND COALESCE(target_field_name, target_field) = :target_field
+                  AND COALESCE(target_table, '') = COALESCE(:target_table, '')
                   AND (user_id = :user_id OR (:user_id IS NULL AND user_id IS NULL))
             """
             params = {
@@ -940,6 +943,7 @@ class IntelligentFieldMapper(BaseService):
                 'document_type': document_type,
                 'source_field': source_field,
                 'target_field': target_field,
+                'target_table': target_table,
                 'user_id': user_id
             }
             
